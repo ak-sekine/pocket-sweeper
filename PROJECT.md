@@ -76,6 +76,26 @@ gb-minesweeper/
 - Gitで管理するファイルは `build/` に置かない。
 - 実行時に不要な自動生成物は `obj/` に置く。
 
+## Makefileの構成
+
+Makefileは以下を行う。
+
+- `src/*.asm` をアセンブルして `obj/*.o` を生成する
+- 必要に応じて `assets/` の素材を `obj/` へ変換する
+- `obj/*.o` をリンクしてROMを生成する
+- `rgbfix` を実行して `build/gb-minesweeper.gb` を完成させる
+- `clean` で `obj/` と `build/` の生成物を削除する
+
+主なターゲットは以下とする。
+
+- `make`: ROMをビルドする
+- `make clean`: 中間生成物とビルド成果物を削除する
+- `make run`: `EMULATOR`で指定されたエミュレータでROMを起動する。
+- `EMULATOR` は環境変数で指定する。
+- `EMULATOR` が未指定の場合は `sameboy` を既定値とする。
+
+`build/` には最終的に利用するROMのみを置き、実行時に不要な生成物は `obj/` に置く。
+
 ## 想定モジュール
 
 - `main`: 初期化、ゲームループ、状態遷移
@@ -146,10 +166,10 @@ gb-minesweeper/
   - [x] GitHubリポジトリ作成
   - [x] PROJECT.md作成
   - [x] 使用するRGBDSバージョンを決める
-  - [ ] ディレクトリ構成とビルド方法を決める
+  - [x] ディレクトリ構成とビルド方法を決める
     - [x] ディレクトリ構成を決める
     - [x] ビルド成果物の配置を決める
-    - [ ] Makefileの構成を決める
+    - [x] Makefileの構成を決める
   - [ ] ディレクトリ構成作成
   - [ ] .gitignore作成
   - [ ] RGBDS最小ROM
