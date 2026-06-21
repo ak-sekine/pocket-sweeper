@@ -72,15 +72,23 @@ gb-minesweeper/
 - 用途別のサブディレクトリ（graphics/、sound/など）は作成しない。
 - 将来、素材数が増えて管理が煩雑になった場合のみサブディレクトリ化を検討する。
 
-## Python開発環境
+## 開発ツール
 
-Pythonはゲーム本体ではなく、開発支援ツール専用に使用する。
+### Python開発環境
 
-- プロジェクトルートに `.venv/` を作成する。
-- Pythonライブラリはプロジェクトルートの `requirements.txt` で管理する。
-- `.venv/` はGit管理対象外とする。
+- Pythonツールはプロジェクトルートの `.venv` を使用する。
+- 必要なライブラリは `requirements.txt` で管理する。
+- `.venv` はGit管理対象外とする。
 - Pythonツールは `tools/` に配置する。
 - Pythonツールの利用方法は `tools/README.md` に記載する。
+
+### VS Code
+
+- RGBDS拡張を使用する。
+- RGBDS拡張では、includeパスをワークスペース相対で設定する。
+  - `include`
+  - `src`
+- `.vscode` ディレクトリはGit管理対象外とする。
 
 ## ビルド成果物の配置
 
