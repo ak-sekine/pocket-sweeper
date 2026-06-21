@@ -40,6 +40,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm | $(OBJ_DIR)
 	$(RGBASM) $(RGBASMFLAGS) -o $@ $<
 
 $(OBJ_DIR)/graphics.o: $(GRAPHICS) $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/hardware.inc
+$(OBJ_DIR)/input.o: $(INCLUDE_DIR)/input.inc $(INCLUDE_DIR)/hardware.inc
+$(OBJ_DIR)/main.o: $(INCLUDE_DIR)/hardware.inc
 
 $(OBJ_DIR)/font.2bpp: assets/font.png | $(OBJ_DIR)
 	$(RGBGFX) -c "$(RGBGFX_COLORS)" -L 0,0:16,3 -o $@ $<
