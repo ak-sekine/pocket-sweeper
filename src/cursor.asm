@@ -90,6 +90,9 @@ Cursor_UpdateSprite::
     call Game_IsTitle
     jp nz, Cursor_HideSprite
 
+    call Game_IsEnded
+    jp nz, Cursor_HideSprite
+
     ld a, [wCursorY]
     add a
     add a
@@ -151,8 +154,10 @@ Cursor_UpdateSprite::
 
 Cursor_HideSprite:
     xor a
-    ld [OAM_BASE], a
-    ld [OAM_BASE + CURSOR_SPRITE_BYTES], a
-    ld [OAM_BASE + CURSOR_SPRITE_BYTES * 2], a
-    ld [OAM_BASE + CURSOR_SPRITE_BYTES * 3], a
+    ld hl, OAM_BASE
+    ld b, CURSOR_SPRITE_BYTES * 4
+.loop:
+    ld [hli], a
+    dec b
+    jr nz, .loop
     ret

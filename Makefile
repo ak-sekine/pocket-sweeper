@@ -13,11 +13,15 @@ MAP := $(OBJ_DIR)/$(PROJECT).map
 SYM := $(OBJ_DIR)/$(PROJECT).sym
 
 GRAPHICS := $(OBJ_DIR)/tiles.2bpp $(OBJ_DIR)/cursor.2bpp $(OBJ_DIR)/font.2bpp
+TITLE_TILES_PNG := $(OBJ_DIR)/title_tiles.png
+TITLE_MAP := $(OBJ_DIR)/title_map.bin
+TITLE_CONVERT_STAMP := $(OBJ_DIR)/title.stamp
 
 RGBASM ?= rgbasm
 RGBLINK ?= rgblink
 RGBFIX ?= rgbfix
 RGBGFX ?= rgbgfx
+PYTHON ?= .venv/bin/python
 EMULATOR ?= sameboy
 
 RGBASMFLAGS ?= -I $(INCLUDE_DIR)/
@@ -40,7 +44,7 @@ $(ROM): $(OBJECTS) | $(BUILD_DIR) $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm | $(OBJ_DIR)
 	$(RGBASM) $(RGBASMFLAGS) -o $@ $<
 
-$(OBJ_DIR)/graphics.o: $(GRAPHICS) $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/hardware.inc
+$(OBJ_DIR)/graphics.o: $(GRAPHICS) $(OBJ_DIR)/title_tiles.2bpp $(TITLE_MAP) $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/hardware.inc
 $(OBJ_DIR)/input.o: $(INCLUDE_DIR)/input.inc $(INCLUDE_DIR)/hardware.inc
 $(OBJ_DIR)/main.o: $(INCLUDE_DIR)/hardware.inc
 $(OBJ_DIR)/cursor.o: $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/input.inc $(INCLUDE_DIR)/hardware.inc
@@ -55,6 +59,15 @@ $(OBJ_DIR)/tiles.2bpp: assets/tiles.png | $(OBJ_DIR)
 
 $(OBJ_DIR)/cursor.2bpp: assets/cursor.png | $(OBJ_DIR)
 	$(RGBGFX) -c "$(RGBGFX_CURSOR_COLORS)" -o $@ $<
+
+$(TITLE_TILES_PNG) $(TITLE_MAP): $(TITLE_CONVERT_STAMP)
+
+$(TITLE_CONVERT_STAMP): assets/title.png tools/convert_bg_image.py | $(OBJ_DIR)
+	$(PYTHON) tools/convert_bg_image.py $< $(TITLE_TILES_PNG) $(TITLE_MAP)
+	touch $@
+
+$(OBJ_DIR)/title_tiles.2bpp: $(TITLE_TILES_PNG) | $(OBJ_DIR)
+	$(RGBGFX) -c "$(RGBGFX_BG_COLORS)" -o $@ $<
 
 $(OBJ_DIR) $(BUILD_DIR):
 	mkdir -p $@
