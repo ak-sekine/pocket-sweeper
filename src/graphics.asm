@@ -48,6 +48,9 @@ Graphics_EnableLCD::
 Graphics_ClearOAM::
     jp ClearOAM
 
+Graphics_DrawStatusBar::
+    jp DrawStatusBar
+
 DisableLCD:
     ldh a, [rLCDC]
     bit 7, a

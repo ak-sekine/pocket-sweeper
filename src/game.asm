@@ -143,8 +143,7 @@ Game_UpdateDisplay::
 
     xor a
     ld [wGameResumeDrawPending], a
-    call Game_ClearPauseMenu
-    jp Game_EnqueueFullBoardRedraw
+    jp Game_RedrawPlayfieldAfterPause
 
 .checkPauseDraw:
     ld a, [wGamePauseDrawPending]
@@ -829,6 +828,34 @@ Game_ClearPauseMenu:
     add hl, de
     dec b
     jr nz, .row
+    ret
+
+Game_RedrawPlayfieldAfterPause:
+    call Graphics_DisableLCD
+    call Game_ClearPauseMenu
+    call Graphics_DrawStatusBar
+    call Game_UpdateMineDisplay
+    call Game_DrawFullBoardDirect
+    call Graphics_ClearOAM
+    call Cursor_UpdateSprite
+    jp Graphics_EnableLCD
+
+Game_DrawFullBoardDirect:
+    xor a
+    ld [wGameDrawHead], a
+    ld [wGameDrawTail], a
+    ld [wGameWorkIndex], a
+.loop:
+    call Game_GetVisibleTileForWorkIndex
+    ld [wGameWorkCell], a
+    call Game_GetBGAddressForWorkIndex
+    ld a, [wGameWorkCell]
+    ld [hl], a
+    ld a, [wGameWorkIndex]
+    inc a
+    ld [wGameWorkIndex], a
+    cp BOARD_CELL_COUNT
+    jr c, .loop
     ret
 
 Game_EnqueueFullBoardRedraw:
