@@ -13,9 +13,10 @@ DEF CLEAR_TEXT_LEN     EQU 5
 DEF CLEAR_BG_X         EQU 7
 DEF CLEAR_BG_Y         EQU GAME_OVER_BG_Y
 DEF STATUS_MINE_DIGITS_X EQU STATUS_BG_X + 5
-DEF PAUSE_MENU_X       EQU 2
+DEF PAUSE_MENU_X       EQU 1
 DEF PAUSE_MENU_Y       EQU 6
-DEF PAUSE_MENU_WIDTH   EQU 16
+DEF PAUSE_MENU_WIDTH   EQU 19
+DEF PAUSE_MENU_HEIGHT  EQU 7
 DEF PAUSE_MENU_RESUME  EQU 0
 DEF PAUSE_MENU_RESTART EQU 1
 DEF PAUSE_MENU_TITLE   EQU 2
@@ -62,6 +63,8 @@ wGameTitleDrawPending::
     ds 1
 wGamePauseDrawPending::
     ds 1
+wGamePauseCursorDrawPending::
+    ds 1
 wGameResumeDrawPending::
     ds 1
 wGameFlagCount::
@@ -73,6 +76,8 @@ wGameTitle::
 wGamePaused::
     ds 1
 wGamePauseSelection::
+    ds 1
+wGamePreviousPauseSelection::
     ds 1
 
 SECTION "Game", ROM0
@@ -89,11 +94,13 @@ Game_InitTitle::
     ld [wGameRestartDrawPending], a
     ld [wGameTitleDrawPending], a
     ld [wGamePauseDrawPending], a
+    ld [wGamePauseCursorDrawPending], a
     ld [wGameResumeDrawPending], a
     ld [wGameFlagCount], a
     ld [wGameMineDrawPending], a
     ld [wGamePaused], a
     ld [wGamePauseSelection], a
+    ld [wGamePreviousPauseSelection], a
     inc a
     ld [wGameTitle], a
     ret
@@ -110,12 +117,14 @@ Game_Init::
     ld [wGameRestartDrawPending], a
     ld [wGameTitleDrawPending], a
     ld [wGamePauseDrawPending], a
+    ld [wGamePauseCursorDrawPending], a
     ld [wGameResumeDrawPending], a
     ld [wGameFlagCount], a
     ld [wGameMineDrawPending], a
     ld [wGameTitle], a
     ld [wGamePaused], a
     ld [wGamePauseSelection], a
+    ld [wGamePreviousPauseSelection], a
     ret
 
 Game_UpdateDisplay::
@@ -144,9 +153,21 @@ Game_UpdateDisplay::
 
     xor a
     ld [wGamePauseDrawPending], a
-    jp Game_DrawPauseMenu
+    call Graphics_DisableLCD
+    call Graphics_ClearOAM
+    call Game_DrawPauseMenu
+    jp Graphics_EnableLCD
 
 .checkRestartDrawPending:
+    ld a, [wGamePauseCursorDrawPending]
+    and a
+    jr z, .checkRestartDrawPendingFlag
+
+    xor a
+    ld [wGamePauseCursorDrawPending], a
+    jp Game_UpdatePauseMenuCursor
+
+.checkRestartDrawPendingFlag:
     ld a, [wGameRestartDrawPending]
     and a
     jr z, .updateQueuedCell
@@ -311,6 +332,7 @@ Game_OpenPauseMenu:
     ld [wOpenQueueHead], a
     ld [wOpenQueueTail], a
     ld [wGamePauseSelection], a
+    ld [wGamePreviousPauseSelection], a
     inc a
     ld [wGamePaused], a
     ld [wGamePauseDrawPending], a
@@ -327,10 +349,11 @@ Game_HandlePauseInput:
     ld a, [wGamePauseSelection]
     and a
     ret z
+    ld [wGamePreviousPauseSelection], a
     dec a
     ld [wGamePauseSelection], a
     ld a, 1
-    ld [wGamePauseDrawPending], a
+    ld [wGamePauseCursorDrawPending], a
     ret
 
 .checkDown:
@@ -340,10 +363,11 @@ Game_HandlePauseInput:
     ld a, [wGamePauseSelection]
     cp PAUSE_MENU_TITLE
     ret nc
+    ld [wGamePreviousPauseSelection], a
     inc a
     ld [wGamePauseSelection], a
     ld a, 1
-    ld [wGamePauseDrawPending], a
+    ld [wGamePauseCursorDrawPending], a
     ret
 
 .checkConfirm:
@@ -678,21 +702,72 @@ Game_UpdateMineDisplay:
 
 Game_DrawPauseMenu:
     call Game_ClearPauseMenu
+    call Game_DrawPauseFrame
 
-    ld de, BG_MAP + PAUSE_MENU_Y * BG_MAP_WIDTH + PAUSE_MENU_X
+    ld de, BG_MAP + (PAUSE_MENU_Y + 1) * BG_MAP_WIDTH + PAUSE_MENU_X + 2
     ld hl, PauseResumeText
     ld c, PAUSE_MENU_RESUME
     call Game_DrawPauseMenuItem
 
-    ld de, BG_MAP + (PAUSE_MENU_Y + 2) * BG_MAP_WIDTH + PAUSE_MENU_X
+    ld de, BG_MAP + (PAUSE_MENU_Y + 3) * BG_MAP_WIDTH + PAUSE_MENU_X + 2
     ld hl, PauseRestartText
     ld c, PAUSE_MENU_RESTART
     call Game_DrawPauseMenuItem
 
-    ld de, BG_MAP + (PAUSE_MENU_Y + 4) * BG_MAP_WIDTH + PAUSE_MENU_X
+    ld de, BG_MAP + (PAUSE_MENU_Y + 5) * BG_MAP_WIDTH + PAUSE_MENU_X + 2
     ld hl, PauseBackToTitleText
     ld c, PAUSE_MENU_TITLE
     jp Game_DrawPauseMenuItem
+
+Game_DrawPauseFrame:
+    ld hl, BG_MAP + PAUSE_MENU_Y * BG_MAP_WIDTH + PAUSE_MENU_X
+    ld a, TILE_PAUSE_TOP_LEFT
+    ld [hli], a
+    ld b, PAUSE_MENU_WIDTH - 2
+    ld a, TILE_PAUSE_HORIZONTAL
+.topRow:
+    ld [hli], a
+    dec b
+    jr nz, .topRow
+    ld a, TILE_PAUSE_TOP_RIGHT
+    ld [hl], a
+
+    ld hl, BG_MAP + (PAUSE_MENU_Y + 1) * BG_MAP_WIDTH + PAUSE_MENU_X
+    call Game_DrawPauseFrameMiddleRow
+    ld hl, BG_MAP + (PAUSE_MENU_Y + 2) * BG_MAP_WIDTH + PAUSE_MENU_X
+    call Game_DrawPauseFrameMiddleRow
+    ld hl, BG_MAP + (PAUSE_MENU_Y + 3) * BG_MAP_WIDTH + PAUSE_MENU_X
+    call Game_DrawPauseFrameMiddleRow
+    ld hl, BG_MAP + (PAUSE_MENU_Y + 4) * BG_MAP_WIDTH + PAUSE_MENU_X
+    call Game_DrawPauseFrameMiddleRow
+    ld hl, BG_MAP + (PAUSE_MENU_Y + 5) * BG_MAP_WIDTH + PAUSE_MENU_X
+    call Game_DrawPauseFrameMiddleRow
+
+    ld hl, BG_MAP + (PAUSE_MENU_Y + PAUSE_MENU_HEIGHT - 1) * BG_MAP_WIDTH + PAUSE_MENU_X
+    ld a, TILE_PAUSE_BOTTOM_LEFT
+    ld [hli], a
+    ld b, PAUSE_MENU_WIDTH - 2
+    ld a, TILE_PAUSE_HORIZONTAL
+.bottomRow:
+    ld [hli], a
+    dec b
+    jr nz, .bottomRow
+    ld a, TILE_PAUSE_BOTTOM_RIGHT
+    ld [hl], a
+    ret
+
+Game_DrawPauseFrameMiddleRow:
+    ld a, TILE_PAUSE_VERTICAL
+    ld [hli], a
+    ld b, PAUSE_MENU_WIDTH - 2
+    ld a, TILE_BLANK
+.middleFill:
+    ld [hli], a
+    dec b
+    jr nz, .middleFill
+    ld a, TILE_PAUSE_VERTICAL
+    ld [hl], a
+    ret
 
 Game_DrawPauseMenuItem:
     ld a, [wGamePauseSelection]
@@ -714,9 +789,35 @@ Game_DrawPauseMenuItem:
     inc de
     jr .textLoop
 
+Game_UpdatePauseMenuCursor:
+    ld a, [wGamePreviousPauseSelection]
+    call Game_GetPauseMenuCursorAddress
+    ld a, TILE_BLANK
+    ld [hl], a
+
+    ld a, [wGamePauseSelection]
+    call Game_GetPauseMenuCursorAddress
+    ld a, TILE_GREATER_THAN
+    ld [hl], a
+    ret
+
+Game_GetPauseMenuCursorAddress:
+    cp PAUSE_MENU_RESTART
+    jr z, .restart
+    cp PAUSE_MENU_TITLE
+    jr z, .title
+    ld hl, BG_MAP + (PAUSE_MENU_Y + 1) * BG_MAP_WIDTH + PAUSE_MENU_X + 2
+    ret
+.restart:
+    ld hl, BG_MAP + (PAUSE_MENU_Y + 3) * BG_MAP_WIDTH + PAUSE_MENU_X + 2
+    ret
+.title:
+    ld hl, BG_MAP + (PAUSE_MENU_Y + 5) * BG_MAP_WIDTH + PAUSE_MENU_X + 2
+    ret
+
 Game_ClearPauseMenu:
     ld hl, BG_MAP + PAUSE_MENU_Y * BG_MAP_WIDTH + PAUSE_MENU_X
-    ld b, 5
+    ld b, PAUSE_MENU_HEIGHT
 .row:
     ld c, PAUSE_MENU_WIDTH
     ld a, TILE_BLANK
@@ -775,7 +876,7 @@ GameOverText:
     db TILE_LETTER_A + 'E' - 'A'
     db TILE_BLANK
     db TILE_LETTER_A + 'O' - 'A'
-    db TILE_LETTER_A + 'V' - 'A'
+    db TILE_LETTER_V
     db TILE_LETTER_A + 'E' - 'A'
     db TILE_LETTER_A + 'R' - 'A'
 
@@ -788,7 +889,7 @@ ClearText:
 
 PauseResumeText:
     db TILE_LETTER_A + 'R' - 'A', TILE_LETTER_A + 'E' - 'A'
-    db TILE_LETTER_A + 'S' - 'A', TILE_LETTER_A + 'U' - 'A'
+    db TILE_LETTER_A + 'S' - 'A', TILE_LETTER_U
     db TILE_LETTER_A + 'M' - 'A', TILE_LETTER_A + 'E' - 'A', $FF
 
 PauseRestartText:

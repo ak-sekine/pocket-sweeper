@@ -39,6 +39,15 @@ Graphics_DrawTitleScreen::
     call DrawTitleScreen
     jp EnableLCD
 
+Graphics_DisableLCD::
+    jp DisableLCD
+
+Graphics_EnableLCD::
+    jp EnableLCD
+
+Graphics_ClearOAM::
+    jp ClearOAM
+
 DisableLCD:
     ldh a, [rLCDC]
     bit 7, a
@@ -64,7 +73,7 @@ LoadTiles:
 LoadGameTiles:
     ld hl, Tiles
     ld de, $8000
-    ld bc, TilesEnd - Tiles
+    ld bc, GAME_BG_TILE_COUNT * TILE_BYTES
     call CopyBytes
 
     ; TILE_BLANK is a generated blank background tile used to clear the tile map.
@@ -76,16 +85,26 @@ LoadGameTiles:
     dec b
     jr nz, .clearBlankTile
 
+    ld hl, Tiles + GAME_BG_TILE_COUNT * TILE_BYTES
+    ld de, $8000 + TILE_PAUSE_TOP_LEFT * TILE_BYTES
+    ld bc, PAUSE_FRAME_TILE_COUNT * TILE_BYTES
+    call CopyBytes
+
     ; Font tiles are ordered as 0-9, colon, A-Z, then project symbols.
     ld hl, FontTiles
     ld de, $8000 + TILE_DIGIT_0 * TILE_BYTES
-    ld bc, FONT_UI_TILE_COUNT * TILE_BYTES
+    ld bc, FONT_UI_BEFORE_CURSOR_TILE_COUNT * TILE_BYTES
     call CopyBytes
 
     ; Cursor Sprite tiles are stored separately from BG tiles at VRAM tiles 52-55.
     ld hl, CursorTiles
     ld de, $8000 + TILE_CURSOR_TL * TILE_BYTES
     ld bc, CURSOR_TILE_COUNT * TILE_BYTES
+    call CopyBytes
+
+    ld hl, FontTiles + FONT_UI_BEFORE_CURSOR_TILE_COUNT * TILE_BYTES
+    ld de, $8000 + TILE_LETTER_U * TILE_BYTES
+    ld bc, FONT_UI_AFTER_CURSOR_TILE_COUNT * TILE_BYTES
     jp CopyBytes
 
 EnableLCD:
