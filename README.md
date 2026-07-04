@@ -18,7 +18,7 @@ RGBDSを使用して開発しています。
 
 ```bash
 git clone <repository>
-cd gb-minesweeper
+cd pocket-sweeper
 ```
 
 ### Python仮想環境

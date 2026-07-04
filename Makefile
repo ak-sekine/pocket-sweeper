@@ -1,4 +1,4 @@
-PROJECT := gb-minesweeper
+PROJECT := pocket-sweeper
 
 SRC_DIR := src
 INCLUDE_DIR := include
