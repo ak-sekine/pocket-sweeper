@@ -388,6 +388,10 @@ Game_OpenPauseMenu:
 
 Game_HandleDifficultySelectInput:
     ld a, [wJoyPressed]
+    and PAD_B
+    jp nz, Game_ReturnToTitleFromDifficultySelect
+
+    ld a, [wJoyPressed]
     and PAD_UP
     jr z, .checkDown
 
@@ -781,6 +785,12 @@ Game_StartFromDifficultySelect:
     ld [wGameCurrentDifficulty], a
     ld a, 1
     ld [wGameRestartDrawPending], a
+    ret
+
+Game_ReturnToTitleFromDifficultySelect:
+    call Game_InitTitle
+    ld a, 1
+    ld [wGameTitleDrawPending], a
     ret
 
 Game_UpdateMineDisplay:
