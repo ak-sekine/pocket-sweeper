@@ -233,7 +233,7 @@ ClearEndMessageRow:
     jr nz, .loop
     ret
 
-ClearTitleScreenAreas:
+ClearTitleScreenAreas::
     call ClearTitleLogoArea
     call ClearPressStartRow
     jp ClearCopyrightRow

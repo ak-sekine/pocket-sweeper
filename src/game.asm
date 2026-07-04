@@ -61,6 +61,8 @@ wGameRestartDrawPending::
     ds 1
 wGameTitleDrawPending::
     ds 1
+wGameDifficultySelectDrawPending::
+    ds 1
 wGamePauseDrawPending::
     ds 1
 wGamePauseCursorDrawPending::
@@ -72,6 +74,8 @@ wGameFlagCount::
 wGameMineDrawPending::
     ds 1
 wGameTitle::
+    ds 1
+wGameDifficultySelect::
     ds 1
 wGamePaused::
     ds 1
@@ -93,11 +97,13 @@ Game_InitTitle::
     ld [wGameClear], a
     ld [wGameRestartDrawPending], a
     ld [wGameTitleDrawPending], a
+    ld [wGameDifficultySelectDrawPending], a
     ld [wGamePauseDrawPending], a
     ld [wGamePauseCursorDrawPending], a
     ld [wGameResumeDrawPending], a
     ld [wGameFlagCount], a
     ld [wGameMineDrawPending], a
+    ld [wGameDifficultySelect], a
     ld [wGamePaused], a
     ld [wGamePauseSelection], a
     ld [wGamePreviousPauseSelection], a
@@ -116,12 +122,14 @@ Game_Init::
     ld [wGameClear], a
     ld [wGameRestartDrawPending], a
     ld [wGameTitleDrawPending], a
+    ld [wGameDifficultySelectDrawPending], a
     ld [wGamePauseDrawPending], a
     ld [wGamePauseCursorDrawPending], a
     ld [wGameResumeDrawPending], a
     ld [wGameFlagCount], a
     ld [wGameMineDrawPending], a
     ld [wGameTitle], a
+    ld [wGameDifficultySelect], a
     ld [wGamePaused], a
     ld [wGamePauseSelection], a
     ld [wGamePreviousPauseSelection], a
@@ -130,11 +138,20 @@ Game_Init::
 Game_UpdateDisplay::
     ld a, [wGameTitleDrawPending]
     and a
-    jr z, .checkRestartDraw
+    jr z, .checkDifficultySelectDraw
 
     xor a
     ld [wGameTitleDrawPending], a
     jp Graphics_DrawTitleScreen
+
+.checkDifficultySelectDraw:
+    ld a, [wGameDifficultySelectDrawPending]
+    and a
+    jr z, .checkRestartDraw
+
+    xor a
+    ld [wGameDifficultySelectDrawPending], a
+    jp ClearTitleScreenAreas
 
 .checkRestartDraw:
     ld a, [wGameResumeDrawPending]
@@ -283,9 +300,13 @@ Game_HandleInput::
     ld a, [wJoyPressed]
     and PAD_START
     ret z
-    jp Game_StartFromTitle
+    jp Game_EnterDifficultySelectFromTitle
 
 .checkEnded:
+    ld a, [wGameDifficultySelect]
+    and a
+    ret nz
+
     call Game_IsEnded
     jr z, .handlePlaying
 
@@ -624,6 +645,11 @@ Game_IsTitle::
     and a
     ret
 
+Game_IsDifficultySelect::
+    ld a, [wGameDifficultySelect]
+    and a
+    ret
+
 Game_IsPaused::
     ld a, [wGamePaused]
     and a
@@ -665,12 +691,13 @@ Game_ReturnToTitleAfterEnd:
     ld [wGameTitleDrawPending], a
     ret
 
-Game_StartFromTitle:
-    call Board_Init
-    call Cursor_ResetPosition
-    call Game_Init
-    ld a, 1
-    ld [wGameRestartDrawPending], a
+Game_EnterDifficultySelectFromTitle:
+    xor a
+    ld [wGameTitle], a
+    ld [wGamePaused], a
+    inc a
+    ld [wGameDifficultySelect], a
+    ld [wGameDifficultySelectDrawPending], a
     ret
 
 Game_UpdateMineDisplay:

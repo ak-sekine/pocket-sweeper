@@ -35,6 +35,9 @@ Cursor_Update::
     call Game_IsTitle
     ret nz
 
+    call Game_IsDifficultySelect
+    ret nz
+
     call Game_IsPaused
     ret nz
 
@@ -91,6 +94,9 @@ Cursor_Update::
 ; Call only while OAM is accessible, normally during VBlank.
 Cursor_UpdateSprite::
     call Game_IsTitle
+    jp nz, Cursor_HideSprite
+
+    call Game_IsDifficultySelect
     jp nz, Cursor_HideSprite
 
     call Game_IsPaused
