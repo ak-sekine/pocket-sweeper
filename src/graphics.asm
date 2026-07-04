@@ -39,6 +39,13 @@ Graphics_DrawTitleScreen::
     call DrawTitleScreen
     jp EnableLCD
 
+Graphics_DrawDifficultySelectScreen::
+    call DisableLCD
+    call ClearOAM
+    call ClearBGMap
+    call DrawDifficultySelectScreen
+    jp EnableLCD
+
 Graphics_DisableLCD::
     jp DisableLCD
 
@@ -154,6 +161,23 @@ DrawTitleScreen:
     call DrawTitleLogo
     call DrawPressStartText
     jp DrawCopyrightText
+
+DrawDifficultySelectScreen:
+    ld hl, SelectLevelText
+    ld de, BG_MAP + 3 * BG_MAP_WIDTH + 4
+    call DrawText
+
+    ld hl, EasyText
+    ld de, BG_MAP + 6 * BG_MAP_WIDTH + 6
+    call DrawText
+
+    ld hl, NormalText
+    ld de, BG_MAP + 8 * BG_MAP_WIDTH + 6
+    call DrawText
+
+    ld hl, HardText
+    ld de, BG_MAP + 10 * BG_MAP_WIDTH + 6
+    jp DrawText
 
 DrawTitleLogo:
     ld hl, TitleMap
@@ -286,6 +310,28 @@ PressStartText:
     db TILE_LETTER_A + 'S' - 'A', TILE_LETTER_A + 'T' - 'A'
     db TILE_LETTER_A + 'A' - 'A', TILE_LETTER_A + 'R' - 'A'
     db TILE_LETTER_A + 'T' - 'A', $FF
+
+SelectLevelText:
+    db TILE_LETTER_A + 'S' - 'A', TILE_LETTER_A + 'E' - 'A'
+    db TILE_LETTER_A + 'L' - 'A', TILE_LETTER_A + 'E' - 'A'
+    db TILE_LETTER_A + 'C' - 'A', TILE_LETTER_A + 'T' - 'A'
+    db TILE_BLANK
+    db TILE_LETTER_A + 'L' - 'A', TILE_LETTER_A + 'E' - 'A'
+    db TILE_LETTER_V, TILE_LETTER_A + 'E' - 'A'
+    db TILE_LETTER_A + 'L' - 'A', $FF
+
+EasyText:
+    db TILE_LETTER_A + 'E' - 'A', TILE_LETTER_A + 'A' - 'A'
+    db TILE_LETTER_A + 'S' - 'A', TILE_LETTER_Y, $FF
+
+NormalText:
+    db TILE_LETTER_A + 'N' - 'A', TILE_LETTER_A + 'O' - 'A'
+    db TILE_LETTER_A + 'R' - 'A', TILE_LETTER_A + 'M' - 'A'
+    db TILE_LETTER_A + 'A' - 'A', TILE_LETTER_A + 'L' - 'A', $FF
+
+HardText:
+    db TILE_LETTER_A + 'H' - 'A', TILE_LETTER_A + 'A' - 'A'
+    db TILE_LETTER_A + 'R' - 'A', TILE_LETTER_A + 'D' - 'A', $FF
 
 CopyrightText:
     db TILE_COPYRIGHT

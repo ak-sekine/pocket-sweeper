@@ -151,7 +151,7 @@ Game_UpdateDisplay::
 
     xor a
     ld [wGameDifficultySelectDrawPending], a
-    jp ClearTitleScreenAreas
+    jp Graphics_DrawDifficultySelectScreen
 
 .checkRestartDraw:
     ld a, [wGameResumeDrawPending]
