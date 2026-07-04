@@ -12,6 +12,18 @@ DEF CLEAR_TEXT_LEN     EQU 5
 DEF CLEAR_BG_X         EQU 7
 DEF CLEAR_BG_Y         EQU GAME_OVER_BG_Y
 DEF STATUS_MINE_DIGITS_X EQU STATUS_BG_X + 5
+DEF STATUS_TIME_DIGITS_X EQU STATUS_BG_X + 14
+DEF ELAPSED_FRAMES_PER_SECOND EQU 60
+DEF ELAPSED_TIME_MAX_HIGH EQU 3
+DEF ELAPSED_TIME_MAX_LOW  EQU 231
+DEF DEBUG_INITIAL_TIME EQU 0
+IF DEBUG_INITIAL_TIME > 999
+DEF DEBUG_INITIAL_TIME_CLAMPED EQU 999
+ELSE
+DEF DEBUG_INITIAL_TIME_CLAMPED EQU DEBUG_INITIAL_TIME
+ENDC
+DEF DEBUG_INITIAL_TIME_LOW EQU DEBUG_INITIAL_TIME_CLAMPED & $FF
+DEF DEBUG_INITIAL_TIME_HIGH EQU DEBUG_INITIAL_TIME_CLAMPED >> 8
 DEF PAUSE_MENU_X       EQU 1
 DEF PAUSE_MENU_Y       EQU 6
 DEF PAUSE_MENU_WIDTH   EQU 19
@@ -87,6 +99,16 @@ wGameFlagCount::
     ds 1
 wGameMineDrawPending::
     ds 1
+wGameElapsedSecondsLow::
+    ds 1
+wGameElapsedSecondsHigh::
+    ds 1
+wGameElapsedFrameCount::
+    ds 1
+wGameElapsedRunning::
+    ds 1
+wGameTimeDrawPending::
+    ds 1
 wGameTitle::
     ds 1
 wGameDifficultySelect::
@@ -134,6 +156,11 @@ Game_InitTitle::
     ld [wGameResumeDrawPending], a
     ld [wGameFlagCount], a
     ld [wGameMineDrawPending], a
+    ld [wGameElapsedSecondsLow], a
+    ld [wGameElapsedSecondsHigh], a
+    ld [wGameElapsedFrameCount], a
+    ld [wGameElapsedRunning], a
+    ld [wGameTimeDrawPending], a
     ld [wGameDifficultySelect], a
     ld [wGameCurrentDifficulty], a
     ld [wBoardWidth], a
@@ -168,6 +195,14 @@ Game_Init::
     ld [wGameResumeDrawPending], a
     ld [wGameFlagCount], a
     ld [wGameMineDrawPending], a
+    ld a, DEBUG_INITIAL_TIME_LOW
+    ld [wGameElapsedSecondsLow], a
+    ld a, DEBUG_INITIAL_TIME_HIGH
+    ld [wGameElapsedSecondsHigh], a
+    xor a
+    ld [wGameElapsedFrameCount], a
+    ld [wGameElapsedRunning], a
+    ld [wGameTimeDrawPending], a
     ld [wGameTitle], a
     ld [wGameDifficultySelect], a
     ld [wGameDifficultySelection], a
@@ -247,6 +282,7 @@ Game_UpdateDisplay::
     ld [wGameRestartDrawPending], a
     call Graphics_ResetPlayfieldLCDOff
     call Game_UpdateMineDisplay
+    call Game_UpdateTimeDisplay
     jp Graphics_EnableLCD
 
 .updateQueuedCell:
@@ -256,11 +292,20 @@ Game_UpdateDisplay::
 
     ld a, [wGameMineDrawPending]
     and a
-    jr z, .checkDrawQueue
+    jr z, .checkTimeDraw
 
     xor a
     ld [wGameMineDrawPending], a
     jp Game_UpdateMineDisplay
+
+.checkTimeDraw:
+    ld a, [wGameTimeDrawPending]
+    and a
+    jr z, .checkDrawQueue
+
+    xor a
+    ld [wGameTimeDrawPending], a
+    jp Game_UpdateTimeDisplay
 
 .checkDrawQueue:
     ld a, [wGameDrawHead]
@@ -533,6 +578,8 @@ Game_OpenWorkIndex:
     bit CELL_FLAG_BIT, [hl]
     ret nz
 
+    call Game_StartElapsedTime
+
     set CELL_OPENED_BIT, [hl]
     ld a, [hl]
     ld [wGameWorkCell], a
@@ -702,6 +749,7 @@ Game_TriggerGameOver:
     ld [wGameOver], a
 
     xor a
+    ld [wGameElapsedRunning], a
     ld [wGameDrawHead], a
     ld [wGameDrawTail], a
     ld [wGameMessageDrawIndex], a
@@ -807,6 +855,8 @@ Game_TriggerClear:
     ld [wGameClear], a
 
     xor a
+    ld [wGameElapsedRunning], a
+    xor a
     ld [wGameMessageDrawIndex], a
     ret
 
@@ -900,6 +950,62 @@ Game_UpdateBoardBgOrigin:
     ld [wBoardBgY], a
     ret
 
+Game_StartElapsedTime:
+    ld a, [wGameElapsedRunning]
+    and a
+    ret nz
+
+    inc a
+    ld [wGameElapsedRunning], a
+    xor a
+    ld [wGameElapsedFrameCount], a
+    ret
+
+Game_UpdateElapsedTime::
+    ld a, [wGamePaused]
+    and a
+    ret nz
+    call Game_IsEnded
+    ret nz
+    ld a, [wGameElapsedRunning]
+    and a
+    ret z
+
+    ld a, [wGameElapsedFrameCount]
+    inc a
+    cp ELAPSED_FRAMES_PER_SECOND
+    jr nc, .oneSecondElapsed
+
+    ld [wGameElapsedFrameCount], a
+    ret
+
+.oneSecondElapsed:
+    xor a
+    ld [wGameElapsedFrameCount], a
+    jp Game_IncrementElapsedSecond
+
+Game_IncrementElapsedSecond:
+    ld a, [wGameElapsedSecondsHigh]
+    cp ELAPSED_TIME_MAX_HIGH
+    jr c, .increment
+    jr nz, .atMax
+    ld a, [wGameElapsedSecondsLow]
+    cp ELAPSED_TIME_MAX_LOW
+    jr c, .increment
+.atMax:
+    ret
+
+.increment:
+    ld hl, wGameElapsedSecondsLow
+    inc [hl]
+    jr nz, .markDrawPending
+    inc hl
+    inc [hl]
+.markDrawPending:
+    ld a, 1
+    ld [wGameTimeDrawPending], a
+    ret
+
 Game_UpdateMineDisplay:
     ld hl, BG_MAP + STATUS_BG_Y * BG_MAP_WIDTH + STATUS_MINE_DIGITS_X
     ld a, TILE_DIGIT_0
@@ -925,6 +1031,54 @@ Game_UpdateMineDisplay:
     ld [hli], a
     ld a, TILE_DIGIT_0
     add c
+    ld [hl], a
+    ret
+
+Game_UpdateTimeDisplay:
+    ld hl, BG_MAP + STATUS_BG_Y * BG_MAP_WIDTH + STATUS_TIME_DIGITS_X
+    ld a, [wGameElapsedSecondsLow]
+    ld l, a
+    ld a, [wGameElapsedSecondsHigh]
+    ld h, a
+    ld b, 0
+.hundredsLoop:
+    ld a, h
+    and a
+    jr nz, .subtractHundred
+    ld a, l
+    cp 100
+    jr c, .hundredsDone
+.subtractHundred:
+    ld a, l
+    sub 100
+    ld l, a
+    ld a, h
+    sbc a, 0
+    ld h, a
+    inc b
+    jr .hundredsLoop
+
+.hundredsDone:
+    ld c, 0
+    ld a, l
+.tensLoop:
+    cp 10
+    jr c, .storeDigits
+    sub 10
+    inc c
+    jr .tensLoop
+
+.storeDigits:
+    ld e, a
+    ld hl, BG_MAP + STATUS_BG_Y * BG_MAP_WIDTH + STATUS_TIME_DIGITS_X
+    ld a, TILE_DIGIT_0
+    add b
+    ld [hli], a
+    ld a, TILE_DIGIT_0
+    add c
+    ld [hli], a
+    ld a, TILE_DIGIT_0
+    add e
     ld [hl], a
     ret
 
@@ -1090,6 +1244,7 @@ Game_RedrawPlayfieldAfterPause:
     call Game_ClearPauseMenu
     call Graphics_DrawStatusBar
     call Game_UpdateMineDisplay
+    call Game_UpdateTimeDisplay
     call Game_DrawFullBoardDirect
     call Graphics_ClearOAM
     call Cursor_UpdateSprite

@@ -28,6 +28,7 @@ Main::
     call Random_UpdateFrameCounter
     call Input_Update
     call Game_HandleInput
+    call Game_UpdateElapsedTime
     call Cursor_Update
     jr .loop
 
