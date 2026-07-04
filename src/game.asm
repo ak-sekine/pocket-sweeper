@@ -82,6 +82,8 @@ wGameTitle::
     ds 1
 wGameDifficultySelect::
     ds 1
+wGameCurrentDifficulty::
+    ds 1
 wGameDifficultySelection::
     ds 1
 wGamePreviousDifficultySelection::
@@ -114,6 +116,7 @@ Game_InitTitle::
     ld [wGameFlagCount], a
     ld [wGameMineDrawPending], a
     ld [wGameDifficultySelect], a
+    ld [wGameCurrentDifficulty], a
     ld [wGameDifficultySelection], a
     ld [wGamePreviousDifficultySelection], a
     ld [wGamePaused], a
@@ -143,6 +146,7 @@ Game_Init::
     ld [wGameMineDrawPending], a
     ld [wGameTitle], a
     ld [wGameDifficultySelect], a
+    ld [wGameCurrentDifficulty], a
     ld [wGameDifficultySelection], a
     ld [wGamePreviousDifficultySelection], a
     ld [wGamePaused], a
@@ -400,7 +404,7 @@ Game_HandleDifficultySelectInput:
 .checkDown:
     ld a, [wJoyPressed]
     and PAD_DOWN
-    ret z
+    jr z, .checkConfirm
 
     ld a, [wGameDifficultySelection]
     ld [wGamePreviousDifficultySelection], a
@@ -416,6 +420,12 @@ Game_HandleDifficultySelectInput:
     ld a, 1
     ld [wGameDifficultyCursorDrawPending], a
     ret
+
+.checkConfirm:
+    ld a, [wJoyPressed]
+    and PAD_A | PAD_START
+    ret z
+    jp Game_StartFromDifficultySelect
 
 Game_HandlePauseInput:
     ld a, [wJoyPressed]
@@ -759,6 +769,18 @@ Game_EnterDifficultySelectFromTitle:
     inc a
     ld [wGameDifficultySelect], a
     ld [wGameDifficultySelectDrawPending], a
+    ret
+
+Game_StartFromDifficultySelect:
+    ld a, [wGameDifficultySelection]
+    push af
+    call Board_Init
+    call Cursor_ResetPosition
+    call Game_Init
+    pop af
+    ld [wGameCurrentDifficulty], a
+    ld a, 1
+    ld [wGameRestartDrawPending], a
     ret
 
 Game_UpdateMineDisplay:
