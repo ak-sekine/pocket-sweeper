@@ -10,7 +10,7 @@ DEF CELL_MINE_BIT    EQU 4
 SECTION "Board WRAM", WRAM0
 
 wBoard::
-    ds BOARD_CELL_COUNT
+    ds BOARD_MAX_CELLS
 wMinesPlaced::
     ds 1
 IF DEBUG_SHOW_MINES
@@ -34,7 +34,7 @@ IF DEBUG_SHOW_MINES
     ld [wDebugDrawRow], a
 ENDC
     ld hl, wBoard
-    ld b, BOARD_CELL_COUNT
+    ld b, BOARD_MAX_CELLS
 .clear:
     ld [hli], a
     dec b
