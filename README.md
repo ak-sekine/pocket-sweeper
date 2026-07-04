@@ -1,4 +1,4 @@
-# GB Minesweeper
+# Pocket Sweeper
 
 Game Boy向けマインスイーパーです。
 
