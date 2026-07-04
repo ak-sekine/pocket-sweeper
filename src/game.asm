@@ -238,8 +238,9 @@ Game_UpdateDisplay::
 
     xor a
     ld [wGameRestartDrawPending], a
-    call Graphics_ResetPlayfield
-    jp Game_UpdateMineDisplay
+    call Graphics_ResetPlayfieldLCDOff
+    call Game_UpdateMineDisplay
+    jp Graphics_EnableLCD
 
 .updateQueuedCell:
     ld a, [wGamePaused]

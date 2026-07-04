@@ -23,14 +23,17 @@ GraphicsInit::
     ret
 
 Graphics_ResetPlayfield::
+    call Graphics_ResetPlayfieldLCDOff
+    jp EnableLCD
+
+Graphics_ResetPlayfieldLCDOff::
     call DisableLCD
     call LoadGameTiles
     call ClearOAM
     call ClearBGMap
     call DrawStatusBar
     call DrawClosedBoard
-    call ClearEndMessageRow
-    jp EnableLCD
+    jp ClearEndMessageRow
 
 Graphics_DrawTitleScreen::
     call DisableLCD
@@ -302,7 +305,7 @@ ClearTitleTextRow:
 StatusText:
     db TILE_LETTER_A + 'M' - 'A', TILE_LETTER_A + 'I' - 'A'
     db TILE_LETTER_A + 'N' - 'A', TILE_LETTER_A + 'E' - 'A'
-    db TILE_COLON, TILE_DIGIT_0 + 0, TILE_DIGIT_0 + 1, TILE_DIGIT_0 + 0
+    db TILE_COLON, TILE_DIGIT_0 + 0, TILE_DIGIT_0 + 0, TILE_DIGIT_0 + 0
     db TILE_BLANK
     db TILE_LETTER_A + 'T' - 'A', TILE_LETTER_A + 'I' - 'A'
     db TILE_LETTER_A + 'M' - 'A', TILE_LETTER_A + 'E' - 'A'

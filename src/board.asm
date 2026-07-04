@@ -23,6 +23,8 @@ wBoardGenX::
     ds 1
 wBoardGenY::
     ds 1
+wBoardCellCount::
+    ds 1
 
 SECTION "Board", ROM0
 
@@ -39,6 +41,26 @@ ENDC
     ld [hli], a
     dec b
     jr nz, .clear
+    ret
+
+Board_UpdateCellCount:
+    ld a, [wBoardHeight]
+    ld b, a
+    xor a
+    ld c, a
+    ld a, [wBoardWidth]
+.addRow:
+    add c
+    ld c, a
+    ld a, b
+    dec a
+    ld b, a
+    jr z, .done
+    ld a, [wBoardWidth]
+    jr .addRow
+.done:
+    ld a, c
+    ld [wBoardCellCount], a
     ret
 
 Board_UpdateDebugDisplay::
@@ -61,6 +83,7 @@ Board_PlaceMinesIfNeeded::
     and a
     ret nz
 
+    call Board_UpdateCellCount
     call Random_SeedFromFrameCounter
     call Board_GetCursorIndex
     ld e, a
@@ -209,25 +232,38 @@ Board_IncrementCellAtXY:
     ret
 
 ; Returns the current cursor cell index in A.
-; Clobbers: AF, B
+; Clobbers: AF, B, C, D
 Board_GetCursorIndex:
+    ld a, [wBoardWidth]
+    ld d, a
     ld a, [wCursorY]
     ld b, a
-    add a
-    add a
-    add a
-    add b
-    ld b, a
+    xor a
+    ld c, a
+.addRow:
+    ld a, b
+    and a
+    jr z, .addX
+    ld a, c
+    add d
+    ld c, a
+    dec b
+    jr .addRow
+.addX:
     ld a, [wCursorX]
-    add b
+    add c
     ret
 
-; Returns a random board cell index 0-80 in A.
+; Returns a random board cell index within the current board cell count in A.
 ; Rejection keeps the distribution simple and bounded for valid cells.
 Board_RandomCellIndex:
     call Random_Next
     and $7F
-    cp BOARD_CELL_COUNT
+    ld b, a
+    ld a, [wBoardCellCount]
+    ld c, a
+    ld a, b
+    cp c
     jr nc, Board_RandomCellIndex
     ret
 
