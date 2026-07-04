@@ -5,7 +5,6 @@ INCLUDE "input.inc"
 DEF DEBUG_SHOW_MINES EQU 0
 
 DEF BOARD_CELL_COUNT EQU BOARD_WIDTH * BOARD_HEIGHT
-DEF MINE_COUNT       EQU 10
 DEF CELL_MINE_BIT    EQU 4
 
 SECTION "Board WRAM", WRAM0
@@ -65,7 +64,8 @@ Board_PlaceMinesIfNeeded::
     call Random_SeedFromFrameCounter
     call Board_GetCursorIndex
     ld e, a
-    ld d, MINE_COUNT
+    ld a, [wMineCount]
+    ld d, a
 
 .placeNext:
     call Board_RandomCellIndex

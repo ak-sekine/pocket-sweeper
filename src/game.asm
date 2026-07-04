@@ -2,7 +2,6 @@ INCLUDE "graphics.inc"
 INCLUDE "input.inc"
 
 DEF BOARD_CELL_COUNT EQU BOARD_WIDTH * BOARD_HEIGHT
-DEF MINE_COUNT       EQU 10
 DEF CELL_MINE_BIT    EQU 4
 DEF CELL_OPENED_BIT  EQU 5
 DEF CELL_FLAG_BIT    EQU 6
@@ -23,6 +22,15 @@ DEF PAUSE_MENU_TITLE   EQU 2
 DEF DIFFICULTY_EASY    EQU 0
 DEF DIFFICULTY_NORMAL  EQU 1
 DEF DIFFICULTY_HARD    EQU 2
+DEF DIFFICULTY_EASY_WIDTH    EQU 8
+DEF DIFFICULTY_EASY_HEIGHT   EQU 8
+DEF DIFFICULTY_EASY_MINES    EQU 10
+DEF DIFFICULTY_NORMAL_WIDTH  EQU 9
+DEF DIFFICULTY_NORMAL_HEIGHT EQU 9
+DEF DIFFICULTY_NORMAL_MINES  EQU 15
+DEF DIFFICULTY_HARD_WIDTH    EQU 10
+DEF DIFFICULTY_HARD_HEIGHT   EQU 10
+DEF DIFFICULTY_HARD_MINES    EQU 20
 
 SECTION "Game WRAM", WRAM0
 
@@ -84,6 +92,12 @@ wGameDifficultySelect::
     ds 1
 wGameCurrentDifficulty::
     ds 1
+wBoardWidth::
+    ds 1
+wBoardHeight::
+    ds 1
+wMineCount::
+    ds 1
 wGameDifficultySelection::
     ds 1
 wGamePreviousDifficultySelection::
@@ -117,6 +131,9 @@ Game_InitTitle::
     ld [wGameMineDrawPending], a
     ld [wGameDifficultySelect], a
     ld [wGameCurrentDifficulty], a
+    ld [wBoardWidth], a
+    ld [wBoardHeight], a
+    ld [wMineCount], a
     ld [wGameDifficultySelection], a
     ld [wGamePreviousDifficultySelection], a
     ld [wGamePaused], a
@@ -146,7 +163,6 @@ Game_Init::
     ld [wGameMineDrawPending], a
     ld [wGameTitle], a
     ld [wGameDifficultySelect], a
-    ld [wGameCurrentDifficulty], a
     ld [wGameDifficultySelection], a
     ld [wGamePreviousDifficultySelection], a
     ld [wGamePaused], a
@@ -222,7 +238,8 @@ Game_UpdateDisplay::
 
     xor a
     ld [wGameRestartDrawPending], a
-    jp Graphics_ResetPlayfield
+    call Graphics_ResetPlayfield
+    jp Game_UpdateMineDisplay
 
 .updateQueuedCell:
     ld a, [wGamePaused]
@@ -622,8 +639,10 @@ Game_ToggleCursorFlag:
     ret nz
     bit CELL_FLAG_BIT, [hl]
     jr nz, .clearFlag
+    ld a, [wMineCount]
+    ld b, a
     ld a, [wGameFlagCount]
-    cp MINE_COUNT
+    cp b
     ret nc
 
     set CELL_FLAG_BIT, [hl]
@@ -778,11 +797,12 @@ Game_EnterDifficultySelectFromTitle:
 Game_StartFromDifficultySelect:
     ld a, [wGameDifficultySelection]
     push af
-    call Board_Init
-    call Cursor_ResetPosition
     call Game_Init
     pop af
     ld [wGameCurrentDifficulty], a
+    call Game_ApplyCurrentDifficultySettings
+    call Board_Init
+    call Cursor_ResetPosition
     ld a, 1
     ld [wGameRestartDrawPending], a
     ret
@@ -793,22 +813,57 @@ Game_ReturnToTitleFromDifficultySelect:
     ld [wGameTitleDrawPending], a
     ret
 
+Game_ApplyCurrentDifficultySettings:
+    ld a, [wGameCurrentDifficulty]
+    cp DIFFICULTY_NORMAL
+    jr z, .normal
+    cp DIFFICULTY_HARD
+    jr z, .hard
+
+    ld a, DIFFICULTY_EASY_WIDTH
+    ld [wBoardWidth], a
+    ld a, DIFFICULTY_EASY_HEIGHT
+    ld [wBoardHeight], a
+    ld a, DIFFICULTY_EASY_MINES
+    ld [wMineCount], a
+    ret
+
+.normal:
+    ld a, DIFFICULTY_NORMAL_WIDTH
+    ld [wBoardWidth], a
+    ld a, DIFFICULTY_NORMAL_HEIGHT
+    ld [wBoardHeight], a
+    ld a, DIFFICULTY_NORMAL_MINES
+    ld [wMineCount], a
+    ret
+
+.hard:
+    ld a, DIFFICULTY_HARD_WIDTH
+    ld [wBoardWidth], a
+    ld a, DIFFICULTY_HARD_HEIGHT
+    ld [wBoardHeight], a
+    ld a, DIFFICULTY_HARD_MINES
+    ld [wMineCount], a
+    ret
+
 Game_UpdateMineDisplay:
     ld hl, BG_MAP + STATUS_BG_Y * BG_MAP_WIDTH + STATUS_MINE_DIGITS_X
     ld a, TILE_DIGIT_0
     ld [hli], a
 
-    ld a, MINE_COUNT
+    ld a, [wMineCount]
     ld b, a
     ld a, [wGameFlagCount]
     ld c, a
     ld a, b
     sub c
     ld b, 0
+.tensLoop:
     cp 10
     jr c, .storeDigits
     sub 10
-    ld b, 1
+    inc b
+    jr .tensLoop
 .storeDigits:
     ld c, a
     ld a, TILE_DIGIT_0
