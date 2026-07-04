@@ -1,7 +1,7 @@
 INCLUDE "graphics.inc"
 INCLUDE "input.inc"
 
-DEF BOARD_CELL_COUNT EQU BOARD_WIDTH * BOARD_HEIGHT
+DEF BOARD_QUEUE_CAPACITY EQU BOARD_MAX_CELLS
 DEF CELL_MINE_BIT    EQU 4
 DEF CELL_OPENED_BIT  EQU 5
 DEF CELL_FLAG_BIT    EQU 6
@@ -31,21 +31,22 @@ DEF DIFFICULTY_NORMAL_MINES  EQU 15
 DEF DIFFICULTY_HARD_WIDTH    EQU 10
 DEF DIFFICULTY_HARD_HEIGHT   EQU 10
 DEF DIFFICULTY_HARD_MINES    EQU 20
+DEF SCREEN_TILE_WIDTH        EQU 20
 
 SECTION "Game WRAM", WRAM0
 
 wGameDrawQueue::
-    ds BOARD_CELL_COUNT
+    ds BOARD_QUEUE_CAPACITY
 wGameDrawTileQueue::
-    ds BOARD_CELL_COUNT
+    ds BOARD_QUEUE_CAPACITY
 wGameDrawHead::
     ds 1
 wGameDrawTail::
     ds 1
 wOpenQueueX::
-    ds BOARD_CELL_COUNT
+    ds BOARD_QUEUE_CAPACITY
 wOpenQueueY::
-    ds BOARD_CELL_COUNT
+    ds BOARD_QUEUE_CAPACITY
 wOpenQueueHead::
     ds 1
 wOpenQueueTail::
@@ -96,6 +97,10 @@ wBoardWidth::
     ds 1
 wBoardHeight::
     ds 1
+wBoardBgX::
+    ds 1
+wBoardBgY::
+    ds 1
 wMineCount::
     ds 1
 wGameDifficultySelection::
@@ -133,6 +138,8 @@ Game_InitTitle::
     ld [wGameCurrentDifficulty], a
     ld [wBoardWidth], a
     ld [wBoardHeight], a
+    ld [wBoardBgX], a
+    ld [wBoardBgY], a
     ld [wMineCount], a
     ld [wGameDifficultySelection], a
     ld [wGamePreviousDifficultySelection], a
@@ -501,9 +508,14 @@ Game_ResumeFromPause:
     ret
 
 Game_RestartFromPause:
+    ld a, [wGameCurrentDifficulty]
+    push af
+    call Game_Init
+    pop af
+    ld [wGameCurrentDifficulty], a
+    call Game_ApplyCurrentDifficultySettings
     call Board_Init
     call Cursor_ResetPosition
-    call Game_Init
     ld a, 1
     ld [wGameRestartDrawPending], a
     ret
@@ -566,10 +578,12 @@ Game_OpenNeighborsOfCenter:
     call Game_OpenSideNeighbors
 
     ld a, [wGameCenterY]
-    cp BOARD_HEIGHT - 1
-    ret z
     inc a
-    ld d, a
+    ld b, a
+    ld a, [wBoardHeight]
+    cp b
+    ret z
+    ld d, b
     jp Game_OpenNeighborRow
 
 Game_OpenNeighborRow:
@@ -588,10 +602,12 @@ Game_OpenNeighborRow:
     call Game_TryOpenNeighbor
     pop de
     ld a, [wGameCenterX]
-    cp BOARD_WIDTH - 1
-    ret z
     inc a
-    ld e, a
+    ld b, a
+    ld a, [wBoardWidth]
+    cp b
+    ret z
+    ld e, b
     jp Game_TryOpenNeighbor
 
 Game_OpenSideNeighbors:
@@ -605,13 +621,23 @@ Game_OpenSideNeighbors:
     pop de
 .right:
     ld a, [wGameCenterX]
-    cp BOARD_WIDTH - 1
-    ret z
     inc a
-    ld e, a
+    ld b, a
+    ld a, [wBoardWidth]
+    cp b
+    ret z
+    ld e, b
     jp Game_TryOpenNeighbor
 
 Game_TryOpenNeighbor:
+    ld a, [wBoardHeight]
+    cp d
+    ret z
+    ret c
+    ld a, [wBoardWidth]
+    cp e
+    ret z
+    ret c
     call Game_XYToIndex
     ld [wGameWorkIndex], a
     call Game_GetCellAddressForWorkIndex
@@ -714,8 +740,11 @@ Game_TriggerGameOver:
     ld a, [wGameWorkIndex]
     inc a
     ld [wGameWorkIndex], a
-    cp BOARD_CELL_COUNT
-    jr c, .revealLoop
+    ld b, a
+    ld a, [wBoardCellCount]
+    cp b
+    ret z
+    jr nc, .revealLoop
     ret
 
 Game_IsOver::
@@ -750,17 +779,28 @@ Game_IsPaused::
 
 Game_CheckClear:
     ld hl, wBoard
-    ld b, BOARD_CELL_COUNT
+    ld a, [wBoardCellCount]
+    ld b, a
+    ld a, [wMineCount]
+    ld c, a
+    ld a, b
+    sub c
+    ld c, a
+    ld e, 0
 .checkCell:
     bit CELL_MINE_BIT, [hl]
     jr nz, .nextCell
     bit CELL_OPENED_BIT, [hl]
-    ret z
+    jr z, .nextCell
+    inc e
 .nextCell:
     inc hl
     dec b
     jr nz, .checkCell
-    jp Game_TriggerClear
+    ld a, e
+    cp c
+    jp z, Game_TriggerClear
+    ret
 
 Game_TriggerClear:
     ld a, 1
@@ -827,7 +867,7 @@ Game_ApplyCurrentDifficultySettings:
     ld [wBoardHeight], a
     ld a, DIFFICULTY_EASY_MINES
     ld [wMineCount], a
-    ret
+    jp Game_UpdateBoardBgOrigin
 
 .normal:
     ld a, DIFFICULTY_NORMAL_WIDTH
@@ -836,7 +876,7 @@ Game_ApplyCurrentDifficultySettings:
     ld [wBoardHeight], a
     ld a, DIFFICULTY_NORMAL_MINES
     ld [wMineCount], a
-    ret
+    jp Game_UpdateBoardBgOrigin
 
 .hard:
     ld a, DIFFICULTY_HARD_WIDTH
@@ -845,6 +885,19 @@ Game_ApplyCurrentDifficultySettings:
     ld [wBoardHeight], a
     ld a, DIFFICULTY_HARD_MINES
     ld [wMineCount], a
+    jp Game_UpdateBoardBgOrigin
+
+Game_UpdateBoardBgOrigin:
+    ld a, SCREEN_TILE_WIDTH
+    ld b, a
+    ld a, [wBoardWidth]
+    ld c, a
+    ld a, b
+    sub c
+    srl a
+    ld [wBoardBgX], a
+    ld a, BOARD_BG_Y
+    ld [wBoardBgY], a
     ret
 
 Game_UpdateMineDisplay:
@@ -1056,8 +1109,11 @@ Game_DrawFullBoardDirect:
     ld a, [wGameWorkIndex]
     inc a
     ld [wGameWorkIndex], a
-    cp BOARD_CELL_COUNT
-    jr c, .loop
+    ld b, a
+    ld a, [wBoardCellCount]
+    cp b
+    ret z
+    jr nc, .loop
     ret
 
 Game_EnqueueFullBoardRedraw:
@@ -1072,8 +1128,11 @@ Game_EnqueueFullBoardRedraw:
     ld a, [wGameWorkIndex]
     inc a
     ld [wGameWorkIndex], a
-    cp BOARD_CELL_COUNT
-    jr c, .loop
+    ld b, a
+    ld a, [wBoardCellCount]
+    cp b
+    ret z
+    jr nc, .loop
     ret
 
 Game_GetVisibleTileForWorkIndex:
@@ -1145,7 +1204,7 @@ Game_InitOpenQueue:
 
 Game_EnqueueOpenXY:
     ld a, [wOpenQueueTail]
-    cp BOARD_CELL_COUNT
+    cp BOARD_QUEUE_CAPACITY
     ret nc
     ld c, a
     ld b, 0
@@ -1198,7 +1257,7 @@ Game_EnqueueDrawWorkIndex:
     ld [wGameDrawTail], a
 .enqueue:
     ld a, [wGameDrawTail]
-    cp BOARD_CELL_COUNT
+    cp BOARD_QUEUE_CAPACITY
     ret nc
     ld c, a
     ld b, 0
@@ -1243,37 +1302,54 @@ Game_GetCursorIndex:
     jp Game_XYToIndex
 
 Game_XYToIndex:
+    ld a, [wBoardWidth]
+    ld c, a
     ld a, d
     ld b, a
-    add a
-    add a
-    add a
-    add b
-    ld b, a
+    xor a
+.rowLoop:
+    ld h, a
+    ld a, b
+    and a
+    ld a, h
+    jr z, .addX
+    add c
+    dec b
+    jr .rowLoop
+.addX:
     ld a, e
-    add b
+    add h
     ret
 
 Game_GetBGAddressForWorkIndex:
     ld a, [wGameWorkIndex]
     ld d, 0
 .rowLoop:
-    cp BOARD_WIDTH
+    ld b, a
+    ld a, [wBoardWidth]
+    ld c, a
+    ld a, b
+    cp c
     jr c, .gotXY
-    sub BOARD_WIDTH
+    sub c
     inc d
     jr .rowLoop
 .gotXY:
     ld e, a
-    ld hl, BG_MAP + BOARD_BG_Y * BG_MAP_WIDTH + BOARD_BG_X
-    ld a, d
+    ld hl, BG_MAP
+    ld a, [wBoardBgY]
+    add d
     and a
-    jr z, .addX
+    jr z, .addOriginX
 .addRow:
     ld bc, BG_MAP_WIDTH
     add hl, bc
     dec a
     jr nz, .addRow
+.addOriginX:
+    ld a, [wBoardBgX]
+    add e
+    ld e, a
 .addX:
     ld c, e
     ld b, 0

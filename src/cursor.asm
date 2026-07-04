@@ -50,9 +50,12 @@ Cursor_Update::
     and PAD_RIGHT
     jr z, .checkLeft
     ld a, [wCursorX]
-    cp BOARD_WIDTH - 1
-    jr z, .updateVertical
     inc a
+    ld c, a
+    ld a, [wBoardWidth]
+    cp c
+    jr z, .updateVertical
+    ld a, c
     ld [wCursorX], a
     jr .updateVertical
 
@@ -71,9 +74,12 @@ Cursor_Update::
     and PAD_DOWN
     jr z, .checkUp
     ld a, [wCursorY]
-    cp BOARD_HEIGHT - 1
-    ret z
     inc a
+    ld c, a
+    ld a, [wBoardHeight]
+    cp c
+    ret z
+    ld a, c
     ld [wCursorY], a
     ret
 
@@ -109,14 +115,26 @@ Cursor_UpdateSprite::
     add a
     add a
     add a
-    add BOARD_BG_Y * 8 + 16 - CURSOR_FRAME_OFFSET
+    ld b, a
+    ld a, [wBoardBgY]
+    add a
+    add a
+    add a
+    add b
+    add 16 - CURSOR_FRAME_OFFSET
     ld b, a
 
     ld a, [wCursorX]
     add a
     add a
     add a
-    add BOARD_BG_X * 8 + 8 - CURSOR_FRAME_OFFSET
+    ld c, a
+    ld a, [wBoardBgX]
+    add a
+    add a
+    add a
+    add c
+    add 8 - CURSOR_FRAME_OFFSET
     ld c, a
 
     ; Sprite 0: top-left

@@ -4,7 +4,6 @@ INCLUDE "input.inc"
 ; Development-only mine placement check. Set to 0 before final release.
 DEF DEBUG_SHOW_MINES EQU 0
 
-DEF BOARD_CELL_COUNT EQU BOARD_WIDTH * BOARD_HEIGHT
 DEF CELL_MINE_BIT    EQU 4
 
 SECTION "Board WRAM", WRAM0
@@ -35,6 +34,8 @@ IF DEBUG_SHOW_MINES
     ld [wDebugMinesDrawPending], a
     ld [wDebugDrawRow], a
 ENDC
+    call Board_UpdateCellCount
+    xor a
     ld hl, wBoard
     ld b, BOARD_MAX_CELLS
 .clear:
@@ -45,10 +46,14 @@ ENDC
 
 Board_UpdateCellCount:
     ld a, [wBoardHeight]
+    and a
+    jr z, .zero
     ld b, a
     xor a
     ld c, a
     ld a, [wBoardWidth]
+    and a
+    jr z, .zero
 .addRow:
     add c
     ld c, a
@@ -62,6 +67,10 @@ Board_UpdateCellCount:
     ld a, c
     ld [wBoardCellCount], a
     ret
+.zero:
+    xor a
+    ld [wBoardCellCount], a
+    ret
 
 Board_UpdateDebugDisplay::
 IF DEBUG_SHOW_MINES
@@ -70,8 +79,11 @@ IF DEBUG_SHOW_MINES
     ret z
     call Board_DebugDrawNextRow
     ld a, [wDebugDrawRow]
-    cp BOARD_HEIGHT
+    ld b, a
+    ld a, [wBoardHeight]
+    cp b
     ret c
+    ret nz
     xor a
     ld [wDebugMinesDrawPending], a
     ld [wDebugDrawRow], a
@@ -119,7 +131,8 @@ ENDC
 
 Board_GenerateNumbers:
     ld hl, wBoard
-    ld b, BOARD_CELL_COUNT
+    ld a, [wBoardCellCount]
+    ld b, a
 .clearNumbers:
     ld a, [hl]
     and $F0
@@ -144,13 +157,17 @@ Board_GenerateNumbers:
     ld a, [wBoardGenX]
     inc a
     ld [wBoardGenX], a
-    cp BOARD_WIDTH
-    jr c, .column
+    ld b, a
+    ld a, [wBoardWidth]
+    cp b
+    jr nz, .column
     ld a, [wBoardGenY]
     inc a
     ld [wBoardGenY], a
-    cp BOARD_HEIGHT
-    jr c, .row
+    ld b, a
+    ld a, [wBoardHeight]
+    cp b
+    jr nz, .row
     ret
 
 Board_IncrementMineNeighbors:
@@ -165,9 +182,12 @@ Board_IncrementMineNeighbors:
     call Board_IncrementSideNeighbors
 
     ld a, [wBoardGenY]
-    cp BOARD_HEIGHT - 1
-    ret z
     inc a
+    ld b, a
+    ld a, [wBoardHeight]
+    cp b
+    ret z
+    ld a, b
     call Board_IncrementNeighborRow
     ret
 
@@ -188,9 +208,12 @@ Board_IncrementNeighborRow:
     call Board_IncrementCellAtXY
     pop de
     ld a, [wBoardGenX]
-    cp BOARD_WIDTH - 1
-    ret z
     inc a
+    ld b, a
+    ld a, [wBoardWidth]
+    cp b
+    ret z
+    ld a, b
     ld e, a
     jp Board_IncrementCellAtXY
 
@@ -206,29 +229,57 @@ Board_IncrementSideNeighbors:
     pop de
 .right:
     ld a, [wBoardGenX]
-    cp BOARD_WIDTH - 1
-    ret z
     inc a
+    ld b, a
+    ld a, [wBoardWidth]
+    cp b
+    ret z
+    ld a, b
     ld e, a
     jp Board_IncrementCellAtXY
 
 ; Increments the low-nibble number at (E, D) unless that cell is a mine.
 ; Clobbers: AF, BC, HL
 Board_IncrementCellAtXY:
-    ld a, d
-    ld b, a
-    add a
-    add a
-    add a
-    add b
-    add e
+    call Board_XYToIndex
     ld c, a
     ld b, 0
     ld hl, wBoard
     add hl, bc
-    bit CELL_MINE_BIT, [hl]
+    ld a, [hl]
+    bit CELL_MINE_BIT, a
     ret nz
-    inc [hl]
+    ld b, a
+    and $0F
+    cp 8
+    ret nc
+    inc a
+    ld c, a
+    ld a, b
+    and $F0
+    or c
+    ld [hl], a
+    ret
+
+; Converts board coordinates (E=x, D=y) to A = y * wBoardWidth + x.
+; Clobbers: AF, B, C, H
+Board_XYToIndex:
+    ld a, [wBoardWidth]
+    ld c, a
+    ld a, d
+    ld b, a
+    xor a
+.rowLoop:
+    ld h, a
+    ld a, b
+    and a
+    ld a, h
+    jr z, .addX
+    add c
+    dec b
+    jr .rowLoop
+.addX:
+    add e
     ret
 
 ; Returns the current cursor cell index in A.
@@ -271,17 +322,35 @@ IF DEBUG_SHOW_MINES
 ; Debug-only: reveal one row per VBlank so VRAM writes stay bounded.
 Board_DebugDrawNextRow:
     ld a, [wDebugDrawRow]
-    ld b, a
-    add a
-    add a
-    add a
-    add b
+    ld d, a
+    ld e, 0
+    call Board_XYToIndex
     ld c, a
     ld b, 0
     ld hl, wBoard
     add hl, bc
 
-    ld de, BG_MAP + BOARD_BG_Y * BG_MAP_WIDTH + BOARD_BG_X
+    ld de, BG_MAP
+    ld a, [wBoardBgY]
+    ld b, a
+    and a
+    jr z, .addDebugOriginX
+.advanceOriginRow:
+    ld a, e
+    add BG_MAP_WIDTH
+    ld e, a
+    jr nc, .nextOriginRow
+    inc d
+.nextOriginRow:
+    dec b
+    jr nz, .advanceOriginRow
+.addDebugOriginX:
+    ld a, [wBoardBgX]
+    add e
+    ld e, a
+    jr nc, .originDone
+    inc d
+.originDone:
     ld a, [wDebugDrawRow]
     ld b, a
     and a
@@ -296,7 +365,8 @@ Board_DebugDrawNextRow:
     dec b
     jr nz, .advanceBgRow
 .draw:
-    ld c, BOARD_WIDTH
+    ld a, [wBoardWidth]
+    ld c, a
 .column:
     ld a, [hl]
     bit CELL_MINE_BIT, [hl]

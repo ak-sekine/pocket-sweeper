@@ -240,19 +240,43 @@ DrawStatusBar:
     jr .loop
 
 DrawClosedBoard:
-    ld hl, BG_MAP + BOARD_BG_Y * BG_MAP_WIDTH + BOARD_BG_X
-    ld de, BG_MAP_WIDTH - BOARD_WIDTH
-    ld b, BOARD_HEIGHT
-    ld a, TILE_CLOSED
+    call GetBoardBgAddress
+    ld a, [wBoardHeight]
+    ld b, a
 .row:
-    ld c, BOARD_WIDTH
+    ld a, [wBoardWidth]
+    ld c, a
+    ld a, TILE_CLOSED
 .column:
     ld [hli], a
     dec c
     jr nz, .column
+    ld a, [wBoardWidth]
+    ld e, a
+    ld a, BG_MAP_WIDTH
+    sub e
+    ld e, a
+    ld d, 0
     add hl, de
     dec b
     jr nz, .row
+    ret
+
+GetBoardBgAddress:
+    ld hl, BG_MAP
+    ld a, [wBoardBgY]
+    and a
+    jr z, .addX
+.addRow:
+    ld bc, BG_MAP_WIDTH
+    add hl, bc
+    dec a
+    jr nz, .addRow
+.addX:
+    ld a, [wBoardBgX]
+    ld c, a
+    ld b, 0
+    add hl, bc
     ret
 
 ClearEndMessageRow:
