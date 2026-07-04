@@ -164,20 +164,25 @@ DrawTitleScreen:
 
 DrawDifficultySelectScreen:
     ld hl, SelectLevelText
-    ld de, BG_MAP + 3 * BG_MAP_WIDTH + 4
+    ld de, BG_MAP + DIFFICULTY_TITLE_Y * BG_MAP_WIDTH + DIFFICULTY_TITLE_X
     call DrawText
 
     ld hl, EasyText
-    ld de, BG_MAP + 6 * BG_MAP_WIDTH + 6
+    ld de, BG_MAP + DIFFICULTY_EASY_Y * BG_MAP_WIDTH + DIFFICULTY_ITEM_X
     call DrawText
 
     ld hl, NormalText
-    ld de, BG_MAP + 8 * BG_MAP_WIDTH + 6
+    ld de, BG_MAP + DIFFICULTY_NORMAL_Y * BG_MAP_WIDTH + DIFFICULTY_ITEM_X
     call DrawText
 
     ld hl, HardText
-    ld de, BG_MAP + 10 * BG_MAP_WIDTH + 6
-    jp DrawText
+    ld de, BG_MAP + DIFFICULTY_HARD_Y * BG_MAP_WIDTH + DIFFICULTY_ITEM_X
+    call DrawText
+
+    ld hl, BG_MAP + DIFFICULTY_EASY_Y * BG_MAP_WIDTH + DIFFICULTY_CURSOR_X
+    ld a, TILE_BLACK_RIGHT_TRIANGLE
+    ld [hl], a
+    ret
 
 DrawTitleLogo:
     ld hl, TitleMap

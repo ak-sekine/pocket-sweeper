@@ -20,6 +20,9 @@ DEF PAUSE_MENU_HEIGHT  EQU 7
 DEF PAUSE_MENU_RESUME  EQU 0
 DEF PAUSE_MENU_RESTART EQU 1
 DEF PAUSE_MENU_TITLE   EQU 2
+DEF DIFFICULTY_EASY    EQU 0
+DEF DIFFICULTY_NORMAL  EQU 1
+DEF DIFFICULTY_HARD    EQU 2
 
 SECTION "Game WRAM", WRAM0
 
@@ -63,6 +66,8 @@ wGameTitleDrawPending::
     ds 1
 wGameDifficultySelectDrawPending::
     ds 1
+wGameDifficultyCursorDrawPending::
+    ds 1
 wGamePauseDrawPending::
     ds 1
 wGamePauseCursorDrawPending::
@@ -76,6 +81,10 @@ wGameMineDrawPending::
 wGameTitle::
     ds 1
 wGameDifficultySelect::
+    ds 1
+wGameDifficultySelection::
+    ds 1
+wGamePreviousDifficultySelection::
     ds 1
 wGamePaused::
     ds 1
@@ -98,12 +107,15 @@ Game_InitTitle::
     ld [wGameRestartDrawPending], a
     ld [wGameTitleDrawPending], a
     ld [wGameDifficultySelectDrawPending], a
+    ld [wGameDifficultyCursorDrawPending], a
     ld [wGamePauseDrawPending], a
     ld [wGamePauseCursorDrawPending], a
     ld [wGameResumeDrawPending], a
     ld [wGameFlagCount], a
     ld [wGameMineDrawPending], a
     ld [wGameDifficultySelect], a
+    ld [wGameDifficultySelection], a
+    ld [wGamePreviousDifficultySelection], a
     ld [wGamePaused], a
     ld [wGamePauseSelection], a
     ld [wGamePreviousPauseSelection], a
@@ -123,6 +135,7 @@ Game_Init::
     ld [wGameRestartDrawPending], a
     ld [wGameTitleDrawPending], a
     ld [wGameDifficultySelectDrawPending], a
+    ld [wGameDifficultyCursorDrawPending], a
     ld [wGamePauseDrawPending], a
     ld [wGamePauseCursorDrawPending], a
     ld [wGameResumeDrawPending], a
@@ -130,6 +143,8 @@ Game_Init::
     ld [wGameMineDrawPending], a
     ld [wGameTitle], a
     ld [wGameDifficultySelect], a
+    ld [wGameDifficultySelection], a
+    ld [wGamePreviousDifficultySelection], a
     ld [wGamePaused], a
     ld [wGamePauseSelection], a
     ld [wGamePreviousPauseSelection], a
@@ -147,11 +162,20 @@ Game_UpdateDisplay::
 .checkDifficultySelectDraw:
     ld a, [wGameDifficultySelectDrawPending]
     and a
-    jr z, .checkRestartDraw
+    jr z, .checkDifficultyCursorDraw
 
     xor a
     ld [wGameDifficultySelectDrawPending], a
     jp Graphics_DrawDifficultySelectScreen
+
+.checkDifficultyCursorDraw:
+    ld a, [wGameDifficultyCursorDrawPending]
+    and a
+    jr z, .checkRestartDraw
+
+    xor a
+    ld [wGameDifficultyCursorDrawPending], a
+    jp Game_UpdateDifficultySelectCursor
 
 .checkRestartDraw:
     ld a, [wGameResumeDrawPending]
@@ -305,7 +329,7 @@ Game_HandleInput::
 .checkEnded:
     ld a, [wGameDifficultySelect]
     and a
-    ret nz
+    jp nz, Game_HandleDifficultySelectInput
 
     call Game_IsEnded
     jr z, .handlePlaying
@@ -356,6 +380,41 @@ Game_OpenPauseMenu:
     inc a
     ld [wGamePaused], a
     ld [wGamePauseDrawPending], a
+    ret
+
+Game_HandleDifficultySelectInput:
+    ld a, [wJoyPressed]
+    and PAD_UP
+    jr z, .checkDown
+
+    ld a, [wGameDifficultySelection]
+    ld [wGamePreviousDifficultySelection], a
+    and a
+    jr z, .wrapUp
+    dec a
+    jr .storeSelection
+.wrapUp:
+    ld a, DIFFICULTY_HARD
+    jr .storeSelection
+
+.checkDown:
+    ld a, [wJoyPressed]
+    and PAD_DOWN
+    ret z
+
+    ld a, [wGameDifficultySelection]
+    ld [wGamePreviousDifficultySelection], a
+    cp DIFFICULTY_HARD
+    jr z, .wrapDown
+    inc a
+    jr .storeSelection
+.wrapDown:
+    ld a, DIFFICULTY_EASY
+
+.storeSelection:
+    ld [wGameDifficultySelection], a
+    ld a, 1
+    ld [wGameDifficultyCursorDrawPending], a
     ret
 
 Game_HandlePauseInput:
@@ -695,6 +754,8 @@ Game_EnterDifficultySelectFromTitle:
     xor a
     ld [wGameTitle], a
     ld [wGamePaused], a
+    ld [wGameDifficultySelection], a
+    ld [wGamePreviousDifficultySelection], a
     inc a
     ld [wGameDifficultySelect], a
     ld [wGameDifficultySelectDrawPending], a
@@ -839,6 +900,32 @@ Game_GetPauseMenuCursorAddress:
     ret
 .title:
     ld hl, BG_MAP + (PAUSE_MENU_Y + 5) * BG_MAP_WIDTH + PAUSE_MENU_X + 2
+    ret
+
+Game_UpdateDifficultySelectCursor:
+    ld a, [wGamePreviousDifficultySelection]
+    call Game_GetDifficultyCursorAddress
+    ld a, TILE_BLANK
+    ld [hl], a
+
+    ld a, [wGameDifficultySelection]
+    call Game_GetDifficultyCursorAddress
+    ld a, TILE_BLACK_RIGHT_TRIANGLE
+    ld [hl], a
+    ret
+
+Game_GetDifficultyCursorAddress:
+    cp DIFFICULTY_NORMAL
+    jr z, .normal
+    cp DIFFICULTY_HARD
+    jr z, .hard
+    ld hl, BG_MAP + DIFFICULTY_EASY_Y * BG_MAP_WIDTH + DIFFICULTY_CURSOR_X
+    ret
+.normal:
+    ld hl, BG_MAP + DIFFICULTY_NORMAL_Y * BG_MAP_WIDTH + DIFFICULTY_CURSOR_X
+    ret
+.hard:
+    ld hl, BG_MAP + DIFFICULTY_HARD_Y * BG_MAP_WIDTH + DIFFICULTY_CURSOR_X
     ret
 
 Game_ClearPauseMenu:
