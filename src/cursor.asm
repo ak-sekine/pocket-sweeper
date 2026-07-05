@@ -30,7 +30,7 @@ Cursor_ResetPosition::
 
 ; Moves at most one cell per axis for newly pressed directional buttons.
 ; Opposing buttons use Right and Down as their respective priorities.
-; Clobbers: AF, B, C
+; Clobbers: AF, B, C, D
 Cursor_Update::
     call Game_IsTitle
     ret nz
@@ -46,6 +46,7 @@ Cursor_Update::
 
     ld a, [wJoyPressed]
     ld b, a
+    ld d, 0
 
     and PAD_RIGHT
     jr z, .checkLeft
@@ -57,6 +58,7 @@ Cursor_Update::
     jr z, .updateVertical
     ld a, c
     ld [wCursorX], a
+    ld d, 1
     jr .updateVertical
 
 .checkLeft:
@@ -68,6 +70,7 @@ Cursor_Update::
     jr z, .updateVertical
     dec a
     ld [wCursorX], a
+    ld d, 1
 
 .updateVertical:
     ld a, b
@@ -78,21 +81,29 @@ Cursor_Update::
     ld c, a
     ld a, [wBoardHeight]
     cp c
-    ret z
+    jr z, .finish
     ld a, c
     ld [wCursorY], a
-    ret
+    ld d, 1
+    jr .finish
 
 .checkUp:
     ld a, b
     and PAD_UP
-    ret z
+    jr z, .finish
     ld a, [wCursorY]
     and a
-    ret z
+    jr z, .finish
     dec a
     ld [wCursorY], a
-    ret
+    ld d, 1
+
+.finish:
+    ld a, d
+    and a
+    ret z
+    ld a, SFX_CURSOR
+    jp Sound_PlaySfx
 
 ; Converts grid coordinates to Game Boy OAM coordinates and writes Sprites 0-3.
 ; The 16x16 frame is offset 4 pixels up-left from the selected 8x8 cell.

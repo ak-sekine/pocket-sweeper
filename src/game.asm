@@ -493,6 +493,8 @@ Game_HandleDifficultySelectInput:
     ld [wGameDifficultySelection], a
     ld a, 1
     ld [wGameDifficultyCursorDrawPending], a
+    ld a, SFX_CURSOR
+    call Sound_PlaySfx
     ret
 
 .checkConfirm:
@@ -517,6 +519,8 @@ Game_HandlePauseInput:
     ld [wGamePauseSelection], a
     ld a, 1
     ld [wGamePauseCursorDrawPending], a
+    ld a, SFX_CURSOR
+    call Sound_PlaySfx
     ret
 
 .checkDown:
@@ -531,6 +535,8 @@ Game_HandlePauseInput:
     ld [wGamePauseSelection], a
     ld a, 1
     ld [wGamePauseCursorDrawPending], a
+    ld a, SFX_CURSOR
+    call Sound_PlaySfx
     ret
 
 .checkConfirm:
