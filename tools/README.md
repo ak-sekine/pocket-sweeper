@@ -227,6 +227,54 @@ obj/test_draft.asm
 
 ---
 
+# 効果音JSONから本体ROM向けSFX ASM生成
+
+効果音JSONから、APUレジスタ直接制御用のSFX ASMを生成します。
+
+```bash
+python tools/json_to_sfx_asm.py assets/se_cursor.json obj/se_cursor_sfx.asm
+```
+
+入力JSON:
+
+```text
+assets/se_cursor.json
+```
+
+出力ファイル:
+
+```text
+obj/se_cursor_sfx.asm
+```
+
+入力JSONの条件:
+
+* `version = 1`
+* `type = "sfx"`
+* `priority` は必須で、1〜5の整数
+* 初版では `pulse1` または `noise` の単一チャンネルのみ対応
+* `pulse2`, `wave`, 複数チャンネル同時SFXは未対応
+* `length` は1以上
+* `effect` / `effect_param` は `null` のみ対応
+
+出力ASMの概要:
+
+* `SFX_<NAME> EQU 0` 形式の効果音ID定数
+* `SFX_CH_PULSE1`, `SFX_CH_NOISE` のchannel kind定数
+* `SfxTable` ポインタテーブル
+* ヘッダ `channel kind, priority, step count, total frames`
+* Pulse1 step: `wait_frames, NR10, NR11, NR12, NR13, NR14`
+* Noise step: `wait_frames, NR41, NR42, NR43, NR44`
+
+初版では未対応:
+
+* 複数ファイルをまとめたSFXテーブル生成
+* `pulse2`, `wave`
+* 複数チャンネル同時SFX
+* 非null effect
+
+---
+
 # サウンド確認用テストROM生成
 
 hUGEDriver用RGBDS ASMから、サウンド確認専用の最小Game Boy ROMを生成します。

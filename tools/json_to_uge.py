@@ -282,12 +282,9 @@ def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, Instrument
             7,
         )
 
-        has_pulse_detail = any(
-            key in instrument
-            for key in ("duty", "initial_volume", "envelope_direction", "envelope_sweep")
-        )
-        if bank != "duty" and has_pulse_detail:
-            fail(f"{path}: duty/envelope instrument details are only supported for pulse1/pulse2")
+        has_duty_detail = "duty" in instrument
+        if bank != "duty" and has_duty_detail:
+            fail(f"{path}: duty is only supported for pulse1/pulse2")
 
         result[bank][instrument_id] = InstrumentSpec(
             id=instrument_id,
