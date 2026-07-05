@@ -2,6 +2,7 @@
   "version": 1,
   "title": "SE Cursor",
   "type": "sfx",
+  "priority": 1,
   "tempo": 1,
   "instruments": [
     {
