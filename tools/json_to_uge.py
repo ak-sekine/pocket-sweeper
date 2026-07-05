@@ -75,6 +75,18 @@ class Cell:
     effect_param: int = 0
 
 
+@dataclass(frozen=True)
+class InstrumentSpec:
+    id: int
+    name: str
+    channel: str
+    bank: str
+    duty: int
+    initial_volume: int
+    vol_sweep_direction: int
+    vol_sweep_amount: int
+
+
 def fail(message: str) -> None:
     raise ValueError(message)
 
@@ -101,6 +113,12 @@ def expect_int(value: Any, path: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         fail(f"{path}: integer expected")
     return value
+
+
+def expect_optional_int(value: Any, path: str, default: int) -> int:
+    if value is None:
+        return default
+    return expect_int(value, path)
 
 
 def pack_int(value: int) -> bytes:
@@ -203,8 +221,29 @@ def instrument_bank_for_channel(channel: str) -> str:
     fail(f"unsupported channel '{channel}'")
 
 
-def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, str]]:
-    result: dict[str, dict[int, str]] = {"duty": {}, "wave": {}, "noise": {}}
+def validate_range(value: int, path: str, minimum: int, maximum: int) -> int:
+    if value < minimum or value > maximum:
+        fail(f"{path}: expected {minimum}-{maximum}, got {value}")
+    return value
+
+
+def parse_envelope_direction(value: Any, path: str, default: int) -> int:
+    if value is None:
+        return default
+    direction = expect_string(value, path)
+    if direction == "up":
+        return ST_UP
+    if direction == "down":
+        return ST_DOWN
+    fail(f"{path}: expected 'up' or 'down'")
+
+
+def default_duty_values(instrument_id: int) -> tuple[str, int, int]:
+    return DEFAULT_DUTY_NAMES.get(instrument_id, ("", 2, 0))
+
+
+def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, InstrumentSpec]]:
+    result: dict[str, dict[int, InstrumentSpec]] = {"duty": {}, "wave": {}, "noise": {}}
     instruments = expect_list(data.get("instruments"), "instruments")
     for index, item in enumerate(instruments):
         path = f"instruments[{index}]"
@@ -217,7 +256,49 @@ def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, str]]:
         bank = instrument_bank_for_channel(channel)
         if instrument_id in result[bank]:
             fail(f"{path}.id: duplicate instrument id {instrument_id} in {bank} bank")
-        result[bank][instrument_id] = name
+
+        default_name, default_duty, default_sweep = default_duty_values(instrument_id)
+        duty = validate_range(
+            expect_optional_int(instrument.get("duty"), f"{path}.duty", default_duty),
+            f"{path}.duty",
+            0,
+            3,
+        )
+        initial_volume = validate_range(
+            expect_optional_int(instrument.get("initial_volume"), f"{path}.initial_volume", 15),
+            f"{path}.initial_volume",
+            0,
+            15,
+        )
+        vol_sweep_direction = parse_envelope_direction(
+            instrument.get("envelope_direction"),
+            f"{path}.envelope_direction",
+            ST_DOWN,
+        )
+        vol_sweep_amount = validate_range(
+            expect_optional_int(instrument.get("envelope_sweep"), f"{path}.envelope_sweep", default_sweep),
+            f"{path}.envelope_sweep",
+            0,
+            7,
+        )
+
+        has_pulse_detail = any(
+            key in instrument
+            for key in ("duty", "initial_volume", "envelope_direction", "envelope_sweep")
+        )
+        if bank != "duty" and has_pulse_detail:
+            fail(f"{path}: duty/envelope instrument details are only supported for pulse1/pulse2")
+
+        result[bank][instrument_id] = InstrumentSpec(
+            id=instrument_id,
+            name=name or default_name,
+            channel=channel,
+            bank=bank,
+            duty=duty,
+            initial_volume=initial_volume,
+            vol_sweep_direction=vol_sweep_direction,
+            vol_sweep_amount=vol_sweep_amount,
+        )
     return result
 
 
@@ -339,7 +420,7 @@ def pack_instrument(
     return b"".join(parts)
 
 
-def pack_instruments(overrides: dict[str, dict[int, str]]) -> bytes:
+def pack_instruments(overrides: dict[str, dict[int, InstrumentSpec]]) -> bytes:
     parts: list[bytes] = []
 
     for instrument_id in range(1, INSTRUMENT_COUNT + 1):
@@ -347,22 +428,28 @@ def pack_instruments(overrides: dict[str, dict[int, str]]) -> bytes:
             instrument_id,
             ("", 2, 0),
         )
-        name = overrides["duty"].get(instrument_id, default_name)
+        spec = overrides["duty"].get(instrument_id)
+        name = spec.name if spec else default_name
+        initial_volume = spec.initial_volume if spec else 15
+        vol_sweep_direction = spec.vol_sweep_direction if spec else ST_DOWN
+        vol_sweep_amount = spec.vol_sweep_amount if spec else vol_sweep_amount
+        duty = spec.duty if spec else duty
         parts.append(
             pack_instrument(
                 IT_SQUARE,
                 name,
-                initial_volume=15,
-                vol_sweep_direction=ST_DOWN,
+                initial_volume=initial_volume,
+                vol_sweep_direction=vol_sweep_direction,
                 vol_sweep_amount=vol_sweep_amount,
-                sweep_inc_dec=ST_DOWN,
+                sweep_inc_dec=vol_sweep_direction,
                 duty=duty,
                 output_level=1,
             )
         )
 
     for instrument_id in range(1, INSTRUMENT_COUNT + 1):
-        name = overrides["wave"].get(instrument_id, DEFAULT_WAVE_NAMES.get(instrument_id, ""))
+        spec = overrides["wave"].get(instrument_id)
+        name = spec.name if spec else DEFAULT_WAVE_NAMES.get(instrument_id, "")
         parts.append(
             pack_instrument(
                 IT_WAVE,
@@ -373,7 +460,8 @@ def pack_instruments(overrides: dict[str, dict[int, str]]) -> bytes:
         )
 
     for instrument_id in range(1, INSTRUMENT_COUNT + 1):
-        name = overrides["noise"].get(instrument_id, "")
+        spec = overrides["noise"].get(instrument_id)
+        name = spec.name if spec else ""
         parts.append(
             pack_instrument(
                 IT_NOISE,

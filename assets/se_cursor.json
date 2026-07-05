@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "title": "SE Cursor",
+  "type": "sfx",
+  "tempo": 1,
+  "instruments": [
+    {
+      "id": 5,
+      "name": "cursor_tick",
+      "channel": "pulse1",
+      "duty": 0,
+      "initial_volume": 3,
+      "envelope_direction": "down",
+      "envelope_sweep": 1
+    }
+  ],
+  "order": ["main"],
+  "patterns": {
+    "main": {
+      "channels": {
+        "pulse1": [
+          { "note": "C8", "length": 1, "instrument": 5, "effect": null, "effect_param": null }
+        ],
+        "pulse2": [],
+        "wave": [],
+        "noise": []
+      }
+    }
+  }
+}

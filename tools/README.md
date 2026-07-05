@@ -153,12 +153,32 @@ assets/test_draft.uge
 * effectは `effect: null`, `effect_param: null` のみ対応する
 * `wave` / `noise` 未使用時は空patternを出力する
 * Instrument IDは1〜15のみ使用できる
+* Pulse Instrumentでは `duty`, `initial_volume`, `envelope_direction`, `envelope_sweep` を任意指定できる
+
+Pulse Instrument詳細:
+
+```json
+{
+  "id": 5,
+  "name": "cursor_tick",
+  "channel": "pulse1",
+  "duty": 0,
+  "initial_volume": 3,
+  "envelope_direction": "down",
+  "envelope_sweep": 1
+}
+```
+
+* `duty`: 0〜3
+* `initial_volume`: 0〜15
+* `envelope_direction`: `"up"` または `"down"`
+* `envelope_sweep`: 0〜7
+* 未指定項目は従来のデフォルトInstrument相当の値を使う
 
 初版では未対応:
 
 * hUGETracker上での読み込み・保存・ASM Export自動確認
 * 非null effect
-* Instrument詳細パラメータ編集
 * Wave table編集
 * Routine / Instrument subpattern編集
 * 64行を超えるpattern
@@ -195,6 +215,7 @@ obj/test_draft.asm
 * effectは `$000` のみ対応する
 * `wave` / `noise` 未使用時は空patternを出力する
 * duty instrumentsを出力する
+* Pulse Instrument詳細をduty instrumentsへ反映する
 
 初版では未対応:
 

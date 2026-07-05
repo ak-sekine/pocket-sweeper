@@ -59,14 +59,25 @@ def render_patterns(label: str, patterns: dict[int, list[json_to_uge.Cell]]) -> 
     return lines
 
 
-def square_instrument_bytes(instrument_id: int) -> tuple[int, int, int, int]:
-    _, duty, vol_sweep_amount = json_to_uge.DEFAULT_DUTY_NAMES.get(
-        instrument_id,
-        ("", 2, 0),
-    )
+def square_instrument_bytes(
+    instrument_id: int,
+    instruments: dict[str, dict[int, json_to_uge.InstrumentSpec]],
+) -> tuple[int, int, int, int]:
+    _, duty, vol_sweep_amount = json_to_uge.default_duty_values(instrument_id)
+    initial_volume = 15
+    vol_sweep_direction = json_to_uge.ST_DOWN
+
+    spec = instruments["duty"].get(instrument_id)
+    if spec:
+        duty = spec.duty
+        initial_volume = spec.initial_volume
+        vol_sweep_direction = spec.vol_sweep_direction
+        vol_sweep_amount = spec.vol_sweep_amount
+
+    direction_bit = 1 if vol_sweep_direction == json_to_uge.ST_UP else 0
     nr10 = 8
     nr11 = duty << 6
-    nr12 = (15 << 4) | vol_sweep_amount
+    nr12 = (initial_volume << 4) | (direction_bit << 3) | vol_sweep_amount
     nr14 = 128
     return nr10, nr11, nr12, nr14
 
@@ -85,10 +96,11 @@ def render_duty_instruments(
     label: str,
     patterns: dict[int, list[json_to_uge.Cell]],
     order_matrix: list[list[int]],
+    instruments: dict[str, dict[int, json_to_uge.InstrumentSpec]],
 ) -> list[str]:
     lines = [f"{label}_duty_instruments:"]
     for instrument_id in range(1, highest_used_instrument(patterns, order_matrix) + 1):
-        nr10, nr11, nr12, nr14 = square_instrument_bytes(instrument_id)
+        nr10, nr11, nr12, nr14 = square_instrument_bytes(instrument_id, instruments)
         lines.extend(
             [
                 f"{label}_itSquareinst{instrument_id}:",
@@ -127,7 +139,7 @@ def render_waves(label: str) -> list[str]:
 
 def build_asm(data: dict, label: str) -> str:
     json_to_uge.validate_header(data)
-    json_to_uge.validate_instruments(data)
+    instruments = json_to_uge.validate_instruments(data)
     patterns, order_matrix = json_to_uge.build_patterns(data)
     tempo = json_to_uge.expect_int(data["tempo"], "tempo")
 
@@ -147,7 +159,7 @@ def build_asm(data: dict, label: str) -> str:
     ]
     lines.extend(render_order(label, order_matrix))
     lines.extend(render_patterns(label, patterns))
-    lines.extend(render_duty_instruments(label, patterns, order_matrix))
+    lines.extend(render_duty_instruments(label, patterns, order_matrix, instruments))
     lines.extend(render_empty_instrument_bank(label, "wave_instruments"))
     lines.extend(render_empty_instrument_bank(label, "noise_instruments"))
     lines.extend(render_routines(label))
