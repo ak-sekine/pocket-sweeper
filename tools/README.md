@@ -206,6 +206,48 @@ obj/test_draft.asm
 
 ---
 
+# サウンド確認用テストROM生成
+
+hUGEDriver用RGBDS ASMから、サウンド確認専用の最小Game Boy ROMを生成します。
+
+```bash
+python tools/build_sound_test_rom.py obj/test_draft.asm build/test_sound.gb
+```
+
+入力ASM:
+
+```text
+obj/test_draft.asm
+```
+
+出力ファイル:
+
+```text
+build/test_sound.gb
+```
+
+中間ファイル:
+
+```text
+obj/test_sound_sound_test.asm
+obj/test_sound_sound_test.o
+obj/test_sound_hUGEDriver.o
+obj/test_sound.map
+obj/test_sound.sym
+```
+
+処理内容:
+
+* 入力ASMからsong descriptorラベルを読み取る
+* 入力ASMをincludeする最小ROM用ASMを `obj/` に生成する
+* hUGEDriverを組み込む
+* 起動後に指定曲を自動再生する
+* `rgbasm`, `rgblink`, `rgbfix` を呼び出してROMを生成する
+
+このツールはROM生成のみを担当します。SameBoyなどのエミュレータ起動は行いません。
+
+---
+
 # requirements.txt
 
 Pythonライブラリはプロジェクトルートの
