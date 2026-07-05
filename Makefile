@@ -47,6 +47,9 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm | $(OBJ_DIR)
 $(OBJ_DIR)/graphics.o: $(GRAPHICS) $(OBJ_DIR)/title_tiles.2bpp $(TITLE_MAP) $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/hardware.inc
 $(OBJ_DIR)/input.o: $(INCLUDE_DIR)/input.inc $(INCLUDE_DIR)/hardware.inc
 $(OBJ_DIR)/main.o: $(INCLUDE_DIR)/hardware.inc
+$(OBJ_DIR)/sound.o: $(INCLUDE_DIR)/hardware.inc
+$(OBJ_DIR)/hUGEDriver.o: $(INCLUDE_DIR)/hardware.inc $(INCLUDE_DIR)/hUGE.inc $(INCLUDE_DIR)/hUGE_note_table.inc
+$(OBJ_DIR)/bgm_test.o: $(INCLUDE_DIR)/hUGE.inc
 $(OBJ_DIR)/cursor.o: $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/input.inc $(INCLUDE_DIR)/hardware.inc
 $(OBJ_DIR)/board.o: $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/input.inc
 $(OBJ_DIR)/game.o: $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/input.inc

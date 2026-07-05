@@ -14,6 +14,7 @@ Main::
     ld sp, $DFFF
     call GraphicsInit
     call Input_Init
+    call Sound_Init
     call Random_Init
     call Board_Init
     call Game_InitTitle
@@ -25,6 +26,7 @@ Main::
     call Board_UpdateDebugDisplay
     call Game_UpdateDisplay
     call Cursor_UpdateSprite
+    call Sound_Update
     call Random_UpdateFrameCounter
     call Input_Update
     call Game_HandleInput

@@ -864,6 +864,7 @@ Game_RestartAfterEnd:
     call Board_Init
     call Cursor_ResetPosition
     call Game_Init
+    call Sound_PlayTestBgm
     ld a, 1
     ld [wGameRestartDrawPending], a
     ret
@@ -894,6 +895,7 @@ Game_StartFromDifficultySelect:
     call Game_ApplyCurrentDifficultySettings
     call Board_Init
     call Cursor_ResetPosition
+    call Sound_PlayTestBgm
     ld a, 1
     ld [wGameRestartDrawPending], a
     ret
