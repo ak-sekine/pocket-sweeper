@@ -165,6 +165,47 @@ assets/test_draft.uge
 
 ---
 
+# 楽曲定義JSONからhUGEDriver ASM生成
+
+ChatGPTで作成した楽曲定義JSONから、hUGEDriver用のRGBDS ASMを直接生成します。
+
+```bash
+python tools/json_to_huge_asm.py assets/test_draft.json obj/test_draft.asm
+```
+
+入力JSON:
+
+```text
+assets/test_draft.json
+```
+
+出力ファイル:
+
+```text
+obj/test_draft.asm
+```
+
+初版の対応範囲:
+
+* hUGETracker Export ASMに近いsong descriptor、order、pattern、instrument、routine、wave構造を出力する
+* song descriptorのラベル名は出力ASMファイル名から生成する
+* `pulse1`, `pulse2`, `wave`, `noise` の4チャンネルを扱う
+* noteはRGBDS ASM表記の `C_4`, `C#4`, `___` へ変換する
+* `length` は64行固定patternへ行展開する
+* effectは `$000` のみ対応する
+* `wave` / `noise` 未使用時は空patternを出力する
+* duty instrumentsを出力する
+
+初版では未対応:
+
+* hUGETracker Export ASMとの完全一致確認
+* 非null effect
+* Wave / Noise instrumentsの実質利用
+* Routine / Instrument subpattern編集
+* サウンド再生確認用テストROM生成
+
+---
+
 # requirements.txt
 
 Pythonライブラリはプロジェクトルートの
