@@ -265,14 +265,19 @@ def render_asm(data: dict[str, Any], label_base: str) -> str:
         fail("patterns: total SFX frames must fit in one byte")
 
     lines = [
-        f"{const_name} EQU 0",
-        "SFX_CH_PULSE1 EQU 0",
-        "SFX_CH_NOISE EQU 3",
+        f'SECTION "{label} Data", ROM0',
         "",
-        "SfxTable:",
+        f"DEF {const_name} EQU 0",
+        "DEF SFX_CH_PULSE1 EQU 0",
+        "DEF SFX_CH_NOISE EQU 3",
+        f"EXPORT {const_name}",
+        "EXPORT SFX_CH_PULSE1",
+        "EXPORT SFX_CH_NOISE",
+        "",
+        "SfxTable::",
         f"    dw {label}",
         "",
-        f"{label}:",
+        f"{label}::",
         f"    db {channel_kind}, {priority}, {len(steps)}, {total_frames}",
     ]
     for step in steps:

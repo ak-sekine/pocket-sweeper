@@ -6,7 +6,9 @@ OBJ_DIR := obj
 BUILD_DIR := build
 
 SOURCES := $(wildcard $(SRC_DIR)/*.asm)
-OBJECTS := $(patsubst $(SRC_DIR)/%.asm,$(OBJ_DIR)/%.o,$(SOURCES))
+SFX_ASM := $(OBJ_DIR)/se_cursor_sfx.asm
+SFX_OBJECTS := $(patsubst $(OBJ_DIR)/%.asm,$(OBJ_DIR)/%.o,$(SFX_ASM))
+OBJECTS := $(patsubst $(SRC_DIR)/%.asm,$(OBJ_DIR)/%.o,$(SOURCES)) $(SFX_OBJECTS)
 
 ROM := $(BUILD_DIR)/$(PROJECT).gb
 MAP := $(OBJ_DIR)/$(PROJECT).map
@@ -43,6 +45,12 @@ $(ROM): $(OBJECTS) | $(BUILD_DIR) $(OBJ_DIR)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm | $(OBJ_DIR)
 	$(RGBASM) $(RGBASMFLAGS) -o $@ $<
+
+$(OBJ_DIR)/%.o: $(OBJ_DIR)/%.asm | $(OBJ_DIR)
+	$(RGBASM) $(RGBASMFLAGS) -o $@ $<
+
+$(SFX_ASM): assets/se_cursor.json tools/json_to_sfx_asm.py tools/json_to_uge.py | $(OBJ_DIR)
+	$(PYTHON) tools/json_to_sfx_asm.py $< $@
 
 $(OBJ_DIR)/graphics.o: $(GRAPHICS) $(OBJ_DIR)/title_tiles.2bpp $(TITLE_MAP) $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/hardware.inc
 $(OBJ_DIR)/input.o: $(INCLUDE_DIR)/input.inc $(INCLUDE_DIR)/hardware.inc
