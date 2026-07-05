@@ -1,0 +1,466 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import struct
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+
+SONG_VERSION = 6
+JSON_VERSION = 1
+CHANNELS = ("pulse1", "pulse2", "wave", "noise")
+NO_NOTE = 90
+PATTERN_ROWS = 64
+INSTRUMENT_COUNT = 15
+WAVE_COUNT = 16
+WAVE_BYTES = 32
+
+IT_SQUARE = 0
+IT_WAVE = 1
+IT_NOISE = 2
+
+ST_UP = 0
+ST_DOWN = 1
+SW_FIFTEEN = 0
+
+DEFAULT_DUTY_NAMES = {
+    1: ("Duty 12.5%", 0, 0),
+    2: ("Duty 25%", 1, 0),
+    3: ("Duty 50%", 2, 0),
+    4: ("Duty 75%", 3, 0),
+    5: ("Duty 12.5% plink", 0, 1),
+    6: ("Duty 25% plink", 1, 1),
+    7: ("Duty 50% plink", 2, 1),
+    8: ("Duty 75% plink", 3, 1),
+}
+
+DEFAULT_WAVE_NAMES = {
+    1: "Square wave 12.5%",
+    2: "Square wave 25%",
+    3: "Square wave 50%",
+    4: "Square wave 75%",
+    5: "Sawtooth wave",
+    6: "Triangle wave",
+    7: "Sine wave",
+    8: "Toothy",
+    9: "Triangle Toothy",
+    10: "Pointy",
+    11: "Strange",
+}
+
+DEFAULT_WAVES = [
+    [0, 0, 0, 0, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
+    [0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 15, 15, 15, 15, 15],
+    [0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15],
+    [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15],
+    [7, 10, 12, 13, 13, 11, 7, 5, 2, 1, 1, 3, 6, 8, 11, 13, 13, 12, 9, 7, 4, 1, 0, 1, 4, 7, 9, 12, 13, 13, 11, 8],
+    [0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15, 0, 15],
+    [15, 14, 15, 12, 15, 10, 15, 8, 15, 6, 15, 4, 15, 2, 15, 0, 15, 2, 15, 4, 15, 6, 15, 8, 15, 10, 15, 12, 15, 14, 15, 15],
+    [15, 14, 13, 13, 12, 12, 11, 11, 10, 10, 9, 9, 8, 8, 7, 7, 8, 10, 11, 13, 15, 1, 2, 4, 5, 7, 8, 10, 11, 13, 14, 14],
+    [8, 4, 1, 1, 6, 1, 14, 13, 5, 7, 4, 7, 5, 10, 10, 13, 12, 14, 10, 3, 1, 7, 7, 9, 13, 13, 2, 0, 0, 3, 4, 7],
+]
+
+
+@dataclass(frozen=True)
+class Cell:
+    note: int = NO_NOTE
+    instrument: int = 0
+    volume: int = 0
+    effect_code: int = 0
+    effect_param: int = 0
+
+
+def fail(message: str) -> None:
+    raise ValueError(message)
+
+
+def expect_dict(value: Any, path: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        fail(f"{path}: object expected")
+    return value
+
+
+def expect_list(value: Any, path: str) -> list[Any]:
+    if not isinstance(value, list):
+        fail(f"{path}: array expected")
+    return value
+
+
+def expect_string(value: Any, path: str) -> str:
+    if not isinstance(value, str):
+        fail(f"{path}: string expected")
+    return value
+
+
+def expect_int(value: Any, path: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool):
+        fail(f"{path}: integer expected")
+    return value
+
+
+def pack_int(value: int) -> bytes:
+    return struct.pack("<i", value)
+
+
+def pack_bool(value: bool) -> bytes:
+    return b"\x01" if value else b"\x00"
+
+
+def pack_short_string(value: str, path: str) -> bytes:
+    encoded = value.encode("utf-8")
+    if len(encoded) > 255:
+        fail(f"{path}: string is too long for hUGETracker ShortString ({len(encoded)} bytes)")
+    return bytes([len(encoded)]) + encoded + bytes(255 - len(encoded))
+
+
+def pack_ansi_string(value: str, path: str) -> bytes:
+    encoded = value.encode("utf-8")
+    return pack_int(len(encoded)) + encoded
+
+
+def pack_cell(cell: Cell) -> bytes:
+    return b"".join(
+        [
+            pack_int(cell.note),
+            pack_int(cell.instrument),
+            pack_int(cell.volume),
+            pack_int(cell.effect_code),
+            bytes([cell.effect_param]),
+        ]
+    )
+
+
+def blank_pattern() -> list[Cell]:
+    return [Cell() for _ in range(PATTERN_ROWS)]
+
+
+def pack_pattern(pattern: list[Cell]) -> bytes:
+    if len(pattern) != PATTERN_ROWS:
+        fail(f"internal error: pattern must have {PATTERN_ROWS} rows")
+    return b"".join(pack_cell(cell) for cell in pattern)
+
+
+def parse_note(note: Any, path: str) -> int:
+    value = expect_string(note, path)
+    if value == "rest":
+        return NO_NOTE
+
+    if len(value) not in (2, 3):
+        fail(f"{path}: invalid note '{value}'")
+
+    if len(value) == 2:
+        name = value[0]
+        octave_text = value[1]
+        accidental = ""
+    else:
+        name = value[0]
+        accidental = value[1]
+        octave_text = value[2]
+
+    semitones = {
+        "C": 0,
+        "D": 2,
+        "E": 4,
+        "F": 5,
+        "G": 7,
+        "A": 9,
+        "B": 11,
+    }
+    if name not in semitones:
+        fail(f"{path}: invalid note name '{value}'")
+    if accidental not in ("", "#"):
+        fail(f"{path}: only sharp notes with # are supported, got '{value}'")
+    if not octave_text.isdigit():
+        fail(f"{path}: invalid octave in note '{value}'")
+
+    octave = int(octave_text)
+    semitone = semitones[name] + (1 if accidental == "#" else 0)
+    note_number = (octave - 3) * 12 + semitone
+    if note_number < 0 or note_number > 71:
+        fail(f"{path}: note '{value}' is out of supported range C3-B8")
+    return note_number
+
+
+def validate_instrument_id(value: Any, path: str) -> int:
+    instrument = expect_int(value, path)
+    if instrument < 1 or instrument > INSTRUMENT_COUNT:
+        fail(f"{path}: instrument id must be 1-15; 0 is reserved for no instrument")
+    return instrument
+
+
+def instrument_bank_for_channel(channel: str) -> str:
+    if channel in ("pulse1", "pulse2"):
+        return "duty"
+    if channel == "wave":
+        return "wave"
+    if channel == "noise":
+        return "noise"
+    fail(f"unsupported channel '{channel}'")
+
+
+def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, str]]:
+    result: dict[str, dict[int, str]] = {"duty": {}, "wave": {}, "noise": {}}
+    instruments = expect_list(data.get("instruments"), "instruments")
+    for index, item in enumerate(instruments):
+        path = f"instruments[{index}]"
+        instrument = expect_dict(item, path)
+        instrument_id = validate_instrument_id(instrument.get("id"), f"{path}.id")
+        name = expect_string(instrument.get("name"), f"{path}.name")
+        channel = expect_string(instrument.get("channel"), f"{path}.channel")
+        if channel not in CHANNELS:
+            fail(f"{path}.channel: expected one of {', '.join(CHANNELS)}")
+        bank = instrument_bank_for_channel(channel)
+        if instrument_id in result[bank]:
+            fail(f"{path}.id: duplicate instrument id {instrument_id} in {bank} bank")
+        result[bank][instrument_id] = name
+    return result
+
+
+def validate_header(data: dict[str, Any]) -> None:
+    version = expect_int(data.get("version"), "version")
+    if version != JSON_VERSION:
+        fail(f"version: expected {JSON_VERSION}, got {version}")
+    expect_string(data.get("title"), "title")
+    song_type = expect_string(data.get("type"), "type")
+    if song_type not in ("bgm", "sfx"):
+        fail("type: expected 'bgm' or 'sfx'")
+    tempo = expect_int(data.get("tempo"), "tempo")
+    if tempo <= 0:
+        fail("tempo: must be a positive integer")
+    expect_list(data.get("order"), "order")
+    expect_dict(data.get("patterns"), "patterns")
+
+
+def validate_event_effect(event: dict[str, Any], path: str) -> None:
+    if event.get("effect") is not None:
+        fail(f"{path}.effect: only null is supported in the initial version")
+    if event.get("effect_param") is not None:
+        fail(f"{path}.effect_param: only null is supported in the initial version")
+
+
+def build_channel_pattern(events: list[Any], path: str) -> list[Cell]:
+    rows: list[Cell] = []
+    for index, item in enumerate(events):
+        event_path = f"{path}[{index}]"
+        event = expect_dict(item, event_path)
+        note = parse_note(event.get("note"), f"{event_path}.note")
+        length = expect_int(event.get("length"), f"{event_path}.length")
+        if length < 1:
+            fail(f"{event_path}.length: must be 1 or greater")
+        instrument = validate_instrument_id(event.get("instrument"), f"{event_path}.instrument")
+        validate_event_effect(event, event_path)
+
+        first_instrument = 0 if note == NO_NOTE else instrument
+        rows.append(Cell(note=note, instrument=first_instrument))
+        for _ in range(length - 1):
+            rows.append(Cell())
+        if len(rows) > PATTERN_ROWS:
+            fail(f"{path}: expanded pattern exceeds {PATTERN_ROWS} rows")
+
+    rows.extend(Cell() for _ in range(PATTERN_ROWS - len(rows)))
+    return rows
+
+
+def build_patterns(data: dict[str, Any]) -> tuple[dict[int, list[Cell]], list[list[int]]]:
+    order = expect_list(data.get("order"), "order")
+    patterns_json = expect_dict(data.get("patterns"), "patterns")
+    if not order:
+        fail("order: at least one pattern name is required")
+
+    patterns: dict[int, list[Cell]] = {}
+    order_matrix: list[list[int]] = [[] for _ in CHANNELS]
+
+    for order_index, pattern_name_value in enumerate(order):
+        pattern_name = expect_string(pattern_name_value, f"order[{order_index}]")
+        if pattern_name not in patterns_json:
+            fail(f"order[{order_index}]: pattern '{pattern_name}' is not defined")
+        pattern_obj = expect_dict(patterns_json[pattern_name], f"patterns.{pattern_name}")
+        channels_obj = expect_dict(pattern_obj.get("channels"), f"patterns.{pattern_name}.channels")
+
+        for channel_index, channel in enumerate(CHANNELS):
+            pattern_key = order_index * len(CHANNELS) + channel_index
+            events = expect_list(
+                channels_obj.get(channel, []),
+                f"patterns.{pattern_name}.channels.{channel}",
+            )
+            if events:
+                patterns[pattern_key] = build_channel_pattern(
+                    events,
+                    f"patterns.{pattern_name}.channels.{channel}",
+                )
+            else:
+                patterns[pattern_key] = blank_pattern()
+            order_matrix[channel_index].append(pattern_key)
+
+    return patterns, order_matrix
+
+
+def pack_instrument(
+    type_: int,
+    name: str,
+    *,
+    length: int = 0,
+    length_enabled: bool = False,
+    initial_volume: int = 0,
+    vol_sweep_direction: int = ST_DOWN,
+    vol_sweep_amount: int = 0,
+    sweep_time: int = 0,
+    sweep_inc_dec: int = ST_DOWN,
+    sweep_shift: int = 0,
+    duty: int = 0,
+    output_level: int = 0,
+    waveform: int = 0,
+    counter_step: int = SW_FIFTEEN,
+    subpattern_enabled: bool = False,
+) -> bytes:
+    parts = [
+        pack_int(type_),
+        pack_short_string(name, "instrument.name"),
+        pack_int(length),
+        pack_bool(length_enabled),
+        bytes([initial_volume]),
+        pack_int(vol_sweep_direction),
+        bytes([vol_sweep_amount]),
+        pack_int(sweep_time),
+        pack_int(sweep_inc_dec),
+        pack_int(sweep_shift),
+        bytes([duty]),
+        pack_int(output_level),
+        pack_int(waveform),
+        pack_int(counter_step),
+        pack_bool(subpattern_enabled),
+        pack_pattern(blank_pattern()),
+    ]
+    return b"".join(parts)
+
+
+def pack_instruments(overrides: dict[str, dict[int, str]]) -> bytes:
+    parts: list[bytes] = []
+
+    for instrument_id in range(1, INSTRUMENT_COUNT + 1):
+        default_name, duty, vol_sweep_amount = DEFAULT_DUTY_NAMES.get(
+            instrument_id,
+            ("", 2, 0),
+        )
+        name = overrides["duty"].get(instrument_id, default_name)
+        parts.append(
+            pack_instrument(
+                IT_SQUARE,
+                name,
+                initial_volume=15,
+                vol_sweep_direction=ST_DOWN,
+                vol_sweep_amount=vol_sweep_amount,
+                sweep_inc_dec=ST_DOWN,
+                duty=duty,
+                output_level=1,
+            )
+        )
+
+    for instrument_id in range(1, INSTRUMENT_COUNT + 1):
+        name = overrides["wave"].get(instrument_id, DEFAULT_WAVE_NAMES.get(instrument_id, ""))
+        parts.append(
+            pack_instrument(
+                IT_WAVE,
+                name,
+                output_level=1,
+                waveform=instrument_id - 1,
+            )
+        )
+
+    for instrument_id in range(1, INSTRUMENT_COUNT + 1):
+        name = overrides["noise"].get(instrument_id, "")
+        parts.append(
+            pack_instrument(
+                IT_NOISE,
+                name,
+                initial_volume=15,
+                vol_sweep_direction=ST_DOWN,
+                counter_step=SW_FIFTEEN,
+            )
+        )
+
+    return b"".join(parts)
+
+
+def pack_waves() -> bytes:
+    waves = [bytes(wave) for wave in DEFAULT_WAVES]
+    while len(waves) < WAVE_COUNT:
+        waves.append(bytes(WAVE_BYTES))
+    return b"".join(waves)
+
+
+def build_uge(data: dict[str, Any]) -> bytes:
+    validate_header(data)
+    instruments = validate_instruments(data)
+    patterns, order_matrix = build_patterns(data)
+
+    output = bytearray()
+    output += pack_int(SONG_VERSION)
+    output += pack_short_string(expect_string(data["title"], "title"), "title")
+    output += pack_short_string("", "artist")
+    output += pack_short_string("", "comment")
+    output += pack_instruments(instruments)
+    output += pack_waves()
+    output += pack_int(expect_int(data["tempo"], "tempo"))
+    output += pack_bool(False)
+    output += pack_int(0)
+
+    output += pack_int(len(patterns))
+    for key in sorted(patterns):
+        output += pack_int(key)
+        output += pack_pattern(patterns[key])
+
+    for channel_orders in order_matrix:
+        stored_orders = channel_orders + [0]
+        output += pack_int(len(stored_orders))
+        for pattern_key in stored_orders:
+            output += pack_int(pattern_key)
+
+    for index in range(16):
+        output += pack_ansi_string("", f"routines[{index}]")
+
+    return bytes(output)
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        fail(f"{path}: invalid JSON: {exc.msg} at line {exc.lineno}, column {exc.colno}")
+    return expect_dict(data, str(path))
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Convert Pocket Sweeper music definition JSON into hUGETracker .uge Version 6."
+    )
+    parser.add_argument("input_json", type=Path, help="Input music definition JSON")
+    parser.add_argument("output_uge", type=Path, help="Output .uge file")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+
+    try:
+        data = load_json(args.input_json)
+        uge = build_uge(data)
+        args.output_uge.parent.mkdir(parents=True, exist_ok=True)
+        args.output_uge.write_bytes(uge)
+    except Exception as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"input: {args.input_json}")
+    print(f"output: {args.output_uge}")
+    print(f"bytes: {len(uge)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "title": "Test Draft",
+  "type": "bgm",
+  "tempo": 6,
+  "instruments": [
+    { "id": 1, "name": "lead", "channel": "pulse1" },
+    { "id": 2, "name": "bass", "channel": "pulse2" }
+  ],
+  "order": ["main"],
+  "patterns": {
+    "main": {
+      "channels": {
+        "pulse1": [
+          { "note": "C4", "length": 4, "instrument": 1, "effect": null, "effect_param": null },
+          { "note": "E4", "length": 4, "instrument": 1, "effect": null, "effect_param": null },
+          { "note": "G4", "length": 4, "instrument": 1, "effect": null, "effect_param": null },
+          { "note": "C5", "length": 4, "instrument": 1, "effect": null, "effect_param": null }
+        ],
+        "pulse2": [
+          { "note": "C3", "length": 8, "instrument": 2, "effect": null, "effect_param": null },
+          { "note": "G3", "length": 8, "instrument": 2, "effect": null, "effect_param": null }
+        ],
+        "wave": [],
+        "noise": []
+      }
+    }
+  }
+}

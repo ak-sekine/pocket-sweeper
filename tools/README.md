@@ -124,6 +124,47 @@ obj/title_map.bin
 
 ---
 
+# 楽曲定義JSONからuge生成
+
+ChatGPTで作成した楽曲定義JSONから、hUGETracker v1.0.11向けのSong Version 6 `.uge` ファイルを生成します。
+
+```bash
+python tools/json_to_uge.py assets/test_draft.json assets/test_draft.uge
+```
+
+入力JSON:
+
+```text
+assets/test_draft.json
+```
+
+出力ファイル:
+
+```text
+assets/test_draft.uge
+```
+
+初版の対応範囲:
+
+* `version`, `title`, `type`, `tempo`, `instruments`, `order`, `patterns`, `channels` を読み込む
+* `pulse1`, `pulse2`, `wave`, `noise` の4チャンネルを扱う
+* noteは `C3`〜`B8` と `rest` を扱う
+* `length` は64行固定patternへ行展開する
+* effectは `effect: null`, `effect_param: null` のみ対応する
+* `wave` / `noise` 未使用時は空patternを出力する
+* Instrument IDは1〜15のみ使用できる
+
+初版では未対応:
+
+* hUGETracker上での読み込み・保存・ASM Export自動確認
+* 非null effect
+* Instrument詳細パラメータ編集
+* Wave table編集
+* Routine / Instrument subpattern編集
+* 64行を超えるpattern
+
+---
+
 # requirements.txt
 
 Pythonライブラリはプロジェクトルートの
