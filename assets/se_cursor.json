@@ -8,23 +8,27 @@
     {
       "id": 5,
       "name": "cursor_tick",
-      "channel": "pulse1",
-      "duty": 0,
-      "initial_volume": 3,
+      "channel": "noise",
+      "noise_length": 12,
+      "initial_volume": 5,
       "envelope_direction": "down",
-      "envelope_sweep": 1
+      "envelope_sweep": 2,
+      "clock_shift": 1,
+      "width_mode": "7bit",
+      "divisor_code": 0,
+      "length_enable": true
     }
   ],
   "order": ["main"],
   "patterns": {
     "main": {
       "channels": {
-        "pulse1": [
-          { "note": "C8", "length": 1, "instrument": 5, "effect": null, "effect_param": null }
-        ],
+        "pulse1": [],
         "pulse2": [],
         "wave": [],
-        "noise": []
+        "noise": [
+          { "note": "C3", "length": 1, "instrument": 5, "effect": null, "effect_param": null }
+        ]
       }
     }
   }
