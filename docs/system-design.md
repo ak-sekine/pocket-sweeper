@@ -9,8 +9,15 @@
 ```
 pocket-sweeper/
 ├── .venv/            # Python仮想環境（Git管理外）
+├── .vscode/           # VS Code設定（Git管理外）
 ├── README.md         # 公開向けドキュメント
-├── PROJECT.md        # プロジェクト管理
+├── PROJECT.md         # プロジェクト全体の入口・方針・WBS
+├── docs/              # 分野別詳細仕様書・関連資料
+│   ├── game-spec.md
+│   ├── system-design.md
+│   ├── sound-spec.md
+│   ├── json-format.md
+│   └── graphics-spec.md
 ├── Makefile          # ビルド定義
 ├── requirements.txt  # Pythonライブラリ管理
 ├── src/              # RGBDSソースコード
@@ -194,4 +201,3 @@ make
 - 例外として、ポーズメニューのようにゲーム進行を停止している画面では、LCD OFF中にBGを一括描画してよい。
 - 時間のかかるゲームロジックと大量のVRAM更新を同一フレームへ集中させないよう設計する。
 - デバッグ表示など一括描画を行う処理も、この方針に従う。
-
