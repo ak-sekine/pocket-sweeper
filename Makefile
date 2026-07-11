@@ -8,7 +8,9 @@ BUILD_DIR := build
 SOURCES := $(wildcard $(SRC_DIR)/*.asm)
 SFX_ASM := $(OBJ_DIR)/se_cursor_sfx.asm
 SFX_OBJECTS := $(patsubst $(OBJ_DIR)/%.asm,$(OBJ_DIR)/%.o,$(SFX_ASM))
-OBJECTS := $(patsubst $(SRC_DIR)/%.asm,$(OBJ_DIR)/%.o,$(SOURCES)) $(SFX_OBJECTS)
+BGM_ASM := $(OBJ_DIR)/bgm_title.asm $(OBJ_DIR)/bgm_game.asm $(OBJ_DIR)/bgm_clear.asm
+BGM_OBJECTS := $(patsubst $(OBJ_DIR)/%.asm,$(OBJ_DIR)/%.o,$(BGM_ASM))
+OBJECTS := $(patsubst $(SRC_DIR)/%.asm,$(OBJ_DIR)/%.o,$(SOURCES)) $(SFX_OBJECTS) $(BGM_OBJECTS)
 
 ROM := $(BUILD_DIR)/$(PROJECT).gb
 MAP := $(OBJ_DIR)/$(PROJECT).map
@@ -34,6 +36,7 @@ RGBGFX_CURSOR_COLORS := \#88C070,\#E0F8D0,\#346856,\#081820
 
 .DEFAULT_GOAL := all
 .DELETE_ON_ERROR:
+.SECONDARY: $(SFX_ASM) $(BGM_ASM)
 
 .PHONY: all clean run
 
@@ -51,6 +54,11 @@ $(OBJ_DIR)/%.o: $(OBJ_DIR)/%.asm | $(OBJ_DIR)
 
 $(SFX_ASM): assets/se_cursor.json tools/json_to_sfx_asm.py tools/json_to_uge.py | $(OBJ_DIR)
 	$(PYTHON) tools/json_to_sfx_asm.py $< $@
+
+$(OBJ_DIR)/bgm_%.asm: assets/bgm_%.json tools/json_to_huge_asm.py tools/json_to_uge.py | $(OBJ_DIR)
+	$(PYTHON) tools/json_to_huge_asm.py $< $@
+
+$(BGM_OBJECTS): $(INCLUDE_DIR)/hUGE.inc
 
 $(OBJ_DIR)/graphics.o: $(GRAPHICS) $(OBJ_DIR)/title_tiles.2bpp $(TITLE_MAP) $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/hardware.inc
 $(OBJ_DIR)/input.o: $(INCLUDE_DIR)/input.inc $(INCLUDE_DIR)/hardware.inc

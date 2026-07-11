@@ -1,0 +1,276 @@
+{
+  "version": 1,
+  "title": "Pocket Sweeper Game",
+  "type": "bgm",
+  "tempo": 7,
+  "instruments": [
+    {
+      "id": 1,
+      "name": "Game Lead",
+      "channel": "pulse1",
+      "duty": 1,
+      "initial_volume": 9,
+      "envelope_direction": "down",
+      "envelope_sweep": 0
+    },
+    {
+      "id": 2,
+      "name": "Game Pulse",
+      "channel": "pulse2",
+      "duty": 2,
+      "initial_volume": 6,
+      "envelope_direction": "down",
+      "envelope_sweep": 0
+    }
+  ],
+  "order": [
+    "game_a",
+    "game_b"
+  ],
+  "patterns": {
+    "game_a": {
+      "channels": {
+        "pulse1": [
+          {
+            "note": "C5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "E5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "D5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "G4",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "A4",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "C5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "B4",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "G4",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          }
+        ],
+        "pulse2": [
+          {
+            "note": "C3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "G3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "A3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "E3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "F3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "C4",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "G3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "G3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          }
+        ],
+        "wave": [],
+        "noise": []
+      }
+    },
+    "game_b": {
+      "channels": {
+        "pulse1": [
+          {
+            "note": "F5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "E5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "D5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "C5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "A4",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "B4",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "D5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "C5",
+            "length": 8,
+            "instrument": 1,
+            "effect": null,
+            "effect_param": null
+          }
+        ],
+        "pulse2": [
+          {
+            "note": "F3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "C4",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "G3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "D4",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "A3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "E4",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "G3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          },
+          {
+            "note": "C3",
+            "length": 8,
+            "instrument": 2,
+            "effect": null,
+            "effect_param": null
+          }
+        ],
+        "wave": [],
+        "noise": []
+      }
+    }
+  }
+}
