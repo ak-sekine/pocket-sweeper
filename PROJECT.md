@@ -317,7 +317,7 @@
       - [x] CH3 / Wave用Instrument詳細項目を決める
       - [x] CH3 / Wave table定義項目を決める
       - [x] CH4 / NoiseをBGMで使用するためのInstrument詳細項目を決める
-      - [ ] CH2とCH4が効果音で一時的にミュートされても、CH1とCH3で曲の骨格を維持できるBGM設計方針を明記する
+      - [x] CH2とCH4が効果音で一時的にミュートされても、CH1とCH3で曲の骨格を維持できるBGM設計方針を明記する
       - [ ] noteごとのvolumeをJSONで扱うか決める
       - [ ] チャンネルごとに異なるorder / pattern割り当てを表現する方法を決める
       - [ ] テンポ変更をJSONで扱うか、単一テンポへ正規化するか決める
