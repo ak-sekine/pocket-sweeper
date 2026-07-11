@@ -310,7 +310,7 @@
         - [x] 非null effect、音符停止、曲中tempo変更は現行仕様では未対応であることを確認する
         - [x] Instrumentのchannel/type/bankの役割整理が必要であることを確認する
         - [x] 不足項目を「必須」「推奨」「将来対応」に分類する      
-      - [ ] JSON仕様のバージョン更新方針を決める
+      - [x] JSON仕様のバージョン更新方針を決める
       - [ ] 既存のBGM・効果音JSONとの後方互換性を維持するか決める
       - [ ] CH1 / Pulse1用Instrument詳細項目を整理する
       - [ ] CH2 / Pulse2用Instrument詳細項目を整理する
