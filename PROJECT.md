@@ -313,7 +313,7 @@
       - [x] JSON仕様のバージョン更新方針を決める
       - [x] 既存のBGM・効果音JSONとの後方互換性を維持するか決める
       - [x] CH1 / Pulse1用Instrument詳細項目を整理する
-      - [ ] CH2 / Pulse2用Instrument詳細項目を整理する
+      - [x] CH2 / Pulse2用Instrument詳細項目を整理する
       - [ ] CH3 / Wave用Instrument詳細項目を決める
       - [ ] CH3 / Wave table定義項目を決める
       - [ ] CH4 / NoiseをBGMで使用するためのInstrument詳細項目を決める
@@ -326,6 +326,7 @@
       - [ ] 拡張後の4チャンネルBGM JSONサンプルを作成する
       - [ ] PROJECT.mdの「初版BGM仕様」「BGM・効果音制作フロー」「楽曲定義JSON仕様」を更新する
     - [ ] JSON変換ツールを4チャンネル対応JSON仕様へ対応させる
+      - [ ] Version 2のPulse共通Instrument項目（CH2の`length` / `length_enable`を含む）と、CH2でのCH1専用Sweep項目禁止を変換ツールへ反映する
       - [ ] `tools/json_to_huge_asm.py` の変更範囲を整理する
       - [ ] `tools/json_to_huge_asm.py` をCH3 / Wave Instrument・Wave table出力へ対応させる
       - [ ] `tools/json_to_huge_asm.py` をCH4 / Noise InstrumentのBGM利用へ対応させる
