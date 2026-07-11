@@ -46,6 +46,54 @@ Pulse Instrument詳細項目:
 - これらのInstrument詳細項目は、初版では `pulse1` / `pulse2` 用Instrumentのみ対応する。
 - 不正な範囲や未対応チャンネルでの指定は、変換ツールでバリデーションエラーにする。
 
+### Version 2のCH1 / Pulse1用Instrument詳細項目
+
+Version 2では、Version 1で扱っているPulse Instrument項目を維持し、CH1固有の項目を追加する。Version 1の既存JSONを変更せず、Version 1入力時には以下のVersion 2専用項目を参照しない。
+
+| JSON項目 | 型・許容値 | 未指定時のデフォルト | 使用可能チャンネル | 意味 |
+| --- | --- | --- | --- | --- |
+| `duty` | 整数、0～3 | Version 1のInstrument IDに応じた既存デフォルト | `pulse1` / `pulse2` | Pulse波形のduty設定。Version 1の意味を変更しない。 |
+| `length` | 整数、0～63 | `0` | `pulse1` / `pulse2` | ハードウェアのsound length設定。 |
+| `length_enable` | boolean | `false` | `pulse1` / `pulse2` | length counterを有効にするかどうか。 |
+| `initial_volume` | 整数、0～15 | `15` | `pulse1` / `pulse2` | 音量エンベロープの初期音量。Version 1の意味を変更しない。 |
+| `envelope_direction` | `"up"` または `"down"` | `"down"` | `pulse1` / `pulse2` | 音量エンベロープの方向。Version 1の意味を変更しない。 |
+| `envelope_sweep` | 整数、0～7 | Version 1のInstrument IDに応じた既存デフォルト | `pulse1` / `pulse2` | 音量エンベロープの周期設定。Version 1の意味を変更しない。 |
+| `sweep_time` | 整数、0～7 | `0` | `pulse1` のみ | CH1周波数スイープの周期設定。 |
+| `sweep_direction` | `"up"` または `"down"` | `"down"` | `pulse1` のみ | CH1周波数スイープの方向。 |
+| `sweep_shift` | 整数、0～7 | `0` | `pulse1` のみ | CH1周波数スイープのshift設定。 |
+
+Instrument側の `length` はGame Boyハードウェアのsound length設定であり、pattern内のnote側にある `length` とは別の項目である。note側の `length` はpattern row数を表し、Instrument側の `length` はハードウェアのsound length registerへ反映する値を表す。
+
+`sweep_direction` のJSON上の意味は、ハードウェアの周波数変化方向として定義する。`"up"` は周波数加算でNR10のbit 3を0、`"down"` は周波数減算でNR10のbit 3を1とする。既存のhUGETracker / hUGEDriver側では、hUGETrackerの `SweepIncDec` および変換ツールの `ST_UP = 0` / `ST_DOWN = 1` に対応する。hUGEDriverはInstrumentのSweep値をNR10へ書き込む。
+
+hUGETrackerの初期Duty Instrumentは `SweepIncDec = stDown` であり、Version 2 JSONの `sweep_direction` 未指定時は対応する `"down"` とする。hUGETrackerの `stDown`、JSONの `"down"`、NR10 bit 3の1（周波数減算）は同じ方向を表す。
+
+Pulse InstrumentのJSON項目を未指定にした場合は、可能な限りhUGETrackerの初期値を採用する。これはhUGETrackerで新規作成したInstrumentとJSONの初期状態を一致させ、JSONからUGEを経由してhUGETrackerで扱う場合の不要な差分を抑えるためである。Version 1から引き継ぐ `duty` と `envelope_sweep` のInstrument ID別デフォルトなど、既存JSONの意味に関わる値はVersion 1互換性方針を優先して維持する。
+
+JSONのデフォルト値は、hUGETrackerの初期値との互換性を優先して決定する。将来、hUGETrackerの初期値と異なるデフォルト値を採用する場合は、その理由をこの仕様書に明記する。
+
+CH1専用の `sweep_time`、`sweep_direction`、`sweep_shift` は、`channel = "pulse1"` のInstrumentでのみ指定できる。`channel = "pulse2"`、`"wave"`、`"noise"` のInstrumentで指定された場合は無視せず、バリデーションエラーとする。CH2 / Pulse2にはハードウェア上の周波数スイープ機能がないため、これらの項目をCH2へ適用しない。
+
+FrequencyとTriggerはInstrument JSONの項目にしない。実際の周波数はpattern内の `note` から生成し、再生開始時のTriggerはASMまたはUGE生成側で設定する。
+
+Version 2のCH1 / Pulse1用Instrumentでは、次のバリデーションを行う。
+
+- `duty` は整数で0～3の範囲とする。
+- `length` は整数で0～63の範囲とする。
+- `length_enable` はbooleanとする。
+- `initial_volume` は整数で0～15の範囲とする。
+- `envelope_direction` は `"up"` または `"down"` とする。
+- `envelope_sweep` は整数で0～7の範囲とする。
+- `sweep_time` は整数で0～7の範囲とする。
+- `sweep_direction` は `"up"` または `"down"` とする。
+- `sweep_shift` は整数で0～7の範囲とする。
+- Sweep関連項目は `channel = "pulse1"` でのみ指定可能とする。
+- 未対応チャンネルで指定された項目は無視せずエラーとする。
+- 型が不正な場合はエラーとする。
+- 未指定時は、上記で定めた項目ごとのデフォルト値を使用する。
+
+Version 1の既存JSONでは、既存の項目の意味、デフォルト値、バリデーション規則を変更しない。今回整理した `length`、`length_enable`、`sweep_time`、`sweep_direction`、`sweep_shift` はVersion 2向けの項目として扱い、Version 1入力時には参照しない。
+
 Noise Instrument詳細項目:
 
 - `noise_length`: NR41のsound length。0～63を指定する。未指定時は0を使う。

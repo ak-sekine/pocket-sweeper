@@ -312,7 +312,7 @@
         - [x] 不足項目を「必須」「推奨」「将来対応」に分類する      
       - [x] JSON仕様のバージョン更新方針を決める
       - [x] 既存のBGM・効果音JSONとの後方互換性を維持するか決める
-      - [ ] CH1 / Pulse1用Instrument詳細項目を整理する
+      - [x] CH1 / Pulse1用Instrument詳細項目を整理する
       - [ ] CH2 / Pulse2用Instrument詳細項目を整理する
       - [ ] CH3 / Wave用Instrument詳細項目を決める
       - [ ] CH3 / Wave table定義項目を決める
