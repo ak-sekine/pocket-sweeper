@@ -315,7 +315,7 @@
       - [x] CH1 / Pulse1用Instrument詳細項目を整理する
       - [x] CH2 / Pulse2用Instrument詳細項目を整理する
       - [x] CH3 / Wave用Instrument詳細項目を決める
-      - [ ] CH3 / Wave table定義項目を決める
+      - [x] CH3 / Wave table定義項目を決める
       - [ ] CH4 / NoiseをBGMで使用するためのInstrument詳細項目を決める
       - [ ] CH2とCH4が効果音で一時的にミュートされても、CH1とCH3で曲の骨格を維持できるBGM設計方針を明記する
       - [ ] noteごとのvolumeをJSONで扱うか決める
@@ -328,6 +328,7 @@
     - [ ] JSON変換ツールを4チャンネル対応JSON仕様へ対応させる
       - [ ] Version 2のPulse共通Instrument項目（CH2の`length` / `length_enable`を含む）と、CH2でのCH1専用Sweep項目禁止を変換ツールへ反映する
       - [ ] Version 2のWave Instrument項目、Wave table名前参照の数値化、CH3でのPulse / Noise専用項目禁止を変換ツールへ反映する
+      - [ ] Version 2の`wave_tables`検証、4bitサンプルの16byteパック、最大16 bank補完を変換ツールへ反映する
       - [ ] `tools/json_to_huge_asm.py` の変更範囲を整理する
       - [ ] `tools/json_to_huge_asm.py` をCH3 / Wave Instrument・Wave table出力へ対応させる
       - [ ] `tools/json_to_huge_asm.py` をCH4 / Noise InstrumentのBGM利用へ対応させる
