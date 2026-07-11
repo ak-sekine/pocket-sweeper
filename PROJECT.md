@@ -311,7 +311,7 @@
         - [x] Instrumentのchannel/type/bankの役割整理が必要であることを確認する
         - [x] 不足項目を「必須」「推奨」「将来対応」に分類する      
       - [x] JSON仕様のバージョン更新方針を決める
-      - [ ] 既存のBGM・効果音JSONとの後方互換性を維持するか決める
+      - [x] 既存のBGM・効果音JSONとの後方互換性を維持するか決める
       - [ ] CH1 / Pulse1用Instrument詳細項目を整理する
       - [ ] CH2 / Pulse2用Instrument詳細項目を整理する
       - [ ] CH3 / Wave用Instrument詳細項目を決める
@@ -331,7 +331,7 @@
       - [ ] `tools/json_to_huge_asm.py` をCH4 / Noise InstrumentのBGM利用へ対応させる
       - [ ] `tools/json_to_uge.py` の変更範囲を整理する
       - [ ] `tools/json_to_uge.py` を4チャンネル対応JSON仕様へ対応させる
-      - [ ] 既存JSONを入力した場合の互換動作を確認する
+      - [ ] Version 1 JSONを入力した場合の互換動作を確認する
       - [ ] 4チャンネル使用時のhUGETracker Export ASMと比較し、再生に影響する差分がないことを確認する
       - [ ] `tools/README.md` に4チャンネル対応JSON仕様と使用方法を追記する
     - [ ] 4チャンネルBGM制作フローを検証する
