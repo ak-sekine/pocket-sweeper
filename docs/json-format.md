@@ -274,6 +274,53 @@ Noise Instrument詳細項目:
 - これらのNoise Instrument詳細項目は、初版では `noise` 用Instrumentのみ対応する。
 - 不正な範囲、未対応文字列、未対応チャンネルでの指定は、`json_to_sfx_asm.py` 実装時にバリデーションエラーとする。
 
+### Version 2のCH4 / Noise用Instrument
+
+Version 2では、CH4 / NoiseをBGMのリズム音源として使用する。Noise Instrumentは音色の性格、音量エンベロープ、ハードウェアsound length、LFSR幅を保持し、Noiseの音高に相当するNR43の値はpattern側のNoise noteから生成する。今回の節ではNoise noteの具体的なJSON構造、音名、数値体系、変換式は確定しない。
+
+| JSON項目 | 型・許容値 | 未指定時のデフォルト | 意味 |
+| --- | --- | --- | --- |
+| `length` | 整数、0～63 | `0` | CH4のハードウェアsound length設定。Version 1の`noise_length`に対応する。 |
+| `length_enable` | boolean | `false` | length counterを有効にするかどうか。 |
+| `initial_volume` | 整数、0～15 | `15` | NR42の初期音量。 |
+| `envelope_direction` | `"up"` または `"down"` | `"down"` | NR42の音量エンベロープ方向。 |
+| `envelope_sweep` | 整数、0～7 | `0` | NR42の音量エンベロープ周期。 |
+| `width_mode` | `"15bit"` または `"7bit"` | `"15bit"` | NR43のLFSR幅。15bitは長周期、7bitは短周期で金属的・周期的な音色。 |
+
+hUGETracker Version 6のNoise Instrumentは、`Length`、`LengthEnabled`、音量エンベロープ、`CounterStep`をInstrument recordに保持する。`CounterStep`はhUGEDriverのNoise Instrument entryへ渡され、7bit/15bitの幅を決める。一方、hUGEDriverの`get_note_poly`はNoise noteからNR43のclock shiftとdivisor codeを計算し、Instrumentのwidth bitと合成してNR43を生成する。したがって、同じNoise Instrumentで異なるNoise noteを演奏できる。
+
+CH4用の責務分担は次のとおりとする。
+
+- Instrument側: `length`、`length_enable`、`initial_volume`、`envelope_direction`、`envelope_sweep`、`width_mode`
+- Noise note側: `clock_shift`、`divisor_code`、およびそれらを表現する具体的なNoise note値
+- 再生・変換側: NR43の完成値、Trigger、DAC enable、NR41～NR44への最終書き込み
+
+`clock_shift`と`divisor_code`は同じInstrumentでNoiseの高さを変えられる必要があり、hUGEDriverでもnote処理側で生成されるため、Version 2のNoise Instrument項目にしない。Version 2のInstrumentでこれらを指定した場合はエラーとする。`width_mode`はhUGETrackerの`CounterStep`に対応するInstrument固定値であり、今回のNoise note仕様ではnote側へ移さない。
+
+Instrument側の `length` はCH4ハードウェアのsound length設定であり、pattern内のnote側にある `length` とは別の項目である。note側の `length` はpattern row数を表し、Instrument側の `length` はNR41へ反映する値を表す。
+
+Version 1では`noise_length`を使用し、Version 2では`length`を使用する。Version 1入力時は従来どおり`noise_length`を解釈し、Version 2入力時に`noise_length`を指定した場合はエラーとする。同一Version内で`noise_length`と`length`を併用しない。既存のVersion 1 SFX用Noise JSONの意味、デフォルト値、バリデーション規則は変更しない。
+
+Version 2のCH4 / Noise用Instrumentでは、次のバリデーションを行う。
+
+- `channel` は必ず `"noise"` とする。
+- `length` は整数で0～63の範囲とする。
+- `length_enable` はbooleanとする。
+- `initial_volume` は整数で0～15の範囲とする。
+- `envelope_direction` は `"up"` または `"down"` とする。
+- `envelope_sweep` は整数で0～7の範囲とする。
+- `width_mode` は `"15bit"` または `"7bit"` とする。
+- `noise_length`、`clock_shift`、`divisor_code`はVersion 2のInstrumentで指定禁止とする。
+- Pulse専用項目（`duty`、`sweep_time`、`sweep_direction`、`sweep_shift`）は指定禁止とする。
+- Wave専用項目（`waveform`、`output_level`）は指定禁止とする。
+- `trigger`、`frequency`、DAC enable、NR43完成済みbyte値はJSON項目にしない。
+- 型不正、範囲外、未対応項目は無視せずエラーとする。
+- 未指定時は上記のVersion 2デフォルト値を使用する。
+
+Frequencyに相当するレジスタ値、Trigger、DAC enable、完成済みNR43 byte、pattern noteそのもの、音符ごとのeffect・volume、効果音再生手順はNoise Instrument JSONでは扱わない。Noise noteの具体的表現と`clock_shift`・`divisor_code`のJSON上の配置は、後続WBS「BGM用Noiseノートの表現方法を決める」で確定する。
+
+Version 1入力時にはVersion 2の`length`やその他のVersion 2 Noise Instrument解釈を参照しない。Version 2入力時にはVersion 1専用の`noise_length`を参照しない。既存Version 1 JSONは書き換えない。
+
 SFX priority:
 
 - `priority` は `type = "sfx"` のJSONで使用する。
