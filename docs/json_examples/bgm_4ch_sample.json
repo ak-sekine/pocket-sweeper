@@ -1,0 +1,265 @@
+{
+  "version": 2,
+  "title": "Four Channel BGM Example",
+  "type": "bgm",
+  "tempo": 6,
+  "loop": {
+    "mode": "range",
+    "start_order": 1,
+    "end_order": 2
+  },
+  "wave_tables": [
+    {
+      "name": "bass_triangle",
+      "samples": [
+        0, 1, 2, 3, 4, 5, 6, 7,
+        8, 9, 10, 11, 12, 13, 14, 15,
+        15, 14, 13, 12, 11, 10, 9, 8,
+        7, 6, 5, 4, 3, 2, 1, 0
+      ]
+    }
+  ],
+  "instruments": [
+    {
+      "id": 1,
+      "name": "lead_pulse",
+      "channel": "pulse1",
+      "duty": 2,
+      "length": 0,
+      "length_enable": false,
+      "initial_volume": 12,
+      "envelope_direction": "down",
+      "envelope_sweep": 0,
+      "sweep_time": 0,
+      "sweep_direction": "down",
+      "sweep_shift": 0
+    },
+    {
+      "id": 2,
+      "name": "chord_pulse",
+      "channel": "pulse2",
+      "duty": 1,
+      "length": 0,
+      "length_enable": false,
+      "initial_volume": 8,
+      "envelope_direction": "down",
+      "envelope_sweep": 0
+    },
+    {
+      "id": 3,
+      "name": "bass_wave",
+      "channel": "wave",
+      "waveform": "bass_triangle",
+      "output_level": "100%",
+      "length": 0,
+      "length_enable": false
+    },
+    {
+      "id": 4,
+      "name": "rhythm_noise",
+      "channel": "noise",
+      "length": 0,
+      "length_enable": false,
+      "initial_volume": 10,
+      "envelope_direction": "down",
+      "envelope_sweep": 0,
+      "width_mode": "7bit"
+    }
+  ],
+  "order": {
+    "pulse1": ["intro_lead", "loop_lead"],
+    "pulse2": ["intro_chord", "loop_chord"],
+    "wave": ["intro_bass", "loop_bass"],
+    "noise": ["intro_rhythm", "loop_rhythm"]
+  },
+  "patterns": {
+    "pulse1": {
+      "intro_lead": [
+        {
+          "note": "C5",
+          "length": 4,
+          "instrument": 1,
+          "volume": 12,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "E5",
+          "length": 4,
+          "instrument": 1,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "G5",
+          "length": 4,
+          "instrument": 1,
+          "volume": 0,
+          "effect": null,
+          "effect_param": null
+        }
+      ],
+      "loop_lead": [
+        {
+          "note": "C5",
+          "length": 4,
+          "instrument": 1,
+          "volume": 12,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "D5",
+          "length": 4,
+          "instrument": 1,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "E5",
+          "length": 4,
+          "instrument": 1,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "G5",
+          "length": 4,
+          "instrument": 1,
+          "effect": null,
+          "effect_param": null
+        }
+      ]
+    },
+    "pulse2": {
+      "intro_chord": [
+        {
+          "note": "C4",
+          "length": 8,
+          "instrument": 2,
+          "volume": 8,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "G4",
+          "length": 8,
+          "instrument": 2,
+          "effect": null,
+          "effect_param": null
+        }
+      ],
+      "loop_chord": [
+        {
+          "note": "F4",
+          "length": 8,
+          "instrument": 2,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "G4",
+          "length": 8,
+          "instrument": 2,
+          "volume": 0,
+          "effect": null,
+          "effect_param": null
+        }
+      ]
+    },
+    "wave": {
+      "intro_bass": [
+        {
+          "note": "C3",
+          "length": 8,
+          "instrument": 3,
+          "volume": 10,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "G3",
+          "length": 8,
+          "instrument": 3,
+          "effect": null,
+          "effect_param": null
+        }
+      ],
+      "loop_bass": [
+        {
+          "note": "F3",
+          "length": 8,
+          "instrument": 3,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "G3",
+          "length": 8,
+          "instrument": 3,
+          "effect": null,
+          "effect_param": null
+        }
+      ]
+    },
+    "noise": {
+      "intro_rhythm": [
+        {
+          "note": "C4",
+          "length": 4,
+          "instrument": 4,
+          "volume": 10,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "rest",
+          "length": 4,
+          "instrument": 4,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "G4",
+          "length": 4,
+          "instrument": 4,
+          "volume": 0,
+          "effect": null,
+          "effect_param": null
+        }
+      ],
+      "loop_rhythm": [
+        {
+          "note": "C4",
+          "length": 2,
+          "instrument": 4,
+          "volume": 10,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "rest",
+          "length": 2,
+          "instrument": 4,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "G4",
+          "length": 2,
+          "instrument": 4,
+          "volume": 10,
+          "effect": null,
+          "effect_param": null
+        },
+        {
+          "note": "rest",
+          "length": 2,
+          "instrument": 4,
+          "effect": null,
+          "effect_param": null
+        }
+      ]
+    }
+  }
+}
