@@ -72,6 +72,12 @@ WAVE_PULSE_ONLY_FIELDS = (
 )
 WAVE_NOISE_ONLY_FIELDS = ("noise_length", "clock_shift", "width_mode", "divisor_code")
 WAVE_UNSUPPORTED_FIELDS = ("trigger", "frequency")
+NOISE_PULSE_ONLY_FIELDS = ("duty", "sweep_time", "sweep_direction", "sweep_shift")
+NOISE_WAVE_ONLY_FIELDS = ("waveform", "output_level")
+NOISE_VERSION_2_FORBIDDEN_FIELDS = ("noise_length", "clock_shift", "divisor_code")
+NOISE_UNSUPPORTED_FIELDS = ("trigger", "frequency")
+NOISE_WIDTH_15BIT = "15bit"
+NOISE_WIDTH_7BIT = "7bit"
 
 DEFAULT_WAVES = [
     [0, 0, 0, 0, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
@@ -123,6 +129,7 @@ class InstrumentSpec:
     waveform: str | None = None
     waveform_index: int | None = None
     output_level: int = 1
+    width_mode: str = NOISE_WIDTH_15BIT
 
 
 def fail(message: str) -> None:
@@ -481,6 +488,98 @@ def validate_wave_instrument(
     return waveform, waveform_index[waveform], WAVE_OUTPUT_LEVELS[output_level_name], length, length_enable
 
 
+def validate_noise_instrument(
+    instrument: dict[str, Any],
+    path: str,
+    version: int,
+) -> tuple[int, bool, int, int, int, int]:
+    if version == JSON_VERSION:
+        if "length" in instrument:
+            fail(f"{path}.length: Version 1ではnoise_lengthを使用し、lengthは使用できません")
+        length = validate_range(
+            expect_optional_int(instrument.get("noise_length"), f"{path}.noise_length", 0),
+            f"{path}.noise_length",
+            0,
+            63,
+        )
+        length_enable = expect_optional_bool(
+            instrument.get("length_enable"),
+            f"{path}.length_enable",
+            False,
+        )
+        initial_volume = validate_range(
+            expect_optional_int(instrument.get("initial_volume"), f"{path}.initial_volume", 15),
+            f"{path}.initial_volume",
+            0,
+            15,
+        )
+        vol_sweep_direction = parse_envelope_direction(
+            instrument.get("envelope_direction"),
+            f"{path}.envelope_direction",
+            ST_DOWN,
+        )
+        vol_sweep_amount = validate_range(
+            expect_optional_int(instrument.get("envelope_sweep"), f"{path}.envelope_sweep", 0),
+            f"{path}.envelope_sweep",
+            0,
+            7,
+        )
+        return (
+            length,
+            length_enable,
+            initial_volume,
+            vol_sweep_direction,
+            vol_sweep_amount,
+            NOISE_WIDTH_15BIT,
+        )
+
+    reject_wave_instrument_fields(instrument, path, NOISE_VERSION_2_FORBIDDEN_FIELDS, "Version 2 Noise Instrumentでは使用できません")
+    reject_wave_instrument_fields(instrument, path, NOISE_PULSE_ONLY_FIELDS, "Noise Instrumentでは使用できません（Pulse専用項目）")
+    reject_wave_instrument_fields(instrument, path, NOISE_WAVE_ONLY_FIELDS, "Noise Instrumentでは使用できません（Wave専用項目）")
+    reject_wave_instrument_fields(instrument, path, NOISE_UNSUPPORTED_FIELDS, "Noise Instrumentでは公開しない項目")
+
+    length = validate_range(
+        expect_optional_int(instrument.get("length"), f"{path}.length", 0),
+        f"{path}.length",
+        0,
+        63,
+    )
+    length_enable = expect_optional_bool(
+        instrument.get("length_enable"),
+        f"{path}.length_enable",
+        False,
+    )
+    initial_volume = validate_range(
+        expect_optional_int(instrument.get("initial_volume"), f"{path}.initial_volume", 15),
+        f"{path}.initial_volume",
+        0,
+        15,
+    )
+    vol_sweep_direction = parse_envelope_direction(
+        instrument.get("envelope_direction"),
+        f"{path}.envelope_direction",
+        ST_DOWN,
+    )
+    vol_sweep_amount = validate_range(
+        expect_optional_int(instrument.get("envelope_sweep"), f"{path}.envelope_sweep", 0),
+        f"{path}.envelope_sweep",
+        0,
+        7,
+    )
+    width_mode_name = instrument.get("width_mode", NOISE_WIDTH_15BIT)
+    width_mode_name = expect_string(width_mode_name, f"{path}.width_mode")
+    if width_mode_name not in (NOISE_WIDTH_15BIT, NOISE_WIDTH_7BIT):
+        fail(f"{path}.width_mode: expected '15bit' or '7bit'")
+    return (
+        length,
+        length_enable,
+        initial_volume,
+        vol_sweep_direction,
+        vol_sweep_amount,
+        width_mode_name,
+    )
+
+
 _UNSET_WAVE_TABLES = object()
 
 
@@ -531,6 +630,31 @@ def validate_instruments(
                 waveform=waveform,
                 waveform_index=resolved_waveform_index,
                 output_level=output_level,
+            )
+            continue
+
+        if channel == "noise":
+            (
+                length,
+                length_enable,
+                initial_volume,
+                vol_sweep_direction,
+                vol_sweep_amount,
+                width_mode,
+            ) = validate_noise_instrument(instrument, path, version)
+            result[bank][instrument_id] = InstrumentSpec(
+                id=instrument_id,
+                name=name,
+                channel=channel,
+                bank=bank,
+                duty=0,
+                initial_volume=initial_volume,
+                vol_sweep_direction=vol_sweep_direction,
+                vol_sweep_amount=vol_sweep_amount,
+                length=length,
+                length_enable=length_enable,
+                json_version=version,
+                width_mode=width_mode,
             )
             continue
 

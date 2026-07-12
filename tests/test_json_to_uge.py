@@ -27,6 +27,16 @@ def pulse_data(version: int = 2, channel: str = "pulse1") -> dict:
     }
 
 
+def noise_data(version: int = 2, **fields: object) -> dict:
+    instrument = {
+        "id": 1,
+        "name": "noise test",
+        "channel": "noise",
+    }
+    instrument.update(fields)
+    return {"version": version, "instruments": [instrument]}
+
+
 def read_duty_instrument(blob: bytes, instrument_id: int) -> dict[str, int | bool]:
     """Read one TInstrumentV3 record from the packed Duty bank."""
     record_size = len(json_to_uge.pack_instrument(json_to_uge.IT_SQUARE, ""))
@@ -201,6 +211,123 @@ class PulseInstrumentValidationTests(unittest.TestCase):
         unsupported["version"] = 3
         with self.assertRaises(ValueError):
             json_to_uge.validate_json_version(unsupported)
+
+
+class NoiseInstrumentValidationTests(unittest.TestCase):
+    def validate(self, data: dict) -> json_to_uge.InstrumentSpec:
+        return json_to_uge.validate_instruments(data)["noise"][1]
+
+    def test_version_2_noise_accepts_all_fields(self) -> None:
+        spec = self.validate(
+            noise_data(
+                length=63,
+                length_enable=True,
+                initial_volume=0,
+                envelope_direction="up",
+                envelope_sweep=7,
+                width_mode="7bit",
+            )
+        )
+        self.assertEqual(spec.length, 63)
+        self.assertTrue(spec.length_enable)
+        self.assertEqual(spec.initial_volume, 0)
+        self.assertEqual(spec.vol_sweep_direction, json_to_uge.ST_UP)
+        self.assertEqual(spec.vol_sweep_amount, 7)
+        self.assertEqual(spec.width_mode, json_to_uge.NOISE_WIDTH_7BIT)
+        self.assertEqual(spec.json_version, 2)
+        self.assertEqual(spec.bank, "noise")
+
+    def test_version_2_noise_defaults(self) -> None:
+        spec = self.validate(noise_data())
+        self.assertEqual(spec.length, 0)
+        self.assertFalse(spec.length_enable)
+        self.assertEqual(spec.initial_volume, 15)
+        self.assertEqual(spec.vol_sweep_direction, json_to_uge.ST_DOWN)
+        self.assertEqual(spec.vol_sweep_amount, 0)
+        self.assertEqual(spec.width_mode, json_to_uge.NOISE_WIDTH_15BIT)
+
+    def test_version_2_noise_accepts_boundaries_and_width_modes(self) -> None:
+        for width_mode in ("15bit", "7bit"):
+            with self.subTest(width_mode=width_mode):
+                spec = self.validate(
+                    noise_data(
+                        length=0,
+                        initial_volume=15,
+                        envelope_sweep=0,
+                        width_mode=width_mode,
+                    )
+                )
+                self.assertEqual(
+                    spec.width_mode,
+                    json_to_uge.NOISE_WIDTH_15BIT if width_mode == "15bit" else json_to_uge.NOISE_WIDTH_7BIT,
+                )
+
+    def test_version_2_noise_rejects_forbidden_fields(self) -> None:
+        cases = (
+            ("noise_length", 0),
+            ("clock_shift", 0),
+            ("divisor_code", 0),
+            *[(field, 0) for field in json_to_uge.NOISE_PULSE_ONLY_FIELDS],
+            ("waveform", "wave"),
+            ("output_level", "100%"),
+            ("trigger", 0),
+            ("frequency", 0),
+        )
+        for field, value in cases:
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, rf"instruments\[0\]\.{field}"):
+                    self.validate(noise_data(**{field: value}))
+
+    def test_version_2_noise_rejects_invalid_values(self) -> None:
+        cases = (
+            ("length", -1),
+            ("length", 64),
+            ("length", True),
+            ("length", "1"),
+            ("length", 1.5),
+            ("length_enable", 1),
+            ("initial_volume", -1),
+            ("initial_volume", 16),
+            ("initial_volume", True),
+            ("envelope_sweep", -1),
+            ("envelope_sweep", 8),
+            ("envelope_sweep", False),
+            ("envelope_direction", "sideways"),
+            ("width_mode", "4bit"),
+            ("width_mode", True),
+            ("width_mode", 7),
+            ("width_mode", None),
+        )
+        for field, value in cases:
+            with self.subTest(field=field, value=value):
+                with self.assertRaisesRegex(ValueError, rf"instruments\[0\]\.{field}"):
+                    self.validate(noise_data(**{field: value}))
+
+    def test_version_2_noise_null_length_uses_default(self) -> None:
+        self.assertEqual(self.validate(noise_data(length=None)).length, 0)
+
+    def test_version_1_noise_preserves_existing_noise_fields(self) -> None:
+        spec = self.validate(
+            noise_data(
+                version=1,
+                noise_length=12,
+                initial_volume=5,
+                envelope_direction="down",
+                envelope_sweep=2,
+                clock_shift=1,
+                width_mode="7bit",
+                divisor_code=0,
+                length_enable=True,
+            )
+        )
+        self.assertEqual(spec.length, 12)
+        self.assertTrue(spec.length_enable)
+        self.assertEqual(spec.initial_volume, 5)
+        self.assertEqual(spec.vol_sweep_amount, 2)
+
+    def test_version_1_noise_rejects_version_2_length(self) -> None:
+        with self.assertRaisesRegex(ValueError, r"instruments\[0\]\.length"):
+            self.validate(noise_data(version=1, length=0))
 
 
 class PackedPulseInstrumentTests(unittest.TestCase):

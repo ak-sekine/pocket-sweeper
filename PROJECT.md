@@ -341,8 +341,8 @@
         - [x] Wave tableを最大16 bankへ補完してUGE出力へ反映する
         - [x] Wave tableをhUGEDriver用ASMへ反映する
       - [ ] Version 2 Noise Instrument対応
-        - [ ] Version 2 Noise Instrumentの検証・内部表現を実装する
-        - [ ] `noise_length` / `length`のVersion別検証を実装する
+        - [x] Version 2 Noise Instrumentの検証・内部表現を実装する
+        - [x] `noise_length` / `length`のVersion別検証を実装する
         - [ ] Version 2 Noise InstrumentをUGE出力へ反映する
         - [ ] Version 2 Noise InstrumentをhUGEDriver用ASMへ反映する
       - [ ] Version 2 CH4 note変換対応
