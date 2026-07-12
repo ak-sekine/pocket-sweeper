@@ -336,7 +336,7 @@
         - [x] Version 2 Wave InstrumentをUGE出力へ反映する
         - [x] Version 2 Wave InstrumentをhUGEDriver用ASMへ反映する
       - [ ] Version 2 Wave table対応
-        - [ ] `wave_tables`の構造・名前・4bitサンプル値を検証する
+        - [x] `wave_tables`の構造・名前・4bitサンプル値を検証する
         - [ ] Wave tableの32サンプルを16byteへパックする
         - [ ] Wave tableを最大16 bankへ補完してUGE出力へ反映する
         - [ ] Wave tableをhUGEDriver用ASMへ反映する

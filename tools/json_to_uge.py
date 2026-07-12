@@ -98,6 +98,13 @@ class Cell:
 
 
 @dataclass(frozen=True)
+class WaveTableSpec:
+    name: str
+    index: int
+    samples: tuple[int, ...]
+
+
+@dataclass(frozen=True)
 class InstrumentSpec:
     id: int
     name: str
@@ -318,7 +325,10 @@ def reject_wave_instrument_fields(
             fail(f"{path}.{field}: Wave Instrumentでは使用できません（{description}）")
 
 
-def build_waveform_index(data: dict[str, Any], version: int) -> dict[str, int] | None:
+def validate_wave_tables(
+    data: dict[str, Any],
+    version: int,
+) -> tuple[WaveTableSpec, ...] | None:
     if version == JSON_VERSION:
         return None
 
@@ -329,11 +339,15 @@ def build_waveform_index(data: dict[str, Any], version: int) -> dict[str, int] |
     if len(wave_tables) > WAVE_COUNT:
         fail(f"wave_tables: at most {WAVE_COUNT} tables are allowed")
 
-    waveform_index: dict[str, int] = {}
+    wave_tables_specs: list[WaveTableSpec] = []
+    known_fields = {"name", "samples"}
     name_pattern = re.compile(r"^[a-z][a-z0-9_]*$")
     for index, item in enumerate(wave_tables):
         path = f"wave_tables[{index}]"
         table = expect_dict(item, path)
+        for key in table:
+            if key not in known_fields:
+                fail(f"{path}.{key}: unknown Wave table field")
         name = expect_string(table.get("name"), f"{path}.name")
         if not name or not name.strip():
             fail(f"{path}.name: must not be empty or whitespace")
@@ -341,11 +355,33 @@ def build_waveform_index(data: dict[str, Any], version: int) -> dict[str, int] |
             fail(f"{path}.name: leading or trailing whitespace is not allowed")
         if not name_pattern.fullmatch(name):
             fail(f"{path}.name: must match ^[a-z][a-z0-9_]*$")
-        if name in waveform_index:
+        if any(spec.name == name for spec in wave_tables_specs):
             fail(f"{path}.name: duplicate Wave table name '{name}'")
-        waveform_index[name] = index
+        samples = expect_list(table.get("samples"), f"{path}.samples")
+        if len(samples) != WAVE_BYTES:
+            fail(f"{path}.samples: expected exactly {WAVE_BYTES} samples")
+        validated_samples = tuple(
+            validate_range(
+                expect_int(sample, f"{path}.samples[{sample_index}]"),
+                f"{path}.samples[{sample_index}]",
+                0,
+                15,
+            )
+            for sample_index, sample in enumerate(samples)
+        )
+        wave_tables_specs.append(
+            WaveTableSpec(name=name, index=index, samples=validated_samples)
+        )
 
-    return waveform_index
+    return tuple(wave_tables_specs)
+
+
+def build_waveform_index(
+    wave_tables: tuple[WaveTableSpec, ...] | None,
+) -> dict[str, int] | None:
+    if wave_tables is None:
+        return None
+    return {wave_table.name: wave_table.index for wave_table in wave_tables}
 
 
 def validate_wave_instrument(
@@ -399,7 +435,8 @@ def validate_wave_instrument(
 
 def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, InstrumentSpec]]:
     version = validate_json_version(data)
-    waveform_index = build_waveform_index(data, version)
+    wave_tables = validate_wave_tables(data, version)
+    waveform_index = build_waveform_index(wave_tables)
     result: dict[str, dict[int, InstrumentSpec]] = {"duty": {}, "wave": {}, "noise": {}}
     instruments = expect_list(data.get("instruments"), "instruments")
     for index, item in enumerate(instruments):

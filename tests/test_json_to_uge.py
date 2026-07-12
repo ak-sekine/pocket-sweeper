@@ -623,12 +623,106 @@ class WaveInstrumentValidationTests(unittest.TestCase):
         }
         self.assertEqual(json_to_uge.validate_instruments(data), {"duty": {}, "wave": {}, "noise": {}})
 
-    def test_unreferenced_wave_tables_are_allowed_and_samples_are_not_checked(self) -> None:
+    def test_unreferenced_wave_tables_are_allowed(self) -> None:
         data = wave_data_with_tables(["used_wave", "unused_wave"], "used_wave")
-        data["wave_tables"][0]["samples"] = []
-        data["wave_tables"][1]["samples"] = "not checked yet"
+        data["wave_tables"][0]["samples"] = [0] * 32
+        data["wave_tables"][1]["samples"] = [15] * 32
         result = json_to_uge.validate_instruments(data)
         self.assertEqual(result["wave"][1].waveform_index, 0)
+
+    def test_wave_table_spec_keeps_name_index_and_sample_order(self) -> None:
+        samples = list(range(16)) + list(range(15, -1, -1))
+        data = {"version": 2, "instruments": [], "wave_tables": [{"name": "bass_wave", "samples": samples}]}
+        specs = json_to_uge.validate_wave_tables(data, 2)
+        self.assertIsNotNone(specs)
+        self.assertEqual(specs, (json_to_uge.WaveTableSpec("bass_wave", 0, tuple(samples)),))
+        self.assertEqual(json_to_uge.build_waveform_index(specs), {"bass_wave": 0})
+
+    def test_wave_table_all_zero_and_all_max_samples_are_valid(self) -> None:
+        data = {
+            "version": 2,
+            "instruments": [],
+            "wave_tables": [
+                {"name": "zero_wave", "samples": [0] * 32},
+                {"name": "max_wave", "samples": [15] * 32},
+            ],
+        }
+        specs = json_to_uge.validate_wave_tables(data, 2)
+        self.assertEqual(specs[0].samples, (0,) * 32)
+        self.assertEqual(specs[1].samples, (15,) * 32)
+
+    def test_sixteen_wave_tables_and_valid_trailing_underscore_name_are_allowed(self) -> None:
+        names = ["wave_"] + [f"wave_{index}" for index in range(1, 16)]
+        data = {"version": 2, "instruments": [], "wave_tables": [
+            {"name": name, "samples": [index % 16] * 32}
+            for index, name in enumerate(names)
+        ]}
+        specs = json_to_uge.validate_wave_tables(data, 2)
+        self.assertEqual(len(specs), 16)
+        self.assertEqual(specs[0].index, 0)
+        self.assertEqual(specs[-1].index, 15)
+
+    def test_wave_table_object_requires_name_and_samples(self) -> None:
+        cases = (
+            ({"samples": [0] * 32}, r"wave_tables\[0\]\.name"),
+            ({"name": "bass"}, r"wave_tables\[0\]\.samples"),
+        )
+        for table, path in cases:
+            with self.subTest(table=table):
+                with self.assertRaisesRegex(ValueError, path):
+                    json_to_uge.validate_wave_tables(
+                        {"version": 2, "instruments": [], "wave_tables": [table]},
+                        2,
+                    )
+
+    def test_wave_table_unknown_keys_are_rejected(self) -> None:
+        valid = {"name": "bass", "samples": [0] * 32}
+        for extra in ({"metadata": 1}, {"foo": 1, "bar": 2}):
+            with self.subTest(extra=extra):
+                table = {**valid, **extra}
+                with self.assertRaisesRegex(ValueError, r"wave_tables\[0\]\.(?:metadata|foo|bar).*unknown"):
+                    json_to_uge.validate_wave_tables(
+                        {"version": 2, "instruments": [], "wave_tables": [table]},
+                        2,
+                    )
+
+    def test_wave_table_samples_length_and_types_are_rejected(self) -> None:
+        cases = (
+            ([], r"wave_tables\[0\]\.samples"),
+            ([0] * 31, r"wave_tables\[0\]\.samples"),
+            ([0] * 33, r"wave_tables\[0\]\.samples"),
+            ("samples", r"wave_tables\[0\]\.samples.*array"),
+            (None, r"wave_tables\[0\]\.samples.*array"),
+            ({}, r"wave_tables\[0\]\.samples.*array"),
+        )
+        for samples, path in cases:
+            with self.subTest(samples=samples):
+                with self.assertRaisesRegex(ValueError, path):
+                    json_to_uge.validate_wave_tables(
+                        {"version": 2, "instruments": [], "wave_tables": [{"name": "bass", "samples": samples}]},
+                        2,
+                    )
+
+    def test_wave_table_sample_values_reject_invalid_positions(self) -> None:
+        cases = (
+            (-1, 0),
+            (16, 15),
+            (1.5, 0),
+            ("1", 15),
+            (True, 0),
+            (None, 31),
+            ([], 12),
+            ({}, 31),
+        )
+        for value, index in cases:
+            with self.subTest(value=value, index=index):
+                samples = [0] * 32
+                samples[index] = value
+                with self.assertRaisesRegex(ValueError, rf"wave_tables\[0\]\.samples\[{index}\]"):
+                    json_to_uge.validate_wave_tables(
+                        {"version": 2, "instruments": [], "wave_tables": [{"name": "bass", "samples": samples}]},
+                        2,
+                    )
 
     def test_wave_instrument_requires_wave_tables(self) -> None:
         data = wave_data(waveform="bass")
@@ -642,17 +736,18 @@ class WaveInstrumentValidationTests(unittest.TestCase):
             json_to_uge.validate_instruments(data)
 
     def test_wave_tables_basic_shape_and_name_rules_are_checked(self) -> None:
+        valid_samples = [0] * 32
         cases = (
             ("wave_tables", {}, "array expected"),
             ("wave_tables", [None], "object expected"),
             ("wave_tables", [{}], "name.*string expected"),
-            ("wave_tables", [{"name": 1}], "name.*string expected"),
-            ("wave_tables", [{"name": ""}], "name"),
-            ("wave_tables", [{"name": "   "}], "name"),
-            ("wave_tables", [{"name": " bass"}], "name"),
-            ("wave_tables", [{"name": "Bass"}], "name"),
-            ("wave_tables", [{"name": "bad-name"}], "name"),
-            ("wave_tables", [{"name": "wave"}] * 17, "at most 16"),
+            ("wave_tables", [{"name": 1, "samples": valid_samples}], "name.*string expected"),
+            ("wave_tables", [{"name": "", "samples": valid_samples}], "name"),
+            ("wave_tables", [{"name": "   ", "samples": valid_samples}], "name"),
+            ("wave_tables", [{"name": " bass", "samples": valid_samples}], "name"),
+            ("wave_tables", [{"name": "Bass", "samples": valid_samples}], "name"),
+            ("wave_tables", [{"name": "bad-name", "samples": valid_samples}], "name"),
+            ("wave_tables", [{"name": "wave", "samples": valid_samples}] * 17, "at most 16"),
         )
         for field, value, message in cases:
             with self.subTest(value=value):
