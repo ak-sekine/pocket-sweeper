@@ -330,11 +330,11 @@
         - [x] Version 2 Pulse Instrumentの検証・内部表現を実装する（CH2の`length` / `length_enable`、CH2のCH1専用Sweep項目禁止、Version 1互換性を含む）
         - [x] Version 2 Pulse InstrumentをUGE出力へ反映する
         - [x] Version 2 Pulse InstrumentをhUGEDriver用ASMへ反映する
-      - [ ] Version 2 Wave Instrument対応
+      - [x] Version 2 Wave Instrument対応
         - [x] Version 2 Wave Instrumentの検証・内部表現を実装する（CH3のPulse / Noise専用項目禁止を含む）
         - [x] Wave table名前参照を内部数値へ解決する
         - [x] Version 2 Wave InstrumentをUGE出力へ反映する
-        - [ ] Version 2 Wave InstrumentをhUGEDriver用ASMへ反映する
+        - [x] Version 2 Wave InstrumentをhUGEDriver用ASMへ反映する
       - [ ] Version 2 Wave table対応
         - [ ] `wave_tables`の構造・名前・4bitサンプル値を検証する
         - [ ] Wave tableの32サンプルを16byteへパックする

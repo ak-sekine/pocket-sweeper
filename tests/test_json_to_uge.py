@@ -825,5 +825,111 @@ class PackedWaveInstrumentTests(unittest.TestCase):
                     json_to_uge.pack_instruments(overrides)
 
 
+class WaveAsmInstrumentTests(unittest.TestCase):
+    def instruments(self, items: list[dict]) -> dict[str, dict[int, json_to_uge.InstrumentSpec]]:
+        return json_to_uge.validate_instruments(
+            wave_data_with_tables(
+                [f"wave_{index}" for index in range(16)],
+                instruments=items,
+            )
+        )
+
+    def test_wave_entry_has_six_bytes_in_hugedriver_order(self) -> None:
+        instruments = self.instruments(
+            [
+                {
+                    "id": 3,
+                    "name": "Wave Bass",
+                    "channel": "wave",
+                    "waveform": "wave_5",
+                    "output_level": "50%",
+                    "length": 173,
+                    "length_enable": True,
+                }
+            ]
+        )
+        self.assertEqual(
+            json_to_huge_asm.wave_instrument_bytes(3, instruments),
+            (173, 0x40, 5, 0, 0, 0xC0),
+        )
+
+    def test_wave_instrument_rendering_preserves_field_order_and_boundaries(self) -> None:
+        instruments = self.instruments(
+            [
+                {"id": 3, "name": "bass", "channel": "wave", "waveform": "wave_2", "length": 10},
+                {"id": 7, "name": "lead", "channel": "wave", "waveform": "wave_5", "output_level": "25%", "length_enable": True},
+            ]
+        )
+        patterns = {
+            0: [json_to_uge.Cell(instrument=3)],
+            1: [json_to_uge.Cell(instrument=7)],
+        }
+        order_matrix = [[], [], [0, 1], []]
+        lines = json_to_huge_asm.render_wave_instruments(
+            "song",
+            patterns,
+            order_matrix,
+            instruments,
+            2,
+        )
+        self.assertEqual(lines[0], "song_wave_instruments:")
+        self.assertEqual(lines[-1], "")
+
+        id3 = lines.index("song_itWaveinst3:")
+        self.assertEqual(lines[id3 + 1 : id3 + 7], ["db 10", "db 32", "db 2", "dw 0", "db 128", ""])
+        id7 = lines.index("song_itWaveinst7:")
+        self.assertEqual(lines[id7 + 1 : id7 + 7], ["db 0", "db 96", "db 5", "dw 0", "db 192", ""])
+        self.assertEqual(id7 - id3, 4 * 7)
+
+    def test_waveform_index_zero_and_fifteen_are_not_recalculated_from_id(self) -> None:
+        instruments = self.instruments(
+            [
+                {"id": 3, "name": "first", "channel": "wave", "waveform": "wave_0"},
+                {"id": 7, "name": "last", "channel": "wave", "waveform": "wave_15"},
+            ]
+        )
+        self.assertEqual(json_to_huge_asm.wave_instrument_bytes(3, instruments)[2], 0)
+        self.assertEqual(json_to_huge_asm.wave_instrument_bytes(7, instruments)[2], 15)
+
+    def test_wave_instrument_invalid_internal_indices_are_rejected(self) -> None:
+        data = wave_data_with_tables(
+            ["wave_0"],
+            instruments=[{"id": 1, "name": "wave", "channel": "wave", "waveform": "wave_0"}],
+        )
+        specs = json_to_uge.validate_instruments(data)
+        for invalid in (None, -1, 16, True):
+            with self.subTest(waveform_index=invalid):
+                invalid_specs = {
+                    "duty": specs["duty"],
+                    "wave": {1: replace(specs["wave"][1], waveform_index=invalid)},
+                    "noise": specs["noise"],
+                }
+                with self.assertRaisesRegex(ValueError, r"Wave Instrument 1.*waveform_index"):
+                    json_to_huge_asm.wave_instrument_bytes(1, invalid_specs)
+
+    def test_wave_bank_is_empty_when_no_wave_instrument_is_used(self) -> None:
+        lines = json_to_huge_asm.render_wave_instruments(
+            "song",
+            {},
+            [[], [], [], []],
+            {"duty": {}, "wave": {}, "noise": {}},
+            2,
+        )
+        self.assertEqual(lines, ["song_wave_instruments:"])
+
+    def test_version_1_wave_bank_remains_empty(self) -> None:
+        instruments = self.instruments(
+            [{"id": 1, "name": "legacy", "channel": "wave", "waveform": "wave_0"}]
+        )
+        lines = json_to_huge_asm.render_wave_instruments(
+            "song",
+            {0: [json_to_uge.Cell(instrument=1)]},
+            [[], [], [0], []],
+            instruments,
+            1,
+        )
+        self.assertEqual(lines, ["song_wave_instruments:", ""])
+
+
 if __name__ == "__main__":
     unittest.main()

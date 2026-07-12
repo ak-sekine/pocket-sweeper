@@ -91,8 +91,17 @@ def square_instrument_bytes(
 
 
 def highest_used_instrument(patterns: dict[int, list[json_to_uge.Cell]], order_matrix: list[list[int]]) -> int:
+    return highest_used_instrument_for_channels(patterns, order_matrix, (0, 1))
+
+
+def highest_used_instrument_for_channels(
+    patterns: dict[int, list[json_to_uge.Cell]],
+    order_matrix: list[list[int]],
+    channel_indices: tuple[int, ...],
+) -> int:
     highest = 0
-    for channel_orders in order_matrix[:2]:
+    for channel_index in channel_indices:
+        channel_orders = order_matrix[channel_index]
         for pattern_key in channel_orders:
             for cell in patterns[pattern_key]:
                 if cell.instrument > highest:
@@ -123,6 +132,55 @@ def render_duty_instruments(
     return lines
 
 
+def wave_instrument_bytes(
+    instrument_id: int,
+    instruments: dict[str, dict[int, json_to_uge.InstrumentSpec]],
+) -> tuple[int, int, int, int, int, int]:
+    spec = instruments["wave"].get(instrument_id)
+    _, length, length_enabled, output_level, waveform_index = (
+        json_to_uge.wave_instrument_packing_values(instrument_id, spec)
+    )
+    return (
+        length,
+        output_level << 5,
+        waveform_index,
+        0,
+        0,
+        0x80 if not length_enabled else 0xC0,
+    )
+
+
+def render_wave_instruments(
+    label: str,
+    patterns: dict[int, list[json_to_uge.Cell]],
+    order_matrix: list[list[int]],
+    instruments: dict[str, dict[int, json_to_uge.InstrumentSpec]],
+    json_version: int,
+) -> list[str]:
+    if json_version != 2:
+        return render_empty_instrument_bank(label, "wave_instruments")
+
+    lines = [f"{label}_wave_instruments:"]
+
+    highest = highest_used_instrument_for_channels(patterns, order_matrix, (2,))
+    for instrument_id in range(1, highest + 1):
+        length, output_level, waveform_index, pointer_low, pointer_high, highmask = (
+            wave_instrument_bytes(instrument_id, instruments)
+        )
+        lines.extend(
+            [
+                f"{label}_itWaveinst{instrument_id}:",
+                f"db {length}",
+                f"db {output_level}",
+                f"db {waveform_index}",
+                f"dw {(pointer_high << 8) | pointer_low}",
+                f"db {highmask}",
+                "",
+            ]
+        )
+    return lines
+
+
 def render_empty_instrument_bank(label: str, name: str) -> list[str]:
     return [f"{label}_{name}:", ""]
 
@@ -147,6 +205,7 @@ def render_waves(label: str) -> list[str]:
 
 def build_asm(data: dict, label: str) -> str:
     json_to_uge.validate_header(data)
+    json_version = json_to_uge.validate_json_version(data)
     instruments = json_to_uge.validate_instruments(data)
     patterns, order_matrix = json_to_uge.build_patterns(data)
     tempo = json_to_uge.expect_int(data["tempo"], "tempo")
@@ -168,7 +227,7 @@ def build_asm(data: dict, label: str) -> str:
     lines.extend(render_order(label, order_matrix))
     lines.extend(render_patterns(label, patterns))
     lines.extend(render_duty_instruments(label, patterns, order_matrix, instruments))
-    lines.extend(render_empty_instrument_bank(label, "wave_instruments"))
+    lines.extend(render_wave_instruments(label, patterns, order_matrix, instruments, json_version))
     lines.extend(render_empty_instrument_bank(label, "noise_instruments"))
     lines.extend(render_routines(label))
     lines.extend(render_waves(label))
