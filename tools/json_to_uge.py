@@ -79,6 +79,16 @@ NOISE_VERSION_2_FORBIDDEN_FIELDS = ("noise_length", "clock_shift", "divisor_code
 NOISE_UNSUPPORTED_FIELDS = ("trigger", "frequency")
 NOISE_WIDTH_15BIT = "15bit"
 NOISE_WIDTH_7BIT = "7bit"
+NOISE_NOTE_FORBIDDEN_FIELDS = ("noise_note", "clock_shift", "divisor_code")
+NOISE_NOTE_ALLOWED_FIELDS = {
+    "note",
+    "length",
+    "instrument",
+    "volume",
+    "effect",
+    "effect_param",
+    *NOISE_NOTE_FORBIDDEN_FIELDS,
+}
 NOISE_VERSION_2_ALLOWED_FIELDS = (
     "id",
     "name",
@@ -792,16 +802,34 @@ def validate_event_effect(event: dict[str, Any], path: str) -> None:
         fail(f"{path}.effect_param: only null is supported in the initial version")
 
 
-def build_channel_pattern(events: list[Any], path: str) -> list[Cell]:
+def build_channel_pattern(
+    events: list[Any],
+    path: str,
+    version: int = JSON_VERSION,
+    channel: str | None = None,
+    instruments: dict[str, dict[int, InstrumentSpec]] | None = None,
+) -> list[Cell]:
     rows: list[Cell] = []
     for index, item in enumerate(events):
         event_path = f"{path}[{index}]"
         event = expect_dict(item, event_path)
+        if version == 2 and channel == "noise":
+            for field in NOISE_NOTE_FORBIDDEN_FIELDS:
+                if field in event:
+                    fail(f"{event_path}.{field}: Noise noteでは直接指定できません")
+            for field in event:
+                if field not in NOISE_NOTE_ALLOWED_FIELDS:
+                    fail(f"{event_path}.{field}: unknown Noise note field")
         note = parse_note(event.get("note"), f"{event_path}.note")
         length = expect_int(event.get("length"), f"{event_path}.length")
         if length < 1:
             fail(f"{event_path}.length: must be 1 or greater")
         instrument = validate_instrument_id(event.get("instrument"), f"{event_path}.instrument")
+        if version == 2 and channel == "noise":
+            if instruments is None or instrument not in instruments["noise"]:
+                fail(
+                    f"{event_path}.instrument: Noise Instrument {instrument} is not defined"
+                )
         validate_event_effect(event, event_path)
 
         first_instrument = 0 if note == NO_NOTE else instrument
@@ -815,7 +843,13 @@ def build_channel_pattern(events: list[Any], path: str) -> list[Cell]:
     return rows
 
 
-def build_patterns(data: dict[str, Any]) -> tuple[dict[int, list[Cell]], list[list[int]]]:
+def build_patterns(
+    data: dict[str, Any],
+    instruments: dict[str, dict[int, InstrumentSpec]] | None = None,
+) -> tuple[dict[int, list[Cell]], list[list[int]]]:
+    version = validate_json_version(data)
+    if version == 2 and instruments is None:
+        instruments = validate_instruments(data)
     order = expect_list(data.get("order"), "order")
     patterns_json = expect_dict(data.get("patterns"), "patterns")
     if not order:
@@ -841,6 +875,9 @@ def build_patterns(data: dict[str, Any]) -> tuple[dict[int, list[Cell]], list[li
                 patterns[pattern_key] = build_channel_pattern(
                     events,
                     f"patterns.{pattern_name}.channels.{channel}",
+                    version,
+                    channel,
+                    instruments,
                 )
             else:
                 patterns[pattern_key] = blank_pattern()
@@ -1047,7 +1084,7 @@ def build_uge(data: dict[str, Any]) -> bytes:
     json_version = validate_json_version(data)
     wave_tables = validate_wave_tables(data, json_version)
     instruments = validate_instruments(data, wave_tables=wave_tables)
-    patterns, order_matrix = build_patterns(data)
+    patterns, order_matrix = build_patterns(data, instruments)
 
     output = bytearray()
     output += pack_int(SONG_VERSION)

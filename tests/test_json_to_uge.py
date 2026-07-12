@@ -382,6 +382,120 @@ class NoiseInstrumentValidationTests(unittest.TestCase):
             self.validate(noise_data(version=1, length=0))
 
 
+class Ch4NoiseNoteTests(unittest.TestCase):
+    def instruments(self, items: list[dict]) -> dict[str, dict[int, json_to_uge.InstrumentSpec]]:
+        data = {"version": 2, "instruments": items}
+        if any(item.get("channel") == "wave" for item in items):
+            data["wave_tables"] = [{"name": "wave", "samples": [0] * 32}]
+            for item in items:
+                if item.get("channel") == "wave":
+                    item.setdefault("waveform", "wave")
+        return json_to_uge.validate_instruments(data)
+
+    def build(self, events: list[dict], instruments: dict | None = None) -> list[json_to_uge.Cell]:
+        if instruments is None:
+            instruments = self.instruments(
+                [{"id": 1, "name": "noise", "channel": "noise"}]
+            )
+        return json_to_uge.build_channel_pattern(
+            events,
+            "patterns.noise.drums",
+            version=2,
+            channel="noise",
+            instruments=instruments,
+        )
+
+    def test_noise_note_names_use_common_note_numbers(self) -> None:
+        expected = {
+            "C3": 0,
+            "C#3": 1,
+            "B3": 11,
+            "C4": 12,
+            "B8": 71,
+            "rest": json_to_uge.NO_NOTE,
+        }
+        for note, note_number in expected.items():
+            with self.subTest(note=note):
+                cells = self.build([{"note": note, "length": 1, "instrument": 1}])
+                self.assertEqual(cells[0].note, note_number)
+
+    def test_rest_requires_noise_instrument_and_clears_cell_instrument(self) -> None:
+        cells = self.build([{"note": "rest", "length": 2, "instrument": 1}])
+        self.assertEqual(cells[0], json_to_uge.Cell(note=json_to_uge.NO_NOTE, instrument=0))
+        self.assertEqual(cells[1], json_to_uge.Cell())
+
+        for instrument in (0, 16, "1", True):
+            with self.subTest(instrument=instrument):
+                with self.assertRaisesRegex(ValueError, r"patterns\.noise\.drums\[0\]\.instrument"):
+                    self.build([{"note": "rest", "length": 1, "instrument": instrument}])
+
+    def test_noise_note_rejects_forbidden_note_forms(self) -> None:
+        for note in ("c4", "g#4", "C-4", "C_4", "Db4", "kick", "snare", "hat", "B2", "C9", 57, True, {"clock_shift": 4}):
+            with self.subTest(note=note):
+                with self.assertRaisesRegex(ValueError, r"patterns\.noise\.drums\[0\]\.note"):
+                    self.build([{"note": note, "length": 1, "instrument": 1}])
+
+    def test_noise_note_rejects_direct_noise_fields_and_unknown_fields(self) -> None:
+        for field in ("noise_note", "clock_shift", "divisor_code", "nr43"):
+            with self.subTest(field=field):
+                event = {"note": "C4", "length": 1, "instrument": 1, field: 0}
+                with self.assertRaisesRegex(ValueError, rf"patterns\.noise\.drums\[0\]\.{field}"):
+                    self.build([event])
+
+    def test_noise_note_allows_common_optional_fields_without_output_conversion(self) -> None:
+        cells = self.build(
+            [{
+                "note": "C4",
+                "length": 1,
+                "instrument": 1,
+                "volume": 0,
+                "effect": None,
+                "effect_param": None,
+            }]
+        )
+        self.assertEqual(cells[0].note, 12)
+        self.assertEqual(cells[0].instrument, 1)
+
+    def test_noise_note_requires_noise_bank_instrument(self) -> None:
+        for channel in ("pulse1", "pulse2", "wave"):
+            with self.subTest(channel=channel):
+                instruments = self.instruments([{"id": 1, "name": "other", "channel": channel}])
+                with self.assertRaisesRegex(ValueError, r"instrument: Noise Instrument 1 is not defined"):
+                    self.build([{"note": "C4", "length": 1, "instrument": 1}], instruments)
+
+        instruments = self.instruments([
+            {"id": 1, "name": "pulse", "channel": "pulse1"},
+            {"id": 1, "name": "noise", "channel": "noise"},
+        ])
+        self.assertEqual(self.build([{"note": "C4", "length": 1, "instrument": 1}], instruments)[0].instrument, 1)
+
+        for instrument in (15,):
+            instruments = self.instruments([{"id": instrument, "name": "noise", "channel": "noise"}])
+            self.assertEqual(
+                self.build([{"note": "B8", "length": 1, "instrument": instrument}], instruments)[0].instrument,
+                instrument,
+            )
+
+        with self.assertRaisesRegex(ValueError, r"Noise Instrument 2 is not defined"):
+            self.build([{"note": "C4", "length": 1, "instrument": 2}])
+
+    def test_noise_note_rejects_unknown_note_fields(self) -> None:
+        for value in (1, "x", True, None):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, r"unknown Noise note field"):
+                    self.build([{"note": "C4", "length": 1, "instrument": 1, "unknown": value}])
+
+    def test_version_1_noise_note_does_not_apply_version_2_bank_check(self) -> None:
+        cells = json_to_uge.build_channel_pattern(
+            [{"note": "C4", "length": 1, "instrument": 1}],
+            "patterns.noise.legacy",
+            version=1,
+            channel="noise",
+        )
+        self.assertEqual(cells[0].note, 12)
+        self.assertEqual(cells[0].instrument, 1)
+
+
 class PackedNoiseInstrumentTests(unittest.TestCase):
     def pack(self, data: dict) -> bytes:
         return json_to_uge.pack_instruments(json_to_uge.validate_instruments(data))

@@ -282,7 +282,7 @@ def build_asm(data: dict, label: str) -> str:
     json_version = json_to_uge.validate_json_version(data)
     wave_tables = json_to_uge.validate_wave_tables(data, json_version)
     instruments = json_to_uge.validate_instruments(data, wave_tables=wave_tables)
-    patterns, order_matrix = json_to_uge.build_patterns(data)
+    patterns, order_matrix = json_to_uge.build_patterns(data, instruments)
     tempo = json_to_uge.expect_int(data["tempo"], "tempo")
 
     lines = [
