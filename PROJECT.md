@@ -324,7 +324,7 @@
       - [x] ループ範囲をJSONで表現する方法を決める
       - [x] BGM用Noiseノートの表現方法を決める
       - [x] 拡張後の4チャンネルBGM JSONサンプルを作成する（`docs/json_examples/bgm_4ch_sample.json`）
-      - [ ] PROJECT.mdの「初版BGM仕様」「BGM・効果音制作フロー」「楽曲定義JSON仕様」を更新する
+      - [x] PROJECT.mdのサウンド詳細記述を分野別仕様書へ集約する
     - [ ] JSON変換ツールを4チャンネル対応JSON仕様へ対応させる
       - [ ] Version 2のPulse共通Instrument項目（CH2の`length` / `length_enable`を含む）と、CH2でのCH1専用Sweep項目禁止を変換ツールへ反映する
       - [ ] Version 2のWave Instrument項目、Wave table名前参照の数値化、CH3でのPulse / Noise専用項目禁止を変換ツールへ反映する
