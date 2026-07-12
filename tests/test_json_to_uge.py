@@ -1938,6 +1938,81 @@ class NoiseAsmInstrumentTests(unittest.TestCase):
             json_to_huge_asm.noise_instrument_bytes(1, instruments)
 
 
+class Ch4AsmPatternTests(unittest.TestCase):
+    def noise_instruments(self) -> list[dict]:
+        return [
+            {"id": 1, "name": "noise 15bit", "channel": "noise", "width_mode": "15bit"},
+            {"id": 2, "name": "noise 7bit", "channel": "noise", "width_mode": "7bit"},
+        ]
+
+    def pattern_lines(self, events: list[dict]) -> list[str]:
+        data = uge_noise_pattern_fixture(events, self.noise_instruments())
+        asm = json_to_huge_asm.build_asm(data, "song")
+        lines = asm.splitlines()
+        start = lines.index("song_P3:")
+        return lines[start + 1 : start + 65]
+
+    def test_ch4_notes_use_common_huge_note_constants(self) -> None:
+        lines = self.pattern_lines(
+            [
+                {"note": "C3", "length": 1, "instrument": 1},
+                {"note": "C#4", "length": 1, "instrument": 2},
+                {"note": "B8", "length": 1, "instrument": 1},
+            ]
+        )
+        self.assertEqual(lines[:3], [
+            " dn C_3,1,$000",
+            " dn C#4,2,$000",
+            " dn B_8,1,$000",
+        ])
+
+    def test_rest_and_length_tail_are_empty_note_rows(self) -> None:
+        lines = self.pattern_lines(
+            [
+                {"note": "C4", "length": 2, "instrument": 1},
+                {"note": "rest", "length": 1, "instrument": 2},
+            ]
+        )
+        self.assertEqual(lines[:4], [
+            " dn C_4,1,$000",
+            " dn ___,0,$000",
+            " dn ___,0,$000",
+            " dn ___,0,$000",
+        ])
+
+    def test_repeated_note_is_emitted_at_each_event_start(self) -> None:
+        lines = self.pattern_lines(
+            [
+                {"note": "C4", "length": 2, "instrument": 1},
+                {"note": "C4", "length": 2, "instrument": 1},
+            ]
+        )
+        self.assertEqual(lines[:4], [
+            " dn C_4,1,$000",
+            " dn ___,0,$000",
+            " dn C_4,1,$000",
+            " dn ___,0,$000",
+        ])
+
+    def test_width_mode_does_not_change_pattern_note_or_add_nr43(self) -> None:
+        lines = self.pattern_lines(
+            [
+                {"note": "C4", "length": 1, "instrument": 1},
+                {"note": "C4", "length": 1, "instrument": 2},
+            ]
+        )
+        self.assertEqual(lines[:2], [
+            " dn C_4,1,$000",
+            " dn C_4,2,$000",
+        ])
+        self.assertNotIn("$0C", lines[0])
+
+    def test_ch4_pattern_is_padded_to_64_rows(self) -> None:
+        lines = self.pattern_lines([{"note": "C3", "length": 1, "instrument": 1}])
+        self.assertEqual(len(lines), 64)
+        self.assertTrue(all(line == " dn ___,0,$000" for line in lines[1:]))
+
+
 class WaveTableAsmTests(unittest.TestCase):
     def wave_lines(self, tables: list[dict]) -> list[str]:
         asm = json_to_huge_asm.build_asm(
