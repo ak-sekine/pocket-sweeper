@@ -326,55 +326,77 @@
       - [x] 拡張後の4チャンネルBGM JSONサンプルを作成する（`docs/json_examples/bgm_4ch_sample.json`）
       - [x] PROJECT.mdのサウンド詳細記述を分野別仕様書へ集約する
     - [ ] JSON変換ツールを4チャンネル対応JSON仕様へ対応させる
-      - [x] Version 2のPulse共通Instrument項目（CH2の`length` / `length_enable`を含む）と、CH2でのCH1専用Sweep項目禁止を変換ツールへ反映する
-      - [ ] Version 2のWave Instrument項目、Wave table名前参照の数値化、CH3でのPulse / Noise専用項目禁止を変換ツールへ反映する
-      - [ ] Version 2の`wave_tables`検証、4bitサンプルの16byteパック、最大16 bank補完を変換ツールへ反映する
-      - [ ] Version 2のNoise Instrument項目、`noise_length` / `length`のVersion別検証、Noise note由来のNR43生成を変換ツールへ反映する
-      - [ ] Version 2のCH4 note文字列を既存note番号へ変換する
-      - [ ] CH4 note番号からNR43のclock shift / divisor codeを生成する
-      - [ ] Noise Instrumentの`width_mode`とnote由来値を合成する
-      - [ ] CH4用note範囲と`rest`を検証する
-      - [ ] CH4からNoise以外のInstrumentを参照した場合にエラーにする
-      - [ ] 打楽器名、数値note、NR43生値、`clock_shift` / `divisor_code`直接指定をエラーにする
-      - [ ] 同じInstrumentで異なるNoise noteを再生できることを確認する
-      - [ ] 同じNoise noteを異なる`width_mode`のInstrumentで再生した結果を確認する
-      - [ ] noteの`length`展開後の空行で再triggerされないことを確認する
-      - [ ] 同じnoteを複数回記述した場合に各位置で再triggerされることを確認する
-      - [ ] CH4 noteのUGE出力をhUGETrackerで開いて確認する
-      - [ ] hUGETracker Export ASMと直接生成ASMを比較する
-      - [ ] SameBoyでNoise BGMを再生確認する
-      - [ ] Version 1の既存Noise / SFX動作に影響がないことを確認する
-      - [ ] Version 2のnote `volume` をUGE pattern cellのVolumeへ変換する方法を確認する
-      - [ ] Version 2のnote `volume` をhUGEDriver用ASMへ変換する方法を確認する
-      - [ ] volume省略と `volume: 0` が別の結果になることを確認する
-      - [ ] CH1 / CH2 / CH3 / CH4でvolume指定の変換結果を確認する
-      - [ ] Version 2のチャンネル別`order`を4チャンネル分のOrderMatrixへ変換する
-      - [ ] Version 2のチャンネル別`patterns`をUGE patternへ変換する
-      - [ ] 同じpattern名を異なるチャンネルで使用できることを確認する
-      - [ ] 使用チャンネルのorder数不一致をエラーにする
-      - [ ] 未使用チャンネルへ空pattern参照を補完する
-      - [ ] Version 1とVersion 2のorder / pattern構造を正しく分岐する
-      - [ ] Version 2の`loop.mode`を検証する
-      - [ ] `mode: "full"`をUGE・hUGEDriver用ASMへ変換する
-      - [ ] `mode: "range"`の`start_order` / `end_order`を検証する
-      - [ ] イントロ後ループをUGE・hUGEDriver用ASMで表現する方法を確認する
-      - [ ] `mode: "none"`の曲終端処理を確認する
-      - [ ] 非ループ再生後の停止、無音維持、終了通知の扱いを決める
-      - [ ] ループ境界を全チャンネル共通のOrderMatrix位置へ反映する
-      - [ ] ループ範囲と未使用チャンネル補完後のorder数が一致することを確認する
-      - [ ] Version 1の既存ループ動作を維持する
-      - [ ] 不正なrange、SFXのループ指定、未知のmodeをエラーにする
-      - [ ] `tools/json_to_huge_asm.py` の変更範囲を整理する
-      - [ ] `tools/json_to_huge_asm.py` をCH3 / Wave Instrument・Wave table出力へ対応させる
-      - [ ] `tools/json_to_huge_asm.py` をCH4 / Noise InstrumentのBGM利用へ対応させる
-      - [ ] `tools/json_to_uge.py` の変更範囲を整理する
-      - [ ] `tools/json_to_uge.py` を4チャンネル対応JSON仕様へ対応させる
-      - [ ] Version 1 JSONを入力した場合の互換動作を確認する
-      - [ ] 4チャンネル使用時のhUGETracker Export ASMと比較し、再生に影響する差分がないことを確認する
-      - [ ] note `volume` の変換結果をhUGETracker Export ASMと比較し、再生上の差異がないことを確認する
-      - [ ] Version 2構造をhUGETracker Export ASMと比較する
-      - [ ] Version 2のloop構造をhUGETracker Export ASMまたは実際の再生結果と比較する
-      - [ ] `tools/README.md` に4チャンネル対応JSON仕様と使用方法を追記する
+      - [x] Version 2 Pulse Instrument対応
+        - [x] Version 2 Pulse Instrumentの検証・内部表現を実装する（CH2の`length` / `length_enable`、CH2のCH1専用Sweep項目禁止、Version 1互換性を含む）
+        - [x] Version 2 Pulse InstrumentをUGE出力へ反映する
+        - [x] Version 2 Pulse InstrumentをhUGEDriver用ASMへ反映する
+      - [ ] Version 2 Wave Instrument対応
+        - [ ] Version 2 Wave Instrumentの検証・内部表現を実装する（CH3のPulse / Noise専用項目禁止を含む）
+        - [ ] Wave table名前参照を内部数値へ解決する
+        - [ ] Version 2 Wave InstrumentをUGE出力へ反映する
+        - [ ] Version 2 Wave InstrumentをhUGEDriver用ASMへ反映する
+      - [ ] Version 2 Wave table対応
+        - [ ] `wave_tables`の構造・名前・4bitサンプル値を検証する
+        - [ ] Wave tableの32サンプルを16byteへパックする
+        - [ ] Wave tableを最大16 bankへ補完してUGE出力へ反映する
+        - [ ] Wave tableをhUGEDriver用ASMへ反映する
+      - [ ] Version 2 Noise Instrument対応
+        - [ ] Version 2 Noise Instrumentの検証・内部表現を実装する
+        - [ ] `noise_length` / `length`のVersion別検証を実装する
+        - [ ] Version 2 Noise InstrumentをUGE出力へ反映する
+        - [ ] Version 2 Noise InstrumentをhUGEDriver用ASMへ反映する
+      - [ ] Version 2 CH4 note変換対応
+        - [ ] CH4 note文字列の検証と内部note番号変換を実装する（`rest`、禁止表現、Noise以外のInstrument参照を含む）
+        - [ ] CH4 note番号からNR43のclock shift / divisor codeを生成する
+        - [ ] Noise Instrumentの`width_mode`とnote由来値を合成する
+        - [ ] CH4 noteをUGE出力へ反映する
+        - [ ] CH4 noteをhUGEDriver用ASMへ反映する
+      - [ ] Version 2 CH4 note変換を検証する
+        - [ ] 同一Instrumentで異なるNoise noteを再生できることを確認する
+        - [ ] 同一Noise noteを異なる`width_mode`で再生した結果を確認する
+        - [ ] noteの`length`展開後の空行で再triggerされないことを確認する
+        - [ ] 同じnoteの再記述で各位置に再triggerされることを確認する
+        - [ ] hUGETracker Export ASMと直接生成ASMを比較する
+        - [ ] SameBoyでNoise BGMを再生確認する
+        - [ ] Version 1の既存Noise / SFX動作に影響がないことを確認する
+      - [ ] Version 2 note volumeの出力方式を確定する
+        - [ ] UGE pattern cellのVolume表現を確認する
+        - [ ] hUGEDriver用ASMのvolume表現を確認する
+      - [ ] Version 2 note volume変換を実装する
+        - [ ] note volumeをUGEへ反映する
+        - [ ] note volumeをhUGEDriver用ASMへ反映する
+      - [ ] Version 2 note volume変換を検証する
+        - [ ] volume省略と`volume: 0`の差を確認する
+        - [ ] CH1 / CH2 / CH3 / CH4で変換結果を確認する
+      - [ ] Version 2 order / patternsの検証・内部表現を実装する
+        - [ ] チャンネル別order / patternsの構造と参照を検証する
+        - [ ] order数不一致をエラーにし、未使用チャンネルへ空pattern参照を補完する
+        - [ ] 同じpattern名を異なるチャンネルで使用できることを確認する
+      - [ ] Version 2 order / patternsをUGEへ反映する
+        - [ ] チャンネル別orderを4チャンネル分のOrderMatrixへ変換する
+        - [ ] チャンネル別patternsをUGE patternへ変換する
+      - [ ] Version 2 order / patternsをhUGEDriver用ASMへ反映する
+      - [ ] Version 1 / Version 2のorder / pattern互換性を確認する
+      - [ ] Version 2 loopの出力方式を確定する
+        - [ ] UGEでの`full`、`range`、`none`の表現方法を確認する
+        - [ ] hUGEDriver用ASMでの全体ループ・部分ループ表現方法を確認する
+        - [ ] 非ループ再生後の停止、無音維持、終了通知の扱いを確認する
+      - [ ] Version 2 loopの検証・内部表現を実装する
+        - [ ] `loop.mode`、rangeの境界、SFX制約、未知のmodeを検証する
+        - [ ] ループ境界を全チャンネル共通のOrderMatrix位置へ反映する
+        - [ ] ループ範囲と未使用チャンネル補完後のorder数が一致することを確認する
+      - [ ] Version 2 loopをUGEへ反映する
+      - [ ] Version 2 loopをhUGEDriver用ASMへ反映する
+      - [ ] Version 2 loopの再生動作とVersion 1互換性を確認する
+        - [ ] Version 1の既存ループ動作を維持する
+        - [ ] Version 2のloop構造をhUGETracker Export ASMまたは実際の再生結果と比較する
+      - [ ] JSON変換ツールのVersion 2総合確認を行う
+        - [ ] Version 1 JSONの互換動作を確認する
+        - [ ] 4チャンネル使用時のUGEをhUGETrackerで確認する
+        - [ ] hUGETracker Export ASMと直接生成ASMを比較する
+        - [ ] Version 2構造の変換結果をhUGETracker Export ASMと比較する
+        - [ ] note volumeの変換結果をhUGETracker Export ASMと比較する
+        - [ ] `tools/README.md`をVersion 2の最終対応内容へ更新する
     - [ ] 4チャンネルBGM制作フローを検証する
       - [ ] CH1を主旋律、CH3をベースまたは持続音の中心として構成する
       - [ ] CH2を補助旋律または伴奏として構成し、効果音で一時的にミュートされても破綻しないことを確認する
