@@ -11,6 +11,7 @@ from typing import Any
 
 SONG_VERSION = 6
 JSON_VERSION = 1
+SUPPORTED_JSON_VERSIONS = (1, 2)
 CHANNELS = ("pulse1", "pulse2", "wave", "noise")
 NO_NOTE = 90
 PATTERN_ROWS = 64
@@ -85,6 +86,12 @@ class InstrumentSpec:
     initial_volume: int
     vol_sweep_direction: int
     vol_sweep_amount: int
+    length: int = 0
+    length_enable: bool = False
+    sweep_time: int = 0
+    sweep_direction: int = ST_DOWN
+    sweep_shift: int = 0
+    json_version: int = JSON_VERSION
 
 
 def fail(message: str) -> None:
@@ -119,6 +126,14 @@ def expect_optional_int(value: Any, path: str, default: int) -> int:
     if value is None:
         return default
     return expect_int(value, path)
+
+
+def expect_optional_bool(value: Any, path: str, default: bool) -> bool:
+    if value is None:
+        return default
+    if not isinstance(value, bool):
+        fail(f"{path}: boolean expected")
+    return value
 
 
 def pack_int(value: int) -> bytes:
@@ -242,7 +257,34 @@ def default_duty_values(instrument_id: int) -> tuple[str, int, int]:
     return DEFAULT_DUTY_NAMES.get(instrument_id, ("", 2, 0))
 
 
+def validate_json_version(data: dict[str, Any]) -> int:
+    version = expect_int(data.get("version"), "version")
+    if version not in SUPPORTED_JSON_VERSIONS:
+        supported = ", ".join(str(item) for item in SUPPORTED_JSON_VERSIONS)
+        fail(f"version: expected one of {supported}, got {version}")
+    return version
+
+
+PULSE_VERSION_2_FIELDS = (
+    "length",
+    "length_enable",
+    "sweep_time",
+    "sweep_direction",
+    "sweep_shift",
+)
+
+
+def reject_version_2_instrument_fields(
+    instrument: dict[str, Any],
+    path: str,
+) -> None:
+    for field in PULSE_VERSION_2_FIELDS:
+        if field in instrument:
+            fail(f"{path}.{field}: Version 2専用項目はVersion 1では使用できません")
+
+
 def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, InstrumentSpec]]:
+    version = validate_json_version(data)
     result: dict[str, dict[int, InstrumentSpec]] = {"duty": {}, "wave": {}, "noise": {}}
     instruments = expect_list(data.get("instruments"), "instruments")
     for index, item in enumerate(instruments):
@@ -256,6 +298,9 @@ def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, Instrument
         bank = instrument_bank_for_channel(channel)
         if instrument_id in result[bank]:
             fail(f"{path}.id: duplicate instrument id {instrument_id} in {bank} bank")
+
+        if version == JSON_VERSION and channel in ("pulse1", "pulse2"):
+            reject_version_2_instrument_fields(instrument, path)
 
         default_name, default_duty, default_sweep = default_duty_values(instrument_id)
         duty = validate_range(
@@ -282,6 +327,48 @@ def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, Instrument
             7,
         )
 
+        length = 0
+        length_enable = False
+        sweep_time = 0
+        sweep_direction = ST_DOWN
+        sweep_shift = 0
+
+        if version == 2 and channel in ("pulse1", "pulse2"):
+            length = validate_range(
+                expect_optional_int(instrument.get("length"), f"{path}.length", 0),
+                f"{path}.length",
+                0,
+                63,
+            )
+            length_enable = expect_optional_bool(
+                instrument.get("length_enable"),
+                f"{path}.length_enable",
+                False,
+            )
+
+            if channel == "pulse1":
+                sweep_time = validate_range(
+                    expect_optional_int(instrument.get("sweep_time"), f"{path}.sweep_time", 0),
+                    f"{path}.sweep_time",
+                    0,
+                    7,
+                )
+                sweep_direction = parse_envelope_direction(
+                    instrument.get("sweep_direction"),
+                    f"{path}.sweep_direction",
+                    ST_DOWN,
+                )
+                sweep_shift = validate_range(
+                    expect_optional_int(instrument.get("sweep_shift"), f"{path}.sweep_shift", 0),
+                    f"{path}.sweep_shift",
+                    0,
+                    7,
+                )
+            else:
+                for field in ("sweep_time", "sweep_direction", "sweep_shift"):
+                    if field in instrument:
+                        fail(f"{path}.{field}: pulse1でのみ使用可能です（pulse2では指定禁止）")
+
         has_duty_detail = "duty" in instrument
         if bank != "duty" and has_duty_detail:
             fail(f"{path}: duty is only supported for pulse1/pulse2")
@@ -295,14 +382,18 @@ def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, Instrument
             initial_volume=initial_volume,
             vol_sweep_direction=vol_sweep_direction,
             vol_sweep_amount=vol_sweep_amount,
+            length=length,
+            length_enable=length_enable,
+            sweep_time=sweep_time,
+            sweep_direction=sweep_direction,
+            sweep_shift=sweep_shift,
+            json_version=version,
         )
     return result
 
 
 def validate_header(data: dict[str, Any]) -> None:
-    version = expect_int(data.get("version"), "version")
-    if version != JSON_VERSION:
-        fail(f"version: expected {JSON_VERSION}, got {version}")
+    validate_json_version(data)
     expect_string(data.get("title"), "title")
     song_type = expect_string(data.get("type"), "type")
     if song_type not in ("bgm", "sfx"):
@@ -431,14 +522,32 @@ def pack_instruments(overrides: dict[str, dict[int, InstrumentSpec]]) -> bytes:
         vol_sweep_direction = spec.vol_sweep_direction if spec else ST_DOWN
         vol_sweep_amount = spec.vol_sweep_amount if spec else vol_sweep_amount
         duty = spec.duty if spec else duty
+        if spec and spec.json_version == 2:
+            length = spec.length
+            length_enabled = spec.length_enable
+            sweep_time = spec.sweep_time
+            sweep_inc_dec = spec.sweep_direction
+            sweep_shift = spec.sweep_shift
+        else:
+            # Keep the Version 1 packing behavior, where the existing envelope
+            # direction also supplied the legacy SweepIncDec field.
+            length = 0
+            length_enabled = False
+            sweep_time = 0
+            sweep_inc_dec = vol_sweep_direction
+            sweep_shift = 0
         parts.append(
             pack_instrument(
                 IT_SQUARE,
                 name,
+                length=length,
+                length_enabled=length_enabled,
                 initial_volume=initial_volume,
                 vol_sweep_direction=vol_sweep_direction,
                 vol_sweep_amount=vol_sweep_amount,
-                sweep_inc_dec=vol_sweep_direction,
+                sweep_time=sweep_time,
+                sweep_inc_dec=sweep_inc_dec,
+                sweep_shift=sweep_shift,
                 duty=duty,
                 output_level=1,
             )

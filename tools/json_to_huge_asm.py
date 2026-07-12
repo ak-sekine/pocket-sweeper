@@ -75,10 +75,18 @@ def square_instrument_bytes(
         vol_sweep_amount = spec.vol_sweep_amount
 
     direction_bit = 1 if vol_sweep_direction == json_to_uge.ST_UP else 0
-    nr10 = 8
-    nr11 = duty << 6
+    if spec and spec.json_version == 2:
+        sweep_direction_bit = 1 if spec.sweep_direction == json_to_uge.ST_DOWN else 0
+        nr10 = (spec.sweep_time << 4) | (sweep_direction_bit << 3) | spec.sweep_shift
+        nr11 = (duty << 6) | spec.length
+        nr14 = (0x40 if spec.length_enable else 0) | 0x80
+    else:
+        # Preserve the Version 1 ASM representation: no NR10 sweep settings,
+        # no sound-length value, and trigger enabled without length counter.
+        nr10 = 8
+        nr11 = duty << 6
+        nr14 = 0x80
     nr12 = (initial_volume << 4) | (direction_bit << 3) | vol_sweep_amount
-    nr14 = 128
     return nr10, nr11, nr12, nr14
 
 

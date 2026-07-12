@@ -326,7 +326,7 @@
       - [x] 拡張後の4チャンネルBGM JSONサンプルを作成する（`docs/json_examples/bgm_4ch_sample.json`）
       - [x] PROJECT.mdのサウンド詳細記述を分野別仕様書へ集約する
     - [ ] JSON変換ツールを4チャンネル対応JSON仕様へ対応させる
-      - [ ] Version 2のPulse共通Instrument項目（CH2の`length` / `length_enable`を含む）と、CH2でのCH1専用Sweep項目禁止を変換ツールへ反映する
+      - [x] Version 2のPulse共通Instrument項目（CH2の`length` / `length_enable`を含む）と、CH2でのCH1専用Sweep項目禁止を変換ツールへ反映する
       - [ ] Version 2のWave Instrument項目、Wave table名前参照の数値化、CH3でのPulse / Noise専用項目禁止を変換ツールへ反映する
       - [ ] Version 2の`wave_tables`検証、4bitサンプルの16byteパック、最大16 bank補完を変換ツールへ反映する
       - [ ] Version 2のNoise Instrument項目、`noise_length` / `length`のVersion別検証、Noise note由来のNR43生成を変換ツールへ反映する

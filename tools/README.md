@@ -175,6 +175,11 @@ Pulse Instrument詳細:
 * `envelope_sweep`: 0〜7
 * 未指定項目は従来のデフォルトInstrument相当の値を使う
 
+Version 2ではPulse Instrumentの`length`、`length_enable`、Pulse1専用の
+`sweep_time`、`sweep_direction`、`sweep_shift`も検証し、UGEおよびhUGEDriver用ASMへ出力する。
+Version 2のorder / patterns / loop、Wave、Noise、note volumeは未対応である。
+Version 1は引き続き利用できる。
+
 初版では未対応:
 
 * hUGETracker上での読み込み・保存・ASM Export自動確認
