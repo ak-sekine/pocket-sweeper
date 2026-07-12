@@ -321,7 +321,7 @@
       - [x] noteごとのvolumeをJSONで扱うか決める
       - [x] チャンネルごとに異なるorder / pattern割り当てを表現する方法を決める
       - [x] テンポ変更をJSONで扱うか、単一テンポへ正規化するか決める
-      - [ ] ループ範囲をJSONで表現する方法を決める
+      - [x] ループ範囲をJSONで表現する方法を決める
       - [ ] BGM用Noiseノートの表現方法を決める
       - [ ] 拡張後の4チャンネルBGM JSONサンプルを作成する
       - [ ] PROJECT.mdの「初版BGM仕様」「BGM・効果音制作フロー」「楽曲定義JSON仕様」を更新する
@@ -340,6 +340,16 @@
       - [ ] 使用チャンネルのorder数不一致をエラーにする
       - [ ] 未使用チャンネルへ空pattern参照を補完する
       - [ ] Version 1とVersion 2のorder / pattern構造を正しく分岐する
+      - [ ] Version 2の`loop.mode`を検証する
+      - [ ] `mode: "full"`をUGE・hUGEDriver用ASMへ変換する
+      - [ ] `mode: "range"`の`start_order` / `end_order`を検証する
+      - [ ] イントロ後ループをUGE・hUGEDriver用ASMで表現する方法を確認する
+      - [ ] `mode: "none"`の曲終端処理を確認する
+      - [ ] 非ループ再生後の停止、無音維持、終了通知の扱いを決める
+      - [ ] ループ境界を全チャンネル共通のOrderMatrix位置へ反映する
+      - [ ] ループ範囲と未使用チャンネル補完後のorder数が一致することを確認する
+      - [ ] Version 1の既存ループ動作を維持する
+      - [ ] 不正なrange、SFXのループ指定、未知のmodeをエラーにする
       - [ ] `tools/json_to_huge_asm.py` の変更範囲を整理する
       - [ ] `tools/json_to_huge_asm.py` をCH3 / Wave Instrument・Wave table出力へ対応させる
       - [ ] `tools/json_to_huge_asm.py` をCH4 / Noise InstrumentのBGM利用へ対応させる
@@ -349,6 +359,7 @@
       - [ ] 4チャンネル使用時のhUGETracker Export ASMと比較し、再生に影響する差分がないことを確認する
       - [ ] note `volume` の変換結果をhUGETracker Export ASMと比較し、再生上の差異がないことを確認する
       - [ ] Version 2構造をhUGETracker Export ASMと比較する
+      - [ ] Version 2のloop構造をhUGETracker Export ASMまたは実際の再生結果と比較する
       - [ ] `tools/README.md` に4チャンネル対応JSON仕様と使用方法を追記する
     - [ ] 4チャンネルBGM制作フローを検証する
       - [ ] CH1を主旋律、CH3をベースまたは持続音の中心として構成する
@@ -372,7 +383,12 @@
       - [ ] 音域外ノートの移調・オクターブ補正方針を決める
       - [ ] MIDIチャンネル10のドラムをCH4 / Noiseへ変換する方針を決める
       - [ ] MIDI由来のtrack、channel、program、velocity等のメタデータをJSONへ保持するか決める
-      - [ ] ループ開始・終了位置の指定方法を決める
+      - [ ] MIDIのループ情報取得方法を決める
+      - [ ] MIDIのループ位置を単一tempoのrowへ量子化する
+      - [ ] pattern途中のループ位置でpatternを分割する
+      - [ ] Version 2の`loop`へ変換する
+      - [ ] ループ情報がない場合のデフォルトmodeを決める
+      - [ ] 変換結果のループ範囲をレポートする
       - [ ] 変換結果を人が音符単位で修正しなくても、試聴結果をもとにChatGPTへ自然言語で再調整を依頼できる運用を決める
     - [ ] MIDIから楽曲定義JSONへ変換するPythonツールを作成する
       - [ ] 4チャンネル対応JSON仕様とJSON変換ツールの対応完了後に着手する
