@@ -318,7 +318,7 @@
       - [x] CH3 / Wave table定義項目を決める
       - [x] CH4 / NoiseをBGMで使用するためのInstrument詳細項目を決める
       - [x] CH2とCH4が効果音で一時的にミュートされても、CH1とCH3で曲の骨格を維持できるBGM設計方針を明記する
-      - [ ] noteごとのvolumeをJSONで扱うか決める
+      - [x] noteごとのvolumeをJSONで扱うか決める
       - [ ] チャンネルごとに異なるorder / pattern割り当てを表現する方法を決める
       - [ ] テンポ変更をJSONで扱うか、単一テンポへ正規化するか決める
       - [ ] ループ範囲をJSONで表現する方法を決める
@@ -330,6 +330,10 @@
       - [ ] Version 2のWave Instrument項目、Wave table名前参照の数値化、CH3でのPulse / Noise専用項目禁止を変換ツールへ反映する
       - [ ] Version 2の`wave_tables`検証、4bitサンプルの16byteパック、最大16 bank補完を変換ツールへ反映する
       - [ ] Version 2のNoise Instrument項目、`noise_length` / `length`のVersion別検証、Noise note由来のNR43生成を変換ツールへ反映する
+      - [ ] Version 2のnote `volume` をUGE pattern cellのVolumeへ変換する方法を確認する
+      - [ ] Version 2のnote `volume` をhUGEDriver用ASMへ変換する方法を確認する
+      - [ ] volume省略と `volume: 0` が別の結果になることを確認する
+      - [ ] CH1 / CH2 / CH3 / CH4でvolume指定の変換結果を確認する
       - [ ] `tools/json_to_huge_asm.py` の変更範囲を整理する
       - [ ] `tools/json_to_huge_asm.py` をCH3 / Wave Instrument・Wave table出力へ対応させる
       - [ ] `tools/json_to_huge_asm.py` をCH4 / Noise InstrumentのBGM利用へ対応させる
@@ -337,6 +341,7 @@
       - [ ] `tools/json_to_uge.py` を4チャンネル対応JSON仕様へ対応させる
       - [ ] Version 1 JSONを入力した場合の互換動作を確認する
       - [ ] 4チャンネル使用時のhUGETracker Export ASMと比較し、再生に影響する差分がないことを確認する
+      - [ ] note `volume` の変換結果をhUGETracker Export ASMと比較し、再生上の差異がないことを確認する
       - [ ] `tools/README.md` に4チャンネル対応JSON仕様と使用方法を追記する
     - [ ] 4チャンネルBGM制作フローを検証する
       - [ ] CH1を主旋律、CH3をベースまたは持続音の中心として構成する
