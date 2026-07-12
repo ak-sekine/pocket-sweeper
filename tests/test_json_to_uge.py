@@ -992,6 +992,58 @@ def read_uge_wave_banks(uge: bytes) -> tuple[bytes, ...]:
     )
 
 
+def read_uge_pattern_cells(uge: bytes) -> dict[int, tuple[dict[str, int], ...]]:
+    """Read packed pattern cells using the sizes defined by the UGE packers."""
+    header_size = 4 + (3 * len(json_to_uge.pack_short_string("", "test")))
+    instrument_size = len(json_to_uge.pack_instrument(json_to_uge.IT_SQUARE, ""))
+    offset = header_size + (3 * json_to_uge.INSTRUMENT_COUNT * instrument_size)
+    offset += json_to_uge.WAVE_COUNT * json_to_uge.WAVE_BYTES
+    offset += 4 + 1 + 4
+    pattern_count = struct.unpack_from("<i", uge, offset)[0]
+    offset += 4
+    cell_size = len(json_to_uge.pack_cell(json_to_uge.Cell()))
+    patterns: dict[int, tuple[dict[str, int], ...]] = {}
+    for _ in range(pattern_count):
+        pattern_key = struct.unpack_from("<i", uge, offset)[0]
+        offset += 4
+        cells = []
+        for _ in range(json_to_uge.PATTERN_ROWS):
+            cell = uge[offset : offset + cell_size]
+            cells.append(
+                {
+                    "note": struct.unpack_from("<i", cell, 0)[0],
+                    "instrument": struct.unpack_from("<i", cell, 4)[0],
+                    "volume": struct.unpack_from("<i", cell, 8)[0],
+                    "effect_code": struct.unpack_from("<i", cell, 12)[0],
+                    "effect_param": cell[16],
+                }
+            )
+            offset += cell_size
+        patterns[pattern_key] = tuple(cells)
+    return patterns
+
+
+def uge_noise_pattern_fixture(events: list[dict], instruments: list[dict]) -> dict:
+    return {
+        "version": 2,
+        "title": "CH4 pattern test",
+        "type": "bgm",
+        "tempo": 6,
+        "instruments": instruments,
+        "order": ["main"],
+        "patterns": {
+            "main": {
+                "channels": {
+                    "pulse1": [],
+                    "pulse2": [],
+                    "wave": [],
+                    "noise": events,
+                }
+            }
+        },
+    }
+
+
 class WaveInstrumentValidationTests(unittest.TestCase):
     def validate(self, data: dict) -> json_to_uge.InstrumentSpec:
         return json_to_uge.validate_instruments(data)["wave"][1]
@@ -1462,6 +1514,76 @@ class UgeWaveBankTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, message):
                     json_to_uge.build_uge_wave_banks((spec,))
         self.assertEqual(len(json_to_uge.build_uge_wave_banks((valid,))), 16)
+
+
+class UgeCh4PatternTests(unittest.TestCase):
+    def noise_instruments(self) -> list[dict]:
+        return [
+            {"id": 1, "name": "noise 15bit", "channel": "noise", "width_mode": "15bit"},
+            {"id": 2, "name": "noise 7bit", "channel": "noise", "width_mode": "7bit"},
+        ]
+
+    def cells(self, events: list[dict]) -> tuple[dict[str, int], ...]:
+        data = uge_noise_pattern_fixture(events, self.noise_instruments())
+        return read_uge_pattern_cells(json_to_uge.build_uge(data))[3]
+
+    def test_ch4_notes_and_rest_use_common_note_numbers(self) -> None:
+        cells = self.cells(
+            [
+                {"note": "C3", "length": 1, "instrument": 1},
+                {"note": "C#3", "length": 1, "instrument": 2},
+                {"note": "B8", "length": 1, "instrument": 1},
+                {"note": "rest", "length": 1, "instrument": 2},
+            ]
+        )
+        self.assertEqual((cells[0]["note"], cells[0]["instrument"]), (0, 1))
+        self.assertEqual((cells[1]["note"], cells[1]["instrument"]), (1, 2))
+        self.assertEqual((cells[2]["note"], cells[2]["instrument"]), (71, 1))
+        self.assertEqual((cells[3]["note"], cells[3]["instrument"]), (90, 0))
+
+    def test_ch4_length_expands_to_empty_cells_without_retrigger(self) -> None:
+        cells = self.cells([{"note": "C4", "length": 4, "instrument": 1}])
+        self.assertEqual((cells[0]["note"], cells[0]["instrument"]), (12, 1))
+        for row in range(1, 4):
+            self.assertEqual(cells[row], {"note": 90, "instrument": 0, "volume": 0, "effect_code": 0, "effect_param": 0})
+
+    def test_repeated_note_is_emitted_again_after_length(self) -> None:
+        cells = self.cells(
+            [
+                {"note": "C4", "length": 2, "instrument": 1},
+                {"note": "C4", "length": 2, "instrument": 1},
+            ]
+        )
+        self.assertEqual((cells[0]["note"], cells[0]["instrument"]), (12, 1))
+        self.assertEqual(cells[1]["note"], 90)
+        self.assertEqual((cells[2]["note"], cells[2]["instrument"]), (12, 1))
+        self.assertEqual(cells[3]["note"], 90)
+
+    def test_width_mode_stays_on_instrument_record_not_pattern_note(self) -> None:
+        cells = self.cells(
+            [
+                {"note": "C4", "length": 1, "instrument": 1},
+                {"note": "C4", "length": 1, "instrument": 2},
+            ]
+        )
+        self.assertEqual(cells[0]["note"], 12)
+        self.assertEqual(cells[1]["note"], 12)
+        specs = json_to_uge.validate_instruments(
+            uge_noise_pattern_fixture([], self.noise_instruments())
+        )
+        self.assertNotEqual(
+            json_to_uge.noise_note_to_nr43(12, specs["noise"][1]),
+            cells[0]["note"],
+        )
+        self.assertNotEqual(
+            json_to_uge.noise_note_to_nr43(12, specs["noise"][2]),
+            cells[1]["note"],
+        )
+
+    def test_pattern_is_padded_with_empty_cells(self) -> None:
+        cells = self.cells([{"note": "C3", "length": 1, "instrument": 1}])
+        self.assertEqual(len(cells), 64)
+        self.assertTrue(all(cell["note"] == 90 and cell["instrument"] == 0 for cell in cells[1:]))
 
 
 class PackedWaveInstrumentTests(unittest.TestCase):
