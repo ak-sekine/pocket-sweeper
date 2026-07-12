@@ -425,7 +425,31 @@ def wave_data(version: int = 2, **fields: object) -> dict:
         "channel": "wave",
     }
     instrument.update(fields)
-    return {"version": version, "instruments": [instrument]}
+    data = {"version": version, "instruments": [instrument]}
+    if version == 2:
+        waveform = fields.get("waveform")
+        table_name = waveform if isinstance(waveform, str) and waveform and waveform == waveform.strip() and waveform.islower() else "bass"
+        data["wave_tables"] = [{"name": table_name, "samples": [0] * 32}]
+    return data
+
+
+def wave_data_with_tables(names: list[str], waveform: str | None = None, instruments: list[dict] | None = None) -> dict:
+    data = {
+        "version": 2,
+        "instruments": instruments if instruments is not None else [
+            {
+                "id": 1,
+                "name": "wave test",
+                "channel": "wave",
+                "waveform": waveform if waveform is not None else names[0],
+            }
+        ],
+        "wave_tables": [
+            {"name": name, "samples": [0] * 32}
+            for name in names
+        ],
+    }
+    return data
 
 
 class WaveInstrumentValidationTests(unittest.TestCase):
@@ -528,6 +552,122 @@ class WaveInstrumentValidationTests(unittest.TestCase):
             with self.subTest(field=field):
                 with self.assertRaisesRegex(ValueError, rf"instruments\[0\]\.{field}.*Version 2専用"):
                     self.validate(wave_data(version=1, **{field: value}))
+
+    def test_wave_table_array_order_resolves_to_zero_based_indices(self) -> None:
+        names = ["bass_wave", "lead_wave"]
+        result = json_to_uge.validate_instruments(wave_data_with_tables(names))
+        first = result["wave"][1]
+        self.assertEqual(first.waveform, "bass_wave")
+        self.assertEqual(first.waveform_index, 0)
+
+        result = json_to_uge.validate_instruments(wave_data_with_tables(names, "lead_wave"))
+        self.assertEqual(result["wave"][1].waveform_index, 1)
+
+    def test_wave_table_array_order_not_name_order(self) -> None:
+        data = wave_data_with_tables(["z_wave", "a_wave"], "z_wave")
+        result = json_to_uge.validate_instruments(data)
+        self.assertEqual(result["wave"][1].waveform_index, 0)
+
+        data["instruments"][0]["waveform"] = "a_wave"
+        result = json_to_uge.validate_instruments(data)
+        self.assertEqual(result["wave"][1].waveform_index, 1)
+
+    def test_sixteen_wave_tables_resolve_last_entry_to_index_15(self) -> None:
+        names = [f"wave_{index}" for index in range(16)]
+        result = json_to_uge.validate_instruments(wave_data_with_tables(names, names[-1]))
+        self.assertEqual(result["wave"][1].waveform_index, 15)
+
+    def test_multiple_wave_instruments_can_share_or_use_different_tables(self) -> None:
+        data = wave_data_with_tables(
+            ["bass_wave", "lead_wave"],
+            instruments=[
+                {"id": 1, "name": "bass", "channel": "wave", "waveform": "bass_wave"},
+                {"id": 2, "name": "lead", "channel": "wave", "waveform": "lead_wave"},
+                {"id": 3, "name": "bass copy", "channel": "wave", "waveform": "bass_wave"},
+            ],
+        )
+        result = json_to_uge.validate_instruments(data)
+        self.assertEqual(result["wave"][1].waveform_index, 0)
+        self.assertEqual(result["wave"][2].waveform_index, 1)
+        self.assertEqual(result["wave"][3].waveform_index, 0)
+
+    def test_wave_tables_are_optional_without_wave_instruments(self) -> None:
+        self.assertEqual(json_to_uge.validate_instruments({"version": 2, "instruments": []}), {"duty": {}, "wave": {}, "noise": {}})
+        data = {"version": 2, "instruments": [], "wave_tables": []}
+        self.assertEqual(json_to_uge.validate_instruments(data), {"duty": {}, "wave": {}, "noise": {}})
+
+    def test_version_1_ignores_wave_tables(self) -> None:
+        data = {
+            "version": 1,
+            "instruments": [],
+            "wave_tables": "not interpreted in Version 1",
+        }
+        self.assertEqual(json_to_uge.validate_instruments(data), {"duty": {}, "wave": {}, "noise": {}})
+
+    def test_unreferenced_wave_tables_are_allowed_and_samples_are_not_checked(self) -> None:
+        data = wave_data_with_tables(["used_wave", "unused_wave"], "used_wave")
+        data["wave_tables"][0]["samples"] = []
+        data["wave_tables"][1]["samples"] = "not checked yet"
+        result = json_to_uge.validate_instruments(data)
+        self.assertEqual(result["wave"][1].waveform_index, 0)
+
+    def test_wave_instrument_requires_wave_tables(self) -> None:
+        data = wave_data(waveform="bass")
+        del data["wave_tables"]
+        with self.assertRaisesRegex(ValueError, r"instruments\[0\]\.waveform.*does not exist"):
+            json_to_uge.validate_instruments(data)
+
+        data = wave_data(waveform="bass")
+        data["wave_tables"] = []
+        with self.assertRaisesRegex(ValueError, r"instruments\[0\]\.waveform.*does not exist"):
+            json_to_uge.validate_instruments(data)
+
+    def test_wave_tables_basic_shape_and_name_rules_are_checked(self) -> None:
+        cases = (
+            ("wave_tables", {}, "array expected"),
+            ("wave_tables", [None], "object expected"),
+            ("wave_tables", [{}], "name.*string expected"),
+            ("wave_tables", [{"name": 1}], "name.*string expected"),
+            ("wave_tables", [{"name": ""}], "name"),
+            ("wave_tables", [{"name": "   "}], "name"),
+            ("wave_tables", [{"name": " bass"}], "name"),
+            ("wave_tables", [{"name": "Bass"}], "name"),
+            ("wave_tables", [{"name": "bad-name"}], "name"),
+            ("wave_tables", [{"name": "wave"}] * 17, "at most 16"),
+        )
+        for field, value, message in cases:
+            with self.subTest(value=value):
+                data = {"version": 2, "instruments": []}
+                data[field] = value
+                with self.assertRaisesRegex(ValueError, message):
+                    json_to_uge.validate_instruments(data)
+
+    def test_duplicate_wave_table_names_are_rejected_case_sensitively(self) -> None:
+        data = wave_data_with_tables(["bass", "bass"], "bass")
+        with self.assertRaisesRegex(ValueError, "duplicate Wave table name 'bass'"):
+            json_to_uge.validate_instruments(data)
+
+        data = wave_data_with_tables(["bass", "lead"], "Bass")
+        with self.assertRaisesRegex(ValueError, r"instruments\[0\]\.waveform.*does not exist"):
+            json_to_uge.validate_instruments(data)
+
+    def test_waveform_reference_requires_exact_existing_name(self) -> None:
+        for waveform in ("missing", "bass ", "0", 0):
+            with self.subTest(waveform=repr(waveform)):
+                data = wave_data_with_tables(["bass"], waveform)  # type: ignore[arg-type]
+                with self.assertRaises(ValueError):
+                    json_to_uge.validate_instruments(data)
+
+    def test_duty_and_wave_ids_can_match_with_resolved_waveform(self) -> None:
+        data = wave_data_with_tables(
+            ["bass"],
+            instruments=[
+                {"id": 1, "name": "wave", "channel": "wave", "waveform": "bass"},
+                {"id": 1, "name": "pulse", "channel": "pulse1"},
+            ],
+        )
+        result = json_to_uge.validate_instruments(data)
+        self.assertEqual(result["wave"][1].waveform_index, 0)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import re
 import struct
 import sys
 from dataclasses import dataclass
@@ -113,6 +114,7 @@ class InstrumentSpec:
     sweep_shift: int = 0
     json_version: int = JSON_VERSION
     waveform: str | None = None
+    waveform_index: int | None = None
     output_level: int = 1
 
 
@@ -316,11 +318,42 @@ def reject_wave_instrument_fields(
             fail(f"{path}.{field}: Wave Instrumentでは使用できません（{description}）")
 
 
+def build_waveform_index(data: dict[str, Any], version: int) -> dict[str, int] | None:
+    if version == JSON_VERSION:
+        return None
+
+    if "wave_tables" not in data:
+        return None
+
+    wave_tables = expect_list(data["wave_tables"], "wave_tables")
+    if len(wave_tables) > WAVE_COUNT:
+        fail(f"wave_tables: at most {WAVE_COUNT} tables are allowed")
+
+    waveform_index: dict[str, int] = {}
+    name_pattern = re.compile(r"^[a-z][a-z0-9_]*$")
+    for index, item in enumerate(wave_tables):
+        path = f"wave_tables[{index}]"
+        table = expect_dict(item, path)
+        name = expect_string(table.get("name"), f"{path}.name")
+        if not name or not name.strip():
+            fail(f"{path}.name: must not be empty or whitespace")
+        if name != name.strip():
+            fail(f"{path}.name: leading or trailing whitespace is not allowed")
+        if not name_pattern.fullmatch(name):
+            fail(f"{path}.name: must match ^[a-z][a-z0-9_]*$")
+        if name in waveform_index:
+            fail(f"{path}.name: duplicate Wave table name '{name}'")
+        waveform_index[name] = index
+
+    return waveform_index
+
+
 def validate_wave_instrument(
     instrument: dict[str, Any],
     path: str,
     version: int,
-) -> tuple[str | None, int, int, bool]:
+    waveform_index: dict[str, int] | None,
+) -> tuple[str | None, int | None, int, int, bool]:
     if version == JSON_VERSION:
         reject_wave_instrument_fields(
             instrument,
@@ -328,7 +361,7 @@ def validate_wave_instrument(
             WAVE_VERSION_2_FIELDS,
             "Version 2専用項目のためVersion 1では使用できません",
         )
-        return None, 1, 0, False
+        return None, None, 1, 0, False
 
     reject_wave_instrument_fields(instrument, path, WAVE_PULSE_ONLY_FIELDS, "Pulse専用項目")
     reject_wave_instrument_fields(instrument, path, WAVE_NOISE_ONLY_FIELDS, "Noise専用項目")
@@ -339,6 +372,10 @@ def validate_wave_instrument(
         fail(f"{path}.waveform: must not be empty")
     if waveform != waveform.strip():
         fail(f"{path}.waveform: leading or trailing whitespace is not allowed")
+    if waveform_index is None or not waveform_index:
+        fail(f"{path}.waveform: referenced Wave table '{waveform}' does not exist")
+    if waveform not in waveform_index:
+        fail(f"{path}.waveform: referenced Wave table '{waveform}' does not exist")
 
     output_level_name = instrument.get("output_level", "100%")
     output_level_name = expect_string(output_level_name, f"{path}.output_level")
@@ -357,11 +394,12 @@ def validate_wave_instrument(
         f"{path}.length_enable",
         False,
     )
-    return waveform, WAVE_OUTPUT_LEVELS[output_level_name], length, length_enable
+    return waveform, waveform_index[waveform], WAVE_OUTPUT_LEVELS[output_level_name], length, length_enable
 
 
 def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, InstrumentSpec]]:
     version = validate_json_version(data)
+    waveform_index = build_waveform_index(data, version)
     result: dict[str, dict[int, InstrumentSpec]] = {"duty": {}, "wave": {}, "noise": {}}
     instruments = expect_list(data.get("instruments"), "instruments")
     for index, item in enumerate(instruments):
@@ -377,10 +415,11 @@ def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, Instrument
             fail(f"{path}.id: duplicate instrument id {instrument_id} in {bank} bank")
 
         if channel == "wave":
-            waveform, output_level, length, length_enable = validate_wave_instrument(
+            waveform, resolved_waveform_index, output_level, length, length_enable = validate_wave_instrument(
                 instrument,
                 path,
                 version,
+                waveform_index,
             )
             result[bank][instrument_id] = InstrumentSpec(
                 id=instrument_id,
@@ -395,6 +434,7 @@ def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, Instrument
                 length_enable=length_enable,
                 json_version=version,
                 waveform=waveform,
+                waveform_index=resolved_waveform_index,
                 output_level=output_level,
             )
             continue
