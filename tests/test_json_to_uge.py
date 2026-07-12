@@ -1,4 +1,5 @@
 import copy
+from dataclasses import replace
 import json
 import struct
 import sys
@@ -44,6 +45,24 @@ def read_duty_instrument(blob: bytes, instrument_id: int) -> dict[str, int | boo
         "sweep_direction": struct.unpack_from("<i", record, 275)[0],
         "sweep_shift": struct.unpack_from("<i", record, 279)[0],
         "duty": record[283],
+    }
+
+
+def read_wave_instrument(blob: bytes, instrument_id: int) -> dict[str, int | bool | str]:
+    record_size = len(json_to_uge.pack_instrument(json_to_uge.IT_WAVE, ""))
+    offset = (json_to_uge.INSTRUMENT_COUNT + instrument_id - 1) * record_size
+    record = blob[offset : offset + record_size]
+    if len(record) != record_size:
+        raise AssertionError(f"missing Wave instrument {instrument_id}")
+
+    name_length = record[4]
+    return {
+        "type": struct.unpack_from("<i", record, 0)[0],
+        "name": record[5 : 5 + name_length].decode("utf-8"),
+        "length": struct.unpack_from("<i", record, 260)[0],
+        "length_enable": bool(record[264]),
+        "output_level": struct.unpack_from("<i", record, 284)[0],
+        "waveform": struct.unpack_from("<i", record, 288)[0],
     }
 
 
@@ -668,6 +687,142 @@ class WaveInstrumentValidationTests(unittest.TestCase):
         )
         result = json_to_uge.validate_instruments(data)
         self.assertEqual(result["wave"][1].waveform_index, 0)
+
+
+class PackedWaveInstrumentTests(unittest.TestCase):
+    def pack(self, data: dict) -> bytes:
+        return json_to_uge.pack_instruments(json_to_uge.validate_instruments(data))
+
+    def test_version_2_wave_fields_are_written_to_uge(self) -> None:
+        data = wave_data_with_tables(
+            ["bass_wave", "lead_wave", "pad_wave"],
+            "pad_wave",
+            [
+                {
+                    "id": 3,
+                    "name": "Wave Bass",
+                    "channel": "wave",
+                    "waveform": "pad_wave",
+                    "output_level": "50%",
+                    "length": 173,
+                    "length_enable": True,
+                }
+            ],
+        )
+        record = read_wave_instrument(self.pack(data), 3)
+        self.assertEqual(
+            record,
+            {
+                "type": json_to_uge.IT_WAVE,
+                "name": "Wave Bass",
+                "length": 173,
+                "length_enable": True,
+                "output_level": 2,
+                "waveform": 2,
+            },
+        )
+
+    def test_waveform_index_zero_is_written_as_zero(self) -> None:
+        data = wave_data_with_tables(
+            ["bass_wave"],
+            "bass_wave",
+            [{"id": 3, "name": "first", "channel": "wave", "waveform": "bass_wave"}],
+        )
+        record = read_wave_instrument(self.pack(data), 3)
+        self.assertEqual(record["waveform"], 0)
+
+    def test_all_output_levels_are_written_unchanged(self) -> None:
+        names = ["mute_wave", "full_wave", "half_wave", "quarter_wave"]
+        output_levels = ("mute", "100%", "50%", "25%")
+        instruments = [
+            {
+                "id": index + 1,
+                "name": f"wave {index}",
+                "channel": "wave",
+                "waveform": names[index],
+                "output_level": output_levels[index],
+            }
+            for index in range(4)
+        ]
+        data = wave_data_with_tables(names, instruments=instruments)
+        packed = self.pack(data)
+        for index, expected in enumerate(range(4), start=1):
+            with self.subTest(instrument_id=index):
+                self.assertEqual(read_wave_instrument(packed, index)["output_level"], expected)
+
+    def test_wave_length_boundaries_and_length_enable_are_written(self) -> None:
+        data = wave_data_with_tables(
+            ["zero_wave", "max_wave"],
+            instruments=[
+                {
+                    "id": 1,
+                    "name": "zero",
+                    "channel": "wave",
+                    "waveform": "zero_wave",
+                    "length": 0,
+                    "length_enable": False,
+                },
+                {
+                    "id": 2,
+                    "name": "max",
+                    "channel": "wave",
+                    "waveform": "max_wave",
+                    "length": 255,
+                    "length_enable": True,
+                },
+            ],
+        )
+        packed = self.pack(data)
+        self.assertEqual(read_wave_instrument(packed, 1)["length"], 0)
+        self.assertFalse(read_wave_instrument(packed, 1)["length_enable"])
+        self.assertEqual(read_wave_instrument(packed, 2)["length"], 255)
+        self.assertTrue(read_wave_instrument(packed, 2)["length_enable"])
+
+    def test_multiple_wave_instruments_keep_independent_values(self) -> None:
+        names = [f"wave_{index}" for index in range(4)]
+        data = wave_data_with_tables(
+            names,
+            instruments=[
+                {"id": 2, "name": "two", "channel": "wave", "waveform": names[0], "output_level": "100%"},
+                {"id": 7, "name": "seven", "channel": "wave", "waveform": names[3], "output_level": "25%"},
+            ],
+        )
+        packed = self.pack(data)
+        self.assertEqual(read_wave_instrument(packed, 2)["waveform"], 0)
+        self.assertEqual(read_wave_instrument(packed, 2)["output_level"], 1)
+        self.assertEqual(read_wave_instrument(packed, 7)["waveform"], 3)
+        self.assertEqual(read_wave_instrument(packed, 7)["output_level"], 3)
+
+    def test_undefined_version_2_wave_instruments_keep_standard_values(self) -> None:
+        data = wave_data_with_tables(
+            ["defined_wave"],
+            instruments=[
+                {"id": 3, "name": "defined", "channel": "wave", "waveform": "defined_wave"},
+            ],
+        )
+        record = read_wave_instrument(self.pack(data), 4)
+        self.assertEqual(record["type"], json_to_uge.IT_WAVE)
+        self.assertEqual(record["name"], json_to_uge.DEFAULT_WAVE_NAMES[4])
+        self.assertEqual(record["waveform"], 3)
+        self.assertEqual(record["output_level"], 1)
+        self.assertEqual(record["length"], 0)
+        self.assertFalse(record["length_enable"])
+
+    def test_unresolved_waveform_index_is_an_error(self) -> None:
+        data = wave_data_with_tables(
+            ["defined_wave"],
+            instruments=[{"id": 1, "name": "defined", "channel": "wave", "waveform": "defined_wave"}],
+        )
+        specs = json_to_uge.validate_instruments(data)
+        for invalid in (None, -1, 16):
+            with self.subTest(waveform_index=invalid):
+                overrides = {
+                    "duty": specs["duty"],
+                    "wave": {1: replace(specs["wave"][1], waveform_index=invalid)},
+                    "noise": specs["noise"],
+                }
+                with self.assertRaisesRegex(ValueError, r"Wave Instrument 1.*waveform_index"):
+                    json_to_uge.pack_instruments(overrides)
 
 
 if __name__ == "__main__":

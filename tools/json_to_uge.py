@@ -648,6 +648,32 @@ def pack_instrument(
     return b"".join(parts)
 
 
+def wave_instrument_packing_values(
+    instrument_id: int,
+    spec: InstrumentSpec | None,
+) -> tuple[str, int, bool, int, int]:
+    default_name = DEFAULT_WAVE_NAMES.get(instrument_id, "")
+    if spec is None or spec.json_version != 2:
+        return default_name, 0, False, 1, instrument_id - 1
+
+    waveform_index = spec.waveform_index
+    if waveform_index is None:
+        raise ValueError(
+            f"Wave Instrument {instrument_id}: waveform_index is unresolved"
+        )
+    if type(waveform_index) is not int or not 0 <= waveform_index < WAVE_COUNT:
+        raise ValueError(
+            f"Wave Instrument {instrument_id}: waveform_index must be an integer 0-{WAVE_COUNT - 1}"
+        )
+    return (
+        spec.name,
+        spec.length,
+        spec.length_enable,
+        spec.output_level,
+        waveform_index,
+    )
+
+
 def pack_instruments(overrides: dict[str, dict[int, InstrumentSpec]]) -> bytes:
     parts: list[bytes] = []
 
@@ -695,13 +721,18 @@ def pack_instruments(overrides: dict[str, dict[int, InstrumentSpec]]) -> bytes:
 
     for instrument_id in range(1, INSTRUMENT_COUNT + 1):
         spec = overrides["wave"].get(instrument_id)
-        name = spec.name if spec else DEFAULT_WAVE_NAMES.get(instrument_id, "")
+        name, length, length_enabled, output_level, waveform = wave_instrument_packing_values(
+            instrument_id,
+            spec,
+        )
         parts.append(
             pack_instrument(
                 IT_WAVE,
                 name,
-                output_level=1,
-                waveform=instrument_id - 1,
+                length=length,
+                length_enabled=length_enabled,
+                output_level=output_level,
+                waveform=waveform,
             )
         )
 
