@@ -83,6 +83,14 @@ def read_noise_instrument(blob: bytes, instrument_id: int) -> dict[str, int | bo
     if len(record) != record_size:
         raise AssertionError(f"missing Noise instrument {instrument_id}")
 
+    return read_noise_instrument_record(record)
+
+
+def read_noise_instrument_record(record: bytes) -> dict[str, int | bool | str]:
+    record_size = len(json_to_uge.pack_instrument(json_to_uge.IT_NOISE, ""))
+    if len(record) != record_size:
+        raise AssertionError("invalid Noise instrument record size")
+
     name_length = record[4]
     return {
         "type": struct.unpack_from("<i", record, 0)[0],
@@ -94,6 +102,14 @@ def read_noise_instrument(blob: bytes, instrument_id: int) -> dict[str, int | bo
         "vol_sweep_amount": record[270],
         "counter_step": struct.unpack_from("<i", record, 292)[0],
     }
+
+
+def read_uge_noise_instrument(uge: bytes, instrument_id: int) -> dict[str, int | bool | str]:
+    header_size = 4 + (3 * len(json_to_uge.pack_short_string("", "test")))
+    record_size = len(json_to_uge.pack_instrument(json_to_uge.IT_NOISE, ""))
+    instrument_offset = header_size + (2 * json_to_uge.INSTRUMENT_COUNT * record_size)
+    record = uge[instrument_offset + (instrument_id - 1) * record_size : instrument_offset + instrument_id * record_size]
+    return read_noise_instrument_record(record)
 
 
 class PulseInstrumentValidationTests(unittest.TestCase):
@@ -2071,6 +2087,97 @@ class SharedNoiseNoteIntegrationTests(unittest.TestCase):
         noise_lines = lines[noise_start:noise_end]
         self.assertIn("song_itNoiseinst1:", noise_lines)
         self.assertNotIn("song_itNoiseinst2:", noise_lines)
+
+
+class NoiseWidthIntegrationTests(unittest.TestCase):
+    def data(self) -> dict:
+        instruments = [
+            {
+                "id": 1,
+                "name": "noise 15bit",
+                "channel": "noise",
+                "length": 0,
+                "length_enable": False,
+                "initial_volume": 15,
+                "envelope_direction": "down",
+                "envelope_sweep": 0,
+                "width_mode": "15bit",
+            },
+            {
+                "id": 2,
+                "name": "noise 7bit",
+                "channel": "noise",
+                "length": 0,
+                "length_enable": False,
+                "initial_volume": 15,
+                "envelope_direction": "down",
+                "envelope_sweep": 0,
+                "width_mode": "7bit",
+            },
+        ]
+        events = [
+            {"note": "C4", "length": 1, "instrument": 1},
+            {"note": "C4", "length": 1, "instrument": 2},
+            {"note": "A7", "length": 1, "instrument": 1},
+            {"note": "A7", "length": 1, "instrument": 2},
+        ]
+        return uge_noise_pattern_fixture(events, instruments)
+
+    def test_same_notes_keep_note_data_and_change_only_width(self) -> None:
+        data = self.data()
+        specs = json_to_uge.validate_instruments(data)["noise"]
+        for note_number in (12, 57):
+            with self.subTest(note_number=note_number):
+                poly = json_to_uge.noise_note_to_poly(note_number)
+                nr43_15 = json_to_uge.noise_note_to_nr43(note_number, specs[1])
+                nr43_7 = json_to_uge.noise_note_to_nr43(note_number, specs[2])
+                self.assertEqual(nr43_15, poly.value)
+                self.assertEqual(nr43_7, poly.value | 0x08)
+                self.assertEqual(nr43_15 ^ nr43_7, 0x08)
+                self.assertEqual(nr43_15 & 0xF7, nr43_7 & 0xF7)
+
+        poly_15 = json_to_uge.noise_note_to_poly(12)
+        poly_7 = json_to_uge.noise_note_to_poly(12)
+        self.assertEqual(poly_15.clock_shift, poly_7.clock_shift)
+        self.assertEqual(poly_15.divisor_code, poly_7.divisor_code)
+        self.assertEqual(
+            json_to_uge.noise_note_to_poly(57).value,
+            6,
+        )
+
+        uge = json_to_uge.build_uge(data)
+        cells = read_uge_pattern_cells(uge)[3]
+        self.assertEqual(
+            [(cell["note"], cell["instrument"]) for cell in cells[:4]],
+            [(12, 1), (12, 2), (57, 1), (57, 2)],
+        )
+        self.assertTrue(all(cell["note"] == json_to_uge.NO_NOTE for cell in cells[4:]))
+        self.assertTrue(all(cell["instrument"] == 0 for cell in cells[4:]))
+
+        record_15 = read_uge_noise_instrument(uge, 1)
+        record_7 = read_uge_noise_instrument(uge, 2)
+        for field in ("length", "length_enable", "initial_volume", "vol_sweep_direction", "vol_sweep_amount"):
+            with self.subTest(field=field):
+                self.assertEqual(record_15[field], record_7[field])
+        self.assertEqual(record_15["counter_step"], 0)
+        self.assertEqual(record_7["counter_step"], 1)
+
+        asm = json_to_huge_asm.build_asm(data, "song")
+        lines = asm.splitlines()
+        pattern_start = lines.index("song_P3:")
+        self.assertEqual(lines[pattern_start + 1 : pattern_start + 5], [
+            " dn C_4,1,$000",
+            " dn C_4,2,$000",
+            " dn A_7,1,$000",
+            " dn A_7,2,$000",
+        ])
+        noise_start = lines.index("song_noise_instruments:")
+        noise_end = lines.index("song_routines:")
+        noise_lines = lines[noise_start:noise_end]
+        id1 = noise_lines.index("song_itNoiseinst1:")
+        id2 = noise_lines.index("song_itNoiseinst2:")
+        self.assertEqual(noise_lines[id1 + 1 : id1 + 6], ["db 240", "dw 0", "db 0", "dw 0", ""])
+        self.assertEqual(noise_lines[id2 + 1 : id2 + 6], ["db 240", "dw 0", "db 128", "dw 0", ""])
 
 
 class WaveTableAsmTests(unittest.TestCase):

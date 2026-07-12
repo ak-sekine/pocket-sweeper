@@ -353,7 +353,7 @@
         - [x] CH4 noteをhUGEDriver用ASMへ反映する
       - [ ] Version 2 CH4 note変換を検証する
         - [x] 同一Instrumentで異なるNoise noteを再生できることを確認する
-        - [ ] 同一Noise noteを異なる`width_mode`で再生した結果を確認する
+        - [x] 同一Noise noteを異なる`width_mode`で再生した結果を確認する
         - [ ] noteの`length`展開後の空行で再triggerされないことを確認する
         - [ ] 同じnoteの再記述で各位置に再triggerされることを確認する
         - [ ] hUGETracker Export ASMと直接生成ASMを比較する
