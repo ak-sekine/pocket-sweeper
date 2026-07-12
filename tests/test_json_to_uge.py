@@ -2180,6 +2180,57 @@ class NoiseWidthIntegrationTests(unittest.TestCase):
         self.assertEqual(noise_lines[id2 + 1 : id2 + 6], ["db 240", "dw 0", "db 128", "dw 0", ""])
 
 
+class NoiseLengthNoRetriggerTests(unittest.TestCase):
+    def data(self, hardware_length: int) -> dict:
+        return uge_noise_pattern_fixture(
+            [{"note": "C4", "length": 4, "instrument": 1}],
+            [{
+                "id": 1,
+                "name": "noise test",
+                "channel": "noise",
+                "length": hardware_length,
+                "length_enable": False,
+                "initial_volume": 15,
+                "envelope_direction": "down",
+                "envelope_sweep": 0,
+                "width_mode": "15bit",
+            }],
+        )
+
+    def test_length_four_has_one_note_row_and_three_empty_rows(self) -> None:
+        data = self.data(0)
+        cells = read_uge_pattern_cells(json_to_uge.build_uge(data))[3]
+        self.assertEqual(sum(cell["note"] != json_to_uge.NO_NOTE for cell in cells[:4]), 1)
+        self.assertEqual(sum(cell["note"] == json_to_uge.NO_NOTE for cell in cells[1:4]), 3)
+        self.assertEqual(cells[0]["note"], 12)
+        self.assertEqual(cells[0]["instrument"], 1)
+        for cell in cells[1:4]:
+            self.assertEqual(cell, {
+                "note": json_to_uge.NO_NOTE,
+                "instrument": 0,
+                "volume": 0,
+                "effect_code": 0,
+                "effect_param": 0,
+            })
+        self.assertTrue(all(cell["note"] == json_to_uge.NO_NOTE for cell in cells[4:]))
+
+        asm_lines = json_to_huge_asm.build_asm(data, "song").splitlines()
+        start = asm_lines.index("song_P3:")
+        pattern = asm_lines[start + 1 : start + 65]
+        self.assertEqual(pattern[:4], [
+            " dn C_4,1,$000",
+            " dn ___,0,$000",
+            " dn ___,0,$000",
+            " dn ___,0,$000",
+        ])
+        self.assertEqual(sum(line != " dn ___,0,$000" for line in pattern), 1)
+
+    def test_note_length_expansion_is_independent_of_hardware_length(self) -> None:
+        short = read_uge_pattern_cells(json_to_uge.build_uge(self.data(0)))[3]
+        hardware_length = read_uge_pattern_cells(json_to_uge.build_uge(self.data(32)))[3]
+        self.assertEqual(short[:4], hardware_length[:4])
+
+
 class WaveTableAsmTests(unittest.TestCase):
     def wave_lines(self, tables: list[dict]) -> list[str]:
         asm = json_to_huge_asm.build_asm(
