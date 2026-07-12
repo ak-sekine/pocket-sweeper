@@ -1219,5 +1219,85 @@ class WaveAsmInstrumentTests(unittest.TestCase):
         self.assertEqual(lines, ["song_wave_instruments:", ""])
 
 
+class WaveTableAsmTests(unittest.TestCase):
+    def wave_lines(self, tables: list[dict]) -> list[str]:
+        asm = json_to_huge_asm.build_asm(
+            uge_wave_fixture(tables),
+            "song",
+        )
+        lines = asm.splitlines()
+        start = lines.index("song_waves:")
+        return lines[start + 1 : start + 17]
+
+    def parse_line(self, line: str) -> bytes:
+        self.assertTrue(line.startswith("db "))
+        return bytes(int(token[1:], 16) for token in line[3:].split(","))
+
+    def test_one_wave_table_is_packed_in_asm_order(self) -> None:
+        samples = [1, 2, 10, 15] + [0] * 28
+        lines = self.wave_lines([{"name": "bass", "samples": samples}])
+        self.assertEqual(self.parse_line(lines[0])[:2], bytes([0x12, 0xAF]))
+        self.assertEqual(len(self.parse_line(lines[0])), 16)
+
+    def test_multiple_wave_tables_keep_definition_order_and_boundaries(self) -> None:
+        tables = [
+            {"name": "first", "samples": [1, 2] * 16},
+            {"name": "second", "samples": [3, 4] * 16},
+        ]
+        lines = self.wave_lines(tables)
+        self.assertEqual(len(lines), 16)
+        self.assertEqual(self.parse_line(lines[0]), bytes([0x12] * 16))
+        self.assertEqual(self.parse_line(lines[1]), bytes([0x34] * 16))
+        self.assertEqual(len(self.parse_line(lines[0])), 16)
+
+    def test_asm_wave_boundaries_and_complement_values(self) -> None:
+        tables = [{"name": "zero", "samples": [0] * 32}]
+        lines = self.wave_lines(tables)
+        self.assertEqual(self.parse_line(lines[0]), bytes([0x00] * 16))
+        self.assertEqual(self.parse_line(lines[1]), bytes(
+            (samples[index] << 4) | samples[index + 1]
+            for index in range(0, 32, 2)
+            for samples in [json_to_uge.DEFAULT_WAVES[1]]
+        ))
+        self.assertEqual(self.parse_line(lines[11]), bytes([0x00] * 16))
+        self.assertEqual(len(lines), 16)
+
+    def test_asm_wave_all_max_and_alternating_samples(self) -> None:
+        tables = [
+            {"name": "max", "samples": [15] * 32},
+            {"name": "alternating", "samples": [0, 15] * 16},
+        ]
+        lines = self.wave_lines(tables)
+        self.assertEqual(self.parse_line(lines[0]), bytes([0xFF] * 16))
+        self.assertEqual(self.parse_line(lines[1]), bytes([0x0F] * 16))
+
+    def test_sixteen_wave_tables_are_emitted_without_extra_data(self) -> None:
+        tables = [
+            {"name": f"wave_{index}", "samples": [index % 16] * 32}
+            for index in range(16)
+        ]
+        lines = self.wave_lines(tables)
+        self.assertEqual(len(lines), 16)
+        self.assertEqual(self.parse_line(lines[15]), bytes([0xFF] * 16))
+
+    def test_version_2_without_wave_tables_emits_standard_sixteen_banks(self) -> None:
+        asm = json_to_huge_asm.build_asm(uge_wave_fixture(), "song")
+        lines = asm.splitlines()
+        start = lines.index("song_waves:")
+        wave_lines = lines[start + 1 : start + 17]
+        self.assertEqual(len(wave_lines), 16)
+        self.assertEqual(
+            self.parse_line(wave_lines[0]),
+            json_to_uge.pack_wave_samples(json_to_uge.DEFAULT_WAVES[0]),
+        )
+
+    def test_version_1_wave_table_output_remains_label_only(self) -> None:
+        data = json.loads((ROOT / "assets" / "bgm_title.json").read_text(encoding="utf-8"))
+        asm = json_to_huge_asm.build_asm(data, "bgm_title")
+        lines = asm.splitlines()
+        start = lines.index("bgm_title_waves:")
+        self.assertEqual(lines[start + 1 :], [])
+
+
 if __name__ == "__main__":
     unittest.main()

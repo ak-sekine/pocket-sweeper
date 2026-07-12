@@ -335,11 +335,11 @@
         - [x] Wave table名前参照を内部数値へ解決する
         - [x] Version 2 Wave InstrumentをUGE出力へ反映する
         - [x] Version 2 Wave InstrumentをhUGEDriver用ASMへ反映する
-      - [ ] Version 2 Wave table対応
+      - [x] Version 2 Wave table対応
         - [x] `wave_tables`の構造・名前・4bitサンプル値を検証する
         - [x] Wave tableの32サンプルを16byteへパックする
         - [x] Wave tableを最大16 bankへ補完してUGE出力へ反映する
-        - [ ] Wave tableをhUGEDriver用ASMへ反映する
+        - [x] Wave tableをhUGEDriver用ASMへ反映する
       - [ ] Version 2 Noise Instrument対応
         - [ ] Version 2 Noise Instrumentの検証・内部表現を実装する
         - [ ] `noise_length` / `length`のVersion別検証を実装する

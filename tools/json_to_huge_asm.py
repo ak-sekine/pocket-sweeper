@@ -199,14 +199,26 @@ def render_routines(label: str) -> list[str]:
     return lines
 
 
-def render_waves(label: str) -> list[str]:
-    return [f"{label}_waves:"]
+def render_waves(
+    label: str,
+    wave_tables: tuple[json_to_uge.WaveTableSpec, ...] | None,
+    json_version: int,
+) -> list[str]:
+    if json_version != 2:
+        return [f"{label}_waves:"]
+
+    lines = [f"{label}_waves:"]
+    for bank in json_to_uge.build_uge_wave_banks(wave_tables):
+        packed = json_to_uge.pack_wave_samples(bank)
+        lines.append("db " + ",".join(f"${value:02X}" for value in packed))
+    return lines
 
 
 def build_asm(data: dict, label: str) -> str:
     json_to_uge.validate_header(data)
     json_version = json_to_uge.validate_json_version(data)
-    instruments = json_to_uge.validate_instruments(data)
+    wave_tables = json_to_uge.validate_wave_tables(data, json_version)
+    instruments = json_to_uge.validate_instruments(data, wave_tables=wave_tables)
     patterns, order_matrix = json_to_uge.build_patterns(data)
     tempo = json_to_uge.expect_int(data["tempo"], "tempo")
 
@@ -230,7 +242,7 @@ def build_asm(data: dict, label: str) -> str:
     lines.extend(render_wave_instruments(label, patterns, order_matrix, instruments, json_version))
     lines.extend(render_empty_instrument_bank(label, "noise_instruments"))
     lines.extend(render_routines(label))
-    lines.extend(render_waves(label))
+    lines.extend(render_waves(label, wave_tables, json_version))
     return "\n".join(lines).rstrip() + "\n"
 
 

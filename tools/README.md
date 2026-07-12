@@ -178,7 +178,7 @@ Pulse Instrument詳細:
 Version 2ではPulse Instrumentの`length`、`length_enable`、Pulse1専用の
 `sweep_time`、`sweep_direction`、`sweep_shift`も検証し、UGEおよびhUGEDriver用ASMへ出力する。
 Wave Instrumentも検証、Wave table名前解決、UGE、hUGEDriver用ASM出力に対応する。
-Wave tableサンプルの検証とUGE出力に対応する。Wave tableのASM出力、16byte形式のASM出力、Version 2のorder / patterns / loop、Noise、note volumeは未対応である。
+Wave tableのUGE・hUGEDriver用ASM出力に対応する。Version 2のorder / patterns / loop、Noise、note volumeは未対応である。
 Version 1は引き続き利用できる。
 
 初版では未対応:
