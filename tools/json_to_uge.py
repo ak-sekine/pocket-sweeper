@@ -78,6 +78,21 @@ NOISE_VERSION_2_FORBIDDEN_FIELDS = ("noise_length", "clock_shift", "divisor_code
 NOISE_UNSUPPORTED_FIELDS = ("trigger", "frequency")
 NOISE_WIDTH_15BIT = "15bit"
 NOISE_WIDTH_7BIT = "7bit"
+NOISE_VERSION_2_ALLOWED_FIELDS = (
+    "id",
+    "name",
+    "channel",
+    "length",
+    "length_enable",
+    "initial_volume",
+    "envelope_direction",
+    "envelope_sweep",
+    "width_mode",
+    *NOISE_VERSION_2_FORBIDDEN_FIELDS,
+    *NOISE_PULSE_ONLY_FIELDS,
+    *NOISE_WAVE_ONLY_FIELDS,
+    *NOISE_UNSUPPORTED_FIELDS,
+)
 
 DEFAULT_WAVES = [
     [0, 0, 0, 0, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
@@ -492,7 +507,7 @@ def validate_noise_instrument(
     instrument: dict[str, Any],
     path: str,
     version: int,
-) -> tuple[int, bool, int, int, int, int]:
+) -> tuple[int, bool, int, int, int, str]:
     if version == JSON_VERSION:
         if "length" in instrument:
             fail(f"{path}.length: Version 1ではnoise_lengthを使用し、lengthは使用できません")
@@ -532,6 +547,11 @@ def validate_noise_instrument(
             vol_sweep_amount,
             NOISE_WIDTH_15BIT,
         )
+
+    allowed_fields = set(NOISE_VERSION_2_ALLOWED_FIELDS)
+    for field in instrument:
+        if field not in allowed_fields:
+            fail(f"{path}.{field}: unknown Noise Instrument field")
 
     reject_wave_instrument_fields(instrument, path, NOISE_VERSION_2_FORBIDDEN_FIELDS, "Version 2 Noise Instrumentでは使用できません")
     reject_wave_instrument_fields(instrument, path, NOISE_PULSE_ONLY_FIELDS, "Noise Instrumentでは使用できません（Pulse専用項目）")

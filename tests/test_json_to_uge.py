@@ -278,6 +278,38 @@ class NoiseInstrumentValidationTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, rf"instruments\[0\]\.{field}"):
                     self.validate(noise_data(**{field: value}))
 
+    def test_version_2_noise_rejects_unknown_fields_with_path(self) -> None:
+        for value in (123, "value", True, None):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    r"instruments\[0\]\.unknown_field: unknown Noise Instrument field",
+                ):
+                    self.validate(noise_data(unknown_field=value))
+
+    def test_version_2_noise_reports_first_unknown_field_when_multiple_exist(self) -> None:
+        data = noise_data(first_unknown=1, second_unknown=2)
+        with self.assertRaisesRegex(
+            ValueError,
+            r"instruments\[0\]\.first_unknown: unknown Noise Instrument field",
+        ):
+            self.validate(data)
+
+    def test_version_2_noise_forbidden_fields_keep_dedicated_errors(self) -> None:
+        fields = (
+            *json_to_uge.NOISE_VERSION_2_FORBIDDEN_FIELDS,
+            *json_to_uge.NOISE_PULSE_ONLY_FIELDS,
+            *json_to_uge.NOISE_WAVE_ONLY_FIELDS,
+            *json_to_uge.NOISE_UNSUPPORTED_FIELDS,
+        )
+        for field in fields:
+            with self.subTest(field=field):
+                with self.assertRaises(ValueError) as raised:
+                    self.validate(noise_data(**{field: 0}))
+                message = str(raised.exception)
+                self.assertIn(f"instruments[0].{field}", message)
+                self.assertNotIn("unknown Noise Instrument field", message)
+
     def test_version_2_noise_rejects_invalid_values(self) -> None:
         cases = (
             ("length", -1),
