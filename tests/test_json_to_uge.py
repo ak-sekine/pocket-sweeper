@@ -1501,6 +1501,116 @@ class WaveAsmInstrumentTests(unittest.TestCase):
         self.assertEqual(lines, ["song_wave_instruments:", ""])
 
 
+class NoiseAsmInstrumentTests(unittest.TestCase):
+    def instruments(self, items: list[dict]) -> dict[str, dict[int, json_to_uge.InstrumentSpec]]:
+        return json_to_uge.validate_instruments(
+            {"version": 2, "instruments": items}
+        )
+
+    def test_noise_entry_contains_nr42_and_length_width_byte(self) -> None:
+        instruments = self.instruments(
+            [
+                {
+                    "id": 1,
+                    "name": "noise custom",
+                    "channel": "noise",
+                    "length": 23,
+                    "length_enable": True,
+                    "initial_volume": 10,
+                    "envelope_direction": "up",
+                    "envelope_sweep": 5,
+                    "width_mode": "7bit",
+                }
+            ]
+        )
+        self.assertEqual(
+            json_to_huge_asm.noise_instrument_bytes(1, instruments),
+            (0xAD, 0, 0, 0xD7, 0, 0),
+        )
+
+    def test_noise_entry_defaults(self) -> None:
+        instruments = self.instruments(
+            [{"id": 1, "name": "defaults", "channel": "noise"}]
+        )
+        self.assertEqual(
+            json_to_huge_asm.noise_instrument_bytes(1, instruments),
+            (0xF0, 0, 0, 0, 0, 0),
+        )
+
+    def test_noise_width_mode_only_changes_width_bit(self) -> None:
+        common = {
+            "id": 1,
+            "name": "noise",
+            "channel": "noise",
+            "length": 23,
+            "length_enable": True,
+            "initial_volume": 10,
+            "envelope_direction": "up",
+            "envelope_sweep": 5,
+        }
+        instruments_15 = self.instruments([{**common, "width_mode": "15bit"}])
+        instruments_7 = self.instruments([{**common, "width_mode": "7bit"}])
+        entry_15 = json_to_huge_asm.noise_instrument_bytes(1, instruments_15)
+        entry_7 = json_to_huge_asm.noise_instrument_bytes(1, instruments_7)
+        self.assertEqual(entry_15[0:3], entry_7[0:3])
+        self.assertEqual(entry_15[4:], entry_7[4:])
+        self.assertEqual(entry_15[3] ^ entry_7[3], 0x80)
+
+    def test_noise_length_enable_only_changes_length_enable_bit(self) -> None:
+        common = {"id": 1, "name": "noise", "channel": "noise", "length": 23}
+        disabled = self.instruments([{**common, "length_enable": False}])
+        enabled = self.instruments([{**common, "length_enable": True}])
+        entry_disabled = json_to_huge_asm.noise_instrument_bytes(1, disabled)
+        entry_enabled = json_to_huge_asm.noise_instrument_bytes(1, enabled)
+        self.assertEqual(entry_disabled[3], 23)
+        self.assertEqual(entry_enabled[3], 0x40 | 23)
+        self.assertEqual(entry_disabled[3] ^ entry_enabled[3], 0x40)
+
+    def test_noise_bank_uses_ch4_maximum_and_does_not_mix_other_channels(self) -> None:
+        instruments = self.instruments(
+            [
+                {"id": 1, "name": "noise one", "channel": "noise"},
+                {"id": 2, "name": "noise two", "channel": "noise", "width_mode": "7bit"},
+                {"id": 3, "name": "pulse three", "channel": "pulse1"},
+            ]
+        )
+        patterns = {
+            0: [json_to_uge.Cell(instrument=2)],
+            1: [json_to_uge.Cell(instrument=1)],
+        }
+        order_matrix = [[], [], [], [0, 1]]
+        lines = json_to_huge_asm.render_noise_instruments(
+            "song", patterns, order_matrix, instruments, 2
+        )
+        self.assertEqual(lines[0], "song_noise_instruments:")
+        self.assertIn("song_itNoiseinst1:", lines)
+        self.assertIn("song_itNoiseinst2:", lines)
+        self.assertNotIn("song_itNoiseinst3:", lines)
+        id2 = lines.index("song_itNoiseinst2:")
+        self.assertEqual(lines[id2 + 1 : id2 + 6], ["db 240", "dw 0", "db 128", "dw 0", ""])
+
+    def test_version_1_noise_bank_remains_empty(self) -> None:
+        instruments = json_to_uge.validate_instruments(
+            noise_data(version=1, noise_length=12, width_mode="7bit")
+        )
+        lines = json_to_huge_asm.render_noise_instruments(
+            "song",
+            {0: [json_to_uge.Cell(instrument=1)]},
+            [[], [], [], [0]],
+            instruments,
+            1,
+        )
+        self.assertEqual(lines, ["song_noise_instruments:", ""])
+
+    def test_noise_invalid_internal_width_mode_is_rejected(self) -> None:
+        instruments = self.instruments(
+            [{"id": 1, "name": "noise", "channel": "noise"}]
+        )
+        instruments["noise"][1] = replace(instruments["noise"][1], width_mode="invalid")
+        with self.assertRaisesRegex(ValueError, r"Noise Instrument 1.*width_mode"):
+            json_to_huge_asm.noise_instrument_bytes(1, instruments)
+
+
 class WaveTableAsmTests(unittest.TestCase):
     def wave_lines(self, tables: list[dict]) -> list[str]:
         asm = json_to_huge_asm.build_asm(

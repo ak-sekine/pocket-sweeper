@@ -344,7 +344,7 @@
         - [x] Version 2 Noise Instrumentの検証・内部表現を実装する
         - [x] `noise_length` / `length`のVersion別検証を実装する
         - [x] Version 2 Noise InstrumentをUGE出力へ反映する
-        - [ ] Version 2 Noise InstrumentをhUGEDriver用ASMへ反映する
+        - [x] Version 2 Noise InstrumentをhUGEDriver用ASMへ反映する
       - [ ] Version 2 CH4 note変換対応
         - [ ] CH4 note文字列の検証と内部note番号変換を実装する（`rest`、禁止表現、Noise以外のInstrument参照を含む）
         - [ ] CH4 note番号からNR43のclock shift / divisor codeを生成する

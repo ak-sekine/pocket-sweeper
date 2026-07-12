@@ -181,6 +181,69 @@ def render_wave_instruments(
     return lines
 
 
+def noise_instrument_bytes(
+    instrument_id: int,
+    instruments: dict[str, dict[int, json_to_uge.InstrumentSpec]],
+) -> tuple[int, int, int, int, int, int]:
+    spec = instruments["noise"].get(instrument_id)
+    if spec is None or spec.json_version != 2:
+        initial_volume = 15
+        vol_sweep_direction = json_to_uge.ST_DOWN
+        vol_sweep_amount = 0
+        length = 0
+        length_enable = False
+        width_mode = json_to_uge.NOISE_WIDTH_15BIT
+    else:
+        initial_volume = spec.initial_volume
+        vol_sweep_direction = spec.vol_sweep_direction
+        vol_sweep_amount = spec.vol_sweep_amount
+        length = spec.length
+        length_enable = spec.length_enable
+        width_mode = spec.width_mode
+
+    direction_bit = 1 if vol_sweep_direction == json_to_uge.ST_UP else 0
+    nr42 = (initial_volume << 4) | (direction_bit << 3) | vol_sweep_amount
+    if width_mode == json_to_uge.NOISE_WIDTH_15BIT:
+        width_bit = 0
+    elif width_mode == json_to_uge.NOISE_WIDTH_7BIT:
+        width_bit = 0x80
+    else:
+        raise ValueError(
+            f"Noise Instrument {instrument_id}: unsupported width_mode {width_mode!r}"
+        )
+    highmask = width_bit | (0x40 if length_enable else 0) | length
+    return nr42, 0, 0, highmask, 0, 0
+
+
+def render_noise_instruments(
+    label: str,
+    patterns: dict[int, list[json_to_uge.Cell]],
+    order_matrix: list[list[int]],
+    instruments: dict[str, dict[int, json_to_uge.InstrumentSpec]],
+    json_version: int,
+) -> list[str]:
+    if json_version != 2:
+        return render_empty_instrument_bank(label, "noise_instruments")
+
+    lines = [f"{label}_noise_instruments:"]
+    highest = highest_used_instrument_for_channels(patterns, order_matrix, (3,))
+    for instrument_id in range(1, highest + 1):
+        nr42, pointer_low, pointer_high, highmask, padding_low, padding_high = (
+            noise_instrument_bytes(instrument_id, instruments)
+        )
+        lines.extend(
+            [
+                f"{label}_itNoiseinst{instrument_id}:",
+                f"db {nr42}",
+                f"dw {(pointer_high << 8) | pointer_low}",
+                f"db {highmask}",
+                f"dw {(padding_high << 8) | padding_low}",
+                "",
+            ]
+        )
+    return lines
+
+
 def render_empty_instrument_bank(label: str, name: str) -> list[str]:
     return [f"{label}_{name}:", ""]
 
@@ -240,7 +303,7 @@ def build_asm(data: dict, label: str) -> str:
     lines.extend(render_patterns(label, patterns))
     lines.extend(render_duty_instruments(label, patterns, order_matrix, instruments))
     lines.extend(render_wave_instruments(label, patterns, order_matrix, instruments, json_version))
-    lines.extend(render_empty_instrument_bank(label, "noise_instruments"))
+    lines.extend(render_noise_instruments(label, patterns, order_matrix, instruments, json_version))
     lines.extend(render_routines(label))
     lines.extend(render_waves(label, wave_tables, json_version))
     return "\n".join(lines).rstrip() + "\n"
