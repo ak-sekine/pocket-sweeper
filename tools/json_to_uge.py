@@ -309,6 +309,28 @@ def noise_note_to_poly(note_number: Any) -> NoisePoly:
     )
 
 
+def noise_poly_with_width(noise_poly: NoisePoly, width_mode: str) -> int:
+    if width_mode == NOISE_WIDTH_15BIT:
+        return noise_poly.value
+    if width_mode == NOISE_WIDTH_7BIT:
+        return noise_poly.value | 0x08
+    fail(f"unsupported Noise Instrument width_mode {width_mode!r}")
+
+
+def noise_note_to_nr43(
+    note_number: Any,
+    instrument: InstrumentSpec,
+) -> int:
+    if instrument.json_version != 2 or instrument.channel != "noise":
+        fail(
+            f"Noise Instrument {instrument.id}: Version 2 noise Instrument is required"
+        )
+    return noise_poly_with_width(
+        noise_note_to_poly(note_number),
+        instrument.width_mode,
+    )
+
+
 def validate_instrument_id(value: Any, path: str) -> int:
     instrument = expect_int(value, path)
     if instrument < 1 or instrument > INSTRUMENT_COUNT:

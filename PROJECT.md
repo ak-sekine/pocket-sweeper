@@ -348,7 +348,7 @@
       - [ ] Version 2 CH4 note変換対応
         - [x] CH4 note文字列の検証と内部note番号変換を実装する（`rest`、禁止表現、Noise以外のInstrument参照を含む）
         - [x] CH4 note番号からNR43のclock shift / divisor codeを生成する
-        - [ ] Noise Instrumentの`width_mode`とnote由来値を合成する
+        - [x] Noise Instrumentの`width_mode`とnote由来値を合成する
         - [ ] CH4 noteをUGE出力へ反映する
         - [ ] CH4 noteをhUGEDriver用ASMへ反映する
       - [ ] Version 2 CH4 note変換を検証する

@@ -538,6 +538,54 @@ class NoisePolyTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, r"note_number.*0-71"):
                     json_to_uge.noise_note_to_poly(value)
 
+    def test_width_mode_is_applied_to_note_derived_poly(self) -> None:
+        instruments_15 = json_to_uge.validate_instruments(
+            noise_data(width_mode="15bit")
+        )
+        instruments_7 = json_to_uge.validate_instruments(
+            noise_data(width_mode="7bit")
+        )
+        for note_number in (0, 12, 56, 57, 63, 71):
+            with self.subTest(note_number=note_number):
+                source = json_to_uge.noise_note_to_poly(note_number).value
+                value_15 = json_to_uge.noise_note_to_nr43(
+                    note_number, instruments_15["noise"][1]
+                )
+                value_7 = json_to_uge.noise_note_to_nr43(
+                    note_number, instruments_7["noise"][1]
+                )
+                self.assertEqual(value_15, source)
+                self.assertEqual(value_7, source | 0x08)
+                self.assertEqual(value_15 ^ value_7, 0x08)
+
+    def test_width_mode_does_not_change_note_clock_or_divisor_values(self) -> None:
+        spec = json_to_uge.validate_instruments(noise_data(width_mode="7bit"))["noise"][1]
+        for note_number in (0, 1, 12, 24, 48, 56, 64, 71):
+            with self.subTest(note_number=note_number):
+                source = json_to_uge.noise_note_to_poly(note_number)
+                completed = json_to_uge.noise_note_to_nr43(note_number, spec)
+                self.assertEqual(completed & 0xF7, source.value & 0xF7)
+                self.assertEqual(source.clock_shift, json_to_uge.noise_note_to_poly(note_number).clock_shift)
+                self.assertEqual(source.divisor_code, json_to_uge.noise_note_to_poly(note_number).divisor_code)
+
+    def test_version_1_noise_instrument_is_not_accepted_for_v2_width_merge(self) -> None:
+        spec = json_to_uge.validate_instruments(
+            noise_data(version=1, noise_length=4, width_mode="7bit")
+        )["noise"][1]
+        with self.assertRaisesRegex(ValueError, r"Version 2 noise Instrument is required"):
+            json_to_uge.noise_note_to_nr43(12, spec)
+
+    def test_rest_is_not_a_noise_poly_generation_input(self) -> None:
+        spec = json_to_uge.validate_instruments(noise_data(width_mode="7bit"))["noise"][1]
+        with self.assertRaisesRegex(ValueError, r"note_number.*0-71"):
+            json_to_uge.noise_note_to_nr43(json_to_uge.NO_NOTE, spec)
+
+    def test_invalid_width_mode_does_not_fall_back_to_15bit(self) -> None:
+        spec = json_to_uge.validate_instruments(noise_data())["noise"][1]
+        spec = replace(spec, width_mode="invalid")
+        with self.assertRaisesRegex(ValueError, r"width_mode"):
+            json_to_uge.noise_note_to_nr43(12, spec)
+
 
 class PackedNoiseInstrumentTests(unittest.TestCase):
     def pack(self, data: dict) -> bytes:
