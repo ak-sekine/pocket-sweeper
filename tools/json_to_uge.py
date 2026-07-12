@@ -52,6 +52,26 @@ DEFAULT_WAVE_NAMES = {
     11: "Strange",
 }
 
+WAVE_OUTPUT_LEVELS = {
+    "mute": 0,
+    "100%": 1,
+    "50%": 2,
+    "25%": 3,
+}
+
+WAVE_VERSION_2_FIELDS = ("waveform", "output_level", "length", "length_enable")
+WAVE_PULSE_ONLY_FIELDS = (
+    "duty",
+    "initial_volume",
+    "envelope_direction",
+    "envelope_sweep",
+    "sweep_time",
+    "sweep_direction",
+    "sweep_shift",
+)
+WAVE_NOISE_ONLY_FIELDS = ("noise_length", "clock_shift", "width_mode", "divisor_code")
+WAVE_UNSUPPORTED_FIELDS = ("trigger", "frequency")
+
 DEFAULT_WAVES = [
     [0, 0, 0, 0, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
     [0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
@@ -92,6 +112,8 @@ class InstrumentSpec:
     sweep_direction: int = ST_DOWN
     sweep_shift: int = 0
     json_version: int = JSON_VERSION
+    waveform: str | None = None
+    output_level: int = 1
 
 
 def fail(message: str) -> None:
@@ -283,6 +305,61 @@ def reject_version_2_instrument_fields(
             fail(f"{path}.{field}: Version 2専用項目はVersion 1では使用できません")
 
 
+def reject_wave_instrument_fields(
+    instrument: dict[str, Any],
+    path: str,
+    fields: tuple[str, ...],
+    description: str,
+) -> None:
+    for field in fields:
+        if field in instrument:
+            fail(f"{path}.{field}: Wave Instrumentでは使用できません（{description}）")
+
+
+def validate_wave_instrument(
+    instrument: dict[str, Any],
+    path: str,
+    version: int,
+) -> tuple[str | None, int, int, bool]:
+    if version == JSON_VERSION:
+        reject_wave_instrument_fields(
+            instrument,
+            path,
+            WAVE_VERSION_2_FIELDS,
+            "Version 2専用項目のためVersion 1では使用できません",
+        )
+        return None, 1, 0, False
+
+    reject_wave_instrument_fields(instrument, path, WAVE_PULSE_ONLY_FIELDS, "Pulse専用項目")
+    reject_wave_instrument_fields(instrument, path, WAVE_NOISE_ONLY_FIELDS, "Noise専用項目")
+    reject_wave_instrument_fields(instrument, path, WAVE_UNSUPPORTED_FIELDS, "Wave Instrumentでは公開しない項目")
+
+    waveform = expect_string(instrument.get("waveform"), f"{path}.waveform")
+    if not waveform:
+        fail(f"{path}.waveform: must not be empty")
+    if waveform != waveform.strip():
+        fail(f"{path}.waveform: leading or trailing whitespace is not allowed")
+
+    output_level_name = instrument.get("output_level", "100%")
+    output_level_name = expect_string(output_level_name, f"{path}.output_level")
+    if output_level_name not in WAVE_OUTPUT_LEVELS:
+        allowed = ", ".join(WAVE_OUTPUT_LEVELS)
+        fail(f"{path}.output_level: expected one of {allowed}")
+
+    length = validate_range(
+        expect_optional_int(instrument.get("length"), f"{path}.length", 0),
+        f"{path}.length",
+        0,
+        255,
+    )
+    length_enable = expect_optional_bool(
+        instrument.get("length_enable"),
+        f"{path}.length_enable",
+        False,
+    )
+    return waveform, WAVE_OUTPUT_LEVELS[output_level_name], length, length_enable
+
+
 def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, InstrumentSpec]]:
     version = validate_json_version(data)
     result: dict[str, dict[int, InstrumentSpec]] = {"duty": {}, "wave": {}, "noise": {}}
@@ -298,6 +375,29 @@ def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, Instrument
         bank = instrument_bank_for_channel(channel)
         if instrument_id in result[bank]:
             fail(f"{path}.id: duplicate instrument id {instrument_id} in {bank} bank")
+
+        if channel == "wave":
+            waveform, output_level, length, length_enable = validate_wave_instrument(
+                instrument,
+                path,
+                version,
+            )
+            result[bank][instrument_id] = InstrumentSpec(
+                id=instrument_id,
+                name=name,
+                channel=channel,
+                bank=bank,
+                duty=0,
+                initial_volume=15,
+                vol_sweep_direction=ST_DOWN,
+                vol_sweep_amount=0,
+                length=length,
+                length_enable=length_enable,
+                json_version=version,
+                waveform=waveform,
+                output_level=output_level,
+            )
+            continue
 
         if version == JSON_VERSION and channel in ("pulse1", "pulse2"):
             reject_version_2_instrument_fields(instrument, path)

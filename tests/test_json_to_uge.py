@@ -418,5 +418,117 @@ class PulseAsmInstrumentTests(unittest.TestCase):
         )
 
 
+def wave_data(version: int = 2, **fields: object) -> dict:
+    instrument = {
+        "id": 1,
+        "name": "wave test",
+        "channel": "wave",
+    }
+    instrument.update(fields)
+    return {"version": version, "instruments": [instrument]}
+
+
+class WaveInstrumentValidationTests(unittest.TestCase):
+    def validate(self, data: dict) -> json_to_uge.InstrumentSpec:
+        return json_to_uge.validate_instruments(data)["wave"][1]
+
+    def test_version_2_wave_accepts_all_fields_and_keeps_waveform_name(self) -> None:
+        spec = self.validate(
+            wave_data(
+                waveform="bass_wave",
+                output_level="50%",
+                length=255,
+                length_enable=True,
+            )
+        )
+        self.assertEqual(spec.waveform, "bass_wave")
+        self.assertIsInstance(spec.waveform, str)
+        self.assertEqual(spec.output_level, 2)
+        self.assertEqual(spec.length, 255)
+        self.assertTrue(spec.length_enable)
+        self.assertEqual(spec.json_version, 2)
+        self.assertEqual(spec.bank, "wave")
+
+    def test_version_2_wave_output_level_mapping(self) -> None:
+        for name, value in json_to_uge.WAVE_OUTPUT_LEVELS.items():
+            with self.subTest(output_level=name):
+                self.assertEqual(self.validate(wave_data(waveform="bass", output_level=name)).output_level, value)
+
+    def test_version_2_wave_defaults(self) -> None:
+        spec = self.validate(wave_data(waveform="bass"))
+        self.assertEqual(spec.waveform, "bass")
+        self.assertEqual(spec.output_level, 1)
+        self.assertEqual(spec.length, 0)
+        self.assertFalse(spec.length_enable)
+
+    def test_version_2_wave_rejects_empty_or_whitespace_waveform(self) -> None:
+        for waveform in ("", "   ", " bass", "bass "):
+            with self.subTest(waveform=repr(waveform)):
+                with self.assertRaisesRegex(ValueError, r"instruments\[0\]\.waveform"):
+                    self.validate(wave_data(waveform=waveform))
+
+    def test_version_2_waveform_is_required(self) -> None:
+        with self.assertRaisesRegex(ValueError, r"instruments\[0\]\.waveform"):
+            self.validate(wave_data())
+
+    def test_version_2_wave_rejects_invalid_types_and_ranges(self) -> None:
+        cases = (
+            ("waveform", 1),
+            ("output_level", 1),
+            ("output_level", "75%"),
+            ("length", -1),
+            ("length", 256),
+            ("length", True),
+            ("length_enable", 1),
+        )
+        for field, value in cases:
+            with self.subTest(field=field, value=value):
+                with self.assertRaises(ValueError):
+                    self.validate(wave_data(**{field: value}))
+
+    def test_version_2_wave_rejects_pulse_and_noise_only_fields(self) -> None:
+        for field in (
+            *json_to_uge.WAVE_PULSE_ONLY_FIELDS,
+            *json_to_uge.WAVE_NOISE_ONLY_FIELDS,
+        ):
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, rf"instruments\[0\]\.{field}.*Wave Instrument.*(?:Pulse|Noise)専用"):
+                    self.validate(wave_data(waveform="bass", **{field: 0}))
+
+    def test_version_2_wave_rejects_trigger_and_frequency(self) -> None:
+        for field in json_to_uge.WAVE_UNSUPPORTED_FIELDS:
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, rf"instruments\[0\]\.{field}.*Wave Instrument"):
+                    self.validate(wave_data(waveform="bass", **{field: 0}))
+
+    def test_version_2_wave_duplicate_id_is_rejected(self) -> None:
+        data = wave_data(waveform="bass")
+        data["instruments"].append(
+            {"id": 1, "name": "other", "channel": "wave", "waveform": "lead"}
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate instrument id 1 in wave bank"):
+            json_to_uge.validate_instruments(data)
+
+    def test_duty_and_wave_banks_can_share_instrument_id(self) -> None:
+        data = wave_data(waveform="bass")
+        data["instruments"].append(
+            {"id": 1, "name": "pulse", "channel": "pulse1"}
+        )
+        result = json_to_uge.validate_instruments(data)
+        self.assertIn(1, result["wave"])
+        self.assertIn(1, result["duty"])
+
+    def test_version_1_wave_version_2_fields_are_rejected(self) -> None:
+        for field, value in (
+            ("waveform", "bass"),
+            ("output_level", "100%"),
+            ("length", 0),
+            ("length_enable", False),
+        ):
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, rf"instruments\[0\]\.{field}.*Version 2専用"):
+                    self.validate(wave_data(version=1, **{field: value}))
+
+
 if __name__ == "__main__":
     unittest.main()
