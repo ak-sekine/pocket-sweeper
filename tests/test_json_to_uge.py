@@ -2013,6 +2013,66 @@ class Ch4AsmPatternTests(unittest.TestCase):
         self.assertTrue(all(line == " dn ___,0,$000" for line in lines[1:]))
 
 
+class SharedNoiseNoteIntegrationTests(unittest.TestCase):
+    NOTES = ("C3", "C4", "A7", "B8")
+    NOTE_NUMBERS = (0, 12, 57, 71)
+
+    def data(self) -> dict:
+        return uge_noise_pattern_fixture(
+            [
+                {"note": note, "length": 1, "instrument": 1}
+                for note in self.NOTES
+            ],
+            [{
+                "id": 1,
+                "name": "shared noise",
+                "channel": "noise",
+                "length": 0,
+                "length_enable": False,
+                "initial_volume": 15,
+                "envelope_direction": "down",
+                "envelope_sweep": 0,
+                "width_mode": "15bit",
+            }],
+        )
+
+    def test_one_noise_instrument_preserves_multiple_notes_through_all_paths(self) -> None:
+        data = self.data()
+        specs = json_to_uge.validate_instruments(data)
+        spec = specs["noise"][1]
+
+        polys = [json_to_uge.noise_note_to_poly(note) for note in self.NOTE_NUMBERS]
+        self.assertEqual([poly.value for poly in polys], [231, 183, 6, 212])
+        self.assertEqual(len({poly.value for poly in polys}), len(self.NOTE_NUMBERS))
+        nr43 = [json_to_uge.noise_note_to_nr43(note, spec) for note in self.NOTE_NUMBERS]
+        self.assertEqual(nr43, [poly.value for poly in polys])
+        self.assertIsNone(polys[2].clock_shift)
+        self.assertIsNone(polys[2].divisor_code)
+
+        uge_cells = read_uge_pattern_cells(json_to_uge.build_uge(data))[3]
+        self.assertEqual(
+            [(cell["note"], cell["instrument"]) for cell in uge_cells[:4]],
+            list(zip(self.NOTE_NUMBERS, (1, 1, 1, 1))),
+        )
+        self.assertTrue(all(cell["instrument"] == 0 for cell in uge_cells[4:]))
+        self.assertTrue(all(cell["note"] == json_to_uge.NO_NOTE for cell in uge_cells[4:]))
+
+        asm = json_to_huge_asm.build_asm(data, "song")
+        lines = asm.splitlines()
+        pattern_start = lines.index("song_P3:")
+        self.assertEqual(lines[pattern_start + 1 : pattern_start + 5], [
+            " dn C_3,1,$000",
+            " dn C_4,1,$000",
+            " dn A_7,1,$000",
+            " dn B_8,1,$000",
+        ])
+        noise_start = lines.index("song_noise_instruments:")
+        noise_end = lines.index("song_routines:")
+        noise_lines = lines[noise_start:noise_end]
+        self.assertIn("song_itNoiseinst1:", noise_lines)
+        self.assertNotIn("song_itNoiseinst2:", noise_lines)
+
+
 class WaveTableAsmTests(unittest.TestCase):
     def wave_lines(self, tables: list[dict]) -> list[str]:
         asm = json_to_huge_asm.build_asm(
