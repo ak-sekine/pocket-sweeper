@@ -76,6 +76,26 @@ def read_wave_instrument(blob: bytes, instrument_id: int) -> dict[str, int | boo
     }
 
 
+def read_noise_instrument(blob: bytes, instrument_id: int) -> dict[str, int | bool | str]:
+    record_size = len(json_to_uge.pack_instrument(json_to_uge.IT_NOISE, ""))
+    offset = (2 * json_to_uge.INSTRUMENT_COUNT + instrument_id - 1) * record_size
+    record = blob[offset : offset + record_size]
+    if len(record) != record_size:
+        raise AssertionError(f"missing Noise instrument {instrument_id}")
+
+    name_length = record[4]
+    return {
+        "type": struct.unpack_from("<i", record, 0)[0],
+        "name": record[5 : 5 + name_length].decode("utf-8"),
+        "length": struct.unpack_from("<i", record, 260)[0],
+        "length_enable": bool(record[264]),
+        "initial_volume": record[265],
+        "vol_sweep_direction": struct.unpack_from("<i", record, 266)[0],
+        "vol_sweep_amount": record[270],
+        "counter_step": struct.unpack_from("<i", record, 292)[0],
+    }
+
+
 class PulseInstrumentValidationTests(unittest.TestCase):
     def validate(self, data: dict) -> json_to_uge.InstrumentSpec:
         return json_to_uge.validate_instruments(data)["duty"][1]
@@ -360,6 +380,109 @@ class NoiseInstrumentValidationTests(unittest.TestCase):
     def test_version_1_noise_rejects_version_2_length(self) -> None:
         with self.assertRaisesRegex(ValueError, r"instruments\[0\]\.length"):
             self.validate(noise_data(version=1, length=0))
+
+
+class PackedNoiseInstrumentTests(unittest.TestCase):
+    def pack(self, data: dict) -> bytes:
+        return json_to_uge.pack_instruments(json_to_uge.validate_instruments(data))
+
+    def test_version_2_noise_fields_are_written_to_uge_record(self) -> None:
+        record = read_noise_instrument(
+            self.pack(
+                noise_data(
+                    name="noise custom",
+                    length=37,
+                    length_enable=True,
+                    initial_volume=9,
+                    envelope_direction="up",
+                    envelope_sweep=5,
+                    width_mode="7bit",
+                )
+            ),
+            1,
+        )
+        self.assertEqual(
+            record,
+            {
+                "type": json_to_uge.IT_NOISE,
+                "name": "noise custom",
+                "length": 37,
+                "length_enable": True,
+                "initial_volume": 9,
+                "vol_sweep_direction": json_to_uge.ST_UP,
+                "vol_sweep_amount": 5,
+                "counter_step": json_to_uge.SW_SEVEN,
+            },
+        )
+
+    def test_version_2_noise_defaults_are_written(self) -> None:
+        record = read_noise_instrument(self.pack(noise_data()), 1)
+        self.assertEqual(record["length"], 0)
+        self.assertFalse(record["length_enable"])
+        self.assertEqual(record["initial_volume"], 15)
+        self.assertEqual(record["vol_sweep_direction"], json_to_uge.ST_DOWN)
+        self.assertEqual(record["vol_sweep_amount"], 0)
+        self.assertEqual(record["counter_step"], json_to_uge.SW_FIFTEEN)
+
+    def test_noise_width_modes_only_change_counter_step(self) -> None:
+        common = {
+            "length": 37,
+            "length_enable": True,
+            "initial_volume": 9,
+            "envelope_direction": "up",
+            "envelope_sweep": 5,
+        }
+        record_15 = read_noise_instrument(self.pack(noise_data(**common, width_mode="15bit")), 1)
+        record_7 = read_noise_instrument(self.pack(noise_data(**common, width_mode="7bit")), 1)
+        self.assertEqual(record_15["counter_step"], json_to_uge.SW_FIFTEEN)
+        self.assertEqual(record_7["counter_step"], json_to_uge.SW_SEVEN)
+        self.assertEqual(
+            {key: value for key, value in record_15.items() if key != "counter_step"},
+            {key: value for key, value in record_7.items() if key != "counter_step"},
+        )
+
+    def test_undefined_noise_instruments_keep_default_records(self) -> None:
+        blob = self.pack(noise_data())
+        record_size = len(json_to_uge.pack_instrument(json_to_uge.IT_NOISE, ""))
+        self.assertEqual(len(blob), 3 * json_to_uge.INSTRUMENT_COUNT * record_size)
+        record = read_noise_instrument(blob, 2)
+        self.assertEqual(record["type"], json_to_uge.IT_NOISE)
+        self.assertEqual(record["name"], "")
+        self.assertEqual(record["length"], 0)
+        self.assertFalse(record["length_enable"])
+        self.assertEqual(record["initial_volume"], 15)
+        self.assertEqual(record["vol_sweep_direction"], json_to_uge.ST_DOWN)
+        self.assertEqual(record["vol_sweep_amount"], 0)
+        self.assertEqual(record["counter_step"], json_to_uge.SW_FIFTEEN)
+
+    def test_version_1_noise_fields_are_not_reflected_in_uge(self) -> None:
+        record = read_noise_instrument(
+            self.pack(
+                noise_data(
+                    version=1,
+                    noise_length=37,
+                    length_enable=True,
+                    initial_volume=9,
+                    envelope_direction="up",
+                    envelope_sweep=5,
+                    width_mode="7bit",
+                )
+            ),
+            1,
+        )
+        self.assertEqual(record["name"], "noise test")
+        self.assertEqual(record["length"], 0)
+        self.assertFalse(record["length_enable"])
+        self.assertEqual(record["initial_volume"], 15)
+        self.assertEqual(record["vol_sweep_direction"], json_to_uge.ST_DOWN)
+        self.assertEqual(record["vol_sweep_amount"], 0)
+        self.assertEqual(record["counter_step"], json_to_uge.SW_FIFTEEN)
+
+    def test_invalid_internal_width_mode_is_rejected(self) -> None:
+        specs = json_to_uge.validate_instruments(noise_data())
+        specs["noise"][1] = replace(specs["noise"][1], width_mode="invalid")
+        with self.assertRaisesRegex(ValueError, r"Noise Instrument 1.*width_mode"):
+            json_to_uge.pack_instruments(specs)
 
 
 class PackedPulseInstrumentTests(unittest.TestCase):

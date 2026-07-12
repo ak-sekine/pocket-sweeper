@@ -27,6 +27,7 @@ IT_NOISE = 2
 ST_UP = 0
 ST_DOWN = 1
 SW_FIFTEEN = 0
+SW_SEVEN = 1
 
 DEFAULT_DUTY_NAMES = {
     1: ("Duty 12.5%", 0, 0),
@@ -913,6 +914,33 @@ def wave_instrument_packing_values(
     )
 
 
+def noise_width_mode_to_counter_step(instrument_id: int, width_mode: str) -> int:
+    if width_mode == NOISE_WIDTH_15BIT:
+        return SW_FIFTEEN
+    if width_mode == NOISE_WIDTH_7BIT:
+        return SW_SEVEN
+    raise ValueError(
+        f"Noise Instrument {instrument_id}: unsupported width_mode {width_mode!r}"
+    )
+
+
+def noise_instrument_packing_values(
+    instrument_id: int,
+    spec: InstrumentSpec | None,
+) -> tuple[str, int, bool, int, int, int, int]:
+    if spec is None or spec.json_version != 2:
+        return "" if spec is None else spec.name, 0, False, 15, ST_DOWN, 0, SW_FIFTEEN
+    return (
+        spec.name,
+        spec.length,
+        spec.length_enable,
+        spec.initial_volume,
+        spec.vol_sweep_direction,
+        spec.vol_sweep_amount,
+        noise_width_mode_to_counter_step(instrument_id, spec.width_mode),
+    )
+
+
 def pack_instruments(overrides: dict[str, dict[int, InstrumentSpec]]) -> bytes:
     parts: list[bytes] = []
 
@@ -977,14 +1005,25 @@ def pack_instruments(overrides: dict[str, dict[int, InstrumentSpec]]) -> bytes:
 
     for instrument_id in range(1, INSTRUMENT_COUNT + 1):
         spec = overrides["noise"].get(instrument_id)
-        name = spec.name if spec else ""
+        (
+            name,
+            length,
+            length_enabled,
+            initial_volume,
+            vol_sweep_direction,
+            vol_sweep_amount,
+            counter_step,
+        ) = noise_instrument_packing_values(instrument_id, spec)
         parts.append(
             pack_instrument(
                 IT_NOISE,
                 name,
-                initial_volume=15,
-                vol_sweep_direction=ST_DOWN,
-                counter_step=SW_FIFTEEN,
+                length=length,
+                length_enabled=length_enabled,
+                initial_volume=initial_volume,
+                vol_sweep_direction=vol_sweep_direction,
+                vol_sweep_amount=vol_sweep_amount,
+                counter_step=counter_step,
             )
         )
 
