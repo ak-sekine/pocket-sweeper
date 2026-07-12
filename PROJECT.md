@@ -322,7 +322,7 @@
       - [x] チャンネルごとに異なるorder / pattern割り当てを表現する方法を決める
       - [x] テンポ変更をJSONで扱うか、単一テンポへ正規化するか決める
       - [x] ループ範囲をJSONで表現する方法を決める
-      - [ ] BGM用Noiseノートの表現方法を決める
+      - [x] BGM用Noiseノートの表現方法を決める
       - [ ] 拡張後の4チャンネルBGM JSONサンプルを作成する
       - [ ] PROJECT.mdの「初版BGM仕様」「BGM・効果音制作フロー」「楽曲定義JSON仕様」を更新する
     - [ ] JSON変換ツールを4チャンネル対応JSON仕様へ対応させる
@@ -330,6 +330,20 @@
       - [ ] Version 2のWave Instrument項目、Wave table名前参照の数値化、CH3でのPulse / Noise専用項目禁止を変換ツールへ反映する
       - [ ] Version 2の`wave_tables`検証、4bitサンプルの16byteパック、最大16 bank補完を変換ツールへ反映する
       - [ ] Version 2のNoise Instrument項目、`noise_length` / `length`のVersion別検証、Noise note由来のNR43生成を変換ツールへ反映する
+      - [ ] Version 2のCH4 note文字列を既存note番号へ変換する
+      - [ ] CH4 note番号からNR43のclock shift / divisor codeを生成する
+      - [ ] Noise Instrumentの`width_mode`とnote由来値を合成する
+      - [ ] CH4用note範囲と`rest`を検証する
+      - [ ] CH4からNoise以外のInstrumentを参照した場合にエラーにする
+      - [ ] 打楽器名、数値note、NR43生値、`clock_shift` / `divisor_code`直接指定をエラーにする
+      - [ ] 同じInstrumentで異なるNoise noteを再生できることを確認する
+      - [ ] 同じNoise noteを異なる`width_mode`のInstrumentで再生した結果を確認する
+      - [ ] noteの`length`展開後の空行で再triggerされないことを確認する
+      - [ ] 同じnoteを複数回記述した場合に各位置で再triggerされることを確認する
+      - [ ] CH4 noteのUGE出力をhUGETrackerで開いて確認する
+      - [ ] hUGETracker Export ASMと直接生成ASMを比較する
+      - [ ] SameBoyでNoise BGMを再生確認する
+      - [ ] Version 1の既存Noise / SFX動作に影響がないことを確認する
       - [ ] Version 2のnote `volume` をUGE pattern cellのVolumeへ変換する方法を確認する
       - [ ] Version 2のnote `volume` をhUGEDriver用ASMへ変換する方法を確認する
       - [ ] volume省略と `volume: 0` が別の結果になることを確認する
@@ -383,6 +397,12 @@
       - [ ] 音域外ノートの移調・オクターブ補正方針を決める
       - [ ] MIDIチャンネル10のドラムをCH4 / Noiseへ変換する方針を決める
       - [ ] MIDI由来のtrack、channel、program、velocity等のメタデータをJSONへ保持するか決める
+      - [ ] MIDIチャンネル10のドラム番号を打楽器種別として解析する
+      - [ ] 打楽器種別をNoise InstrumentとNoise noteの組み合わせへ変換する
+      - [ ] MIDIドラム番号とCH4用Instrument / noteの対応表を決める
+      - [ ] MIDI velocityをnote `volume`へ変換する
+      - [ ] 同時刻の複数ドラムをCH4の単音へ削減する優先順位を決める
+      - [ ] 変換結果のInstrument / Noise note割り当てをレポートする
       - [ ] MIDIのループ情報取得方法を決める
       - [ ] MIDIのループ位置を単一tempoのrowへ量子化する
       - [ ] pattern途中のループ位置でpatternを分割する
