@@ -471,6 +471,40 @@ def wave_data_with_tables(names: list[str], waveform: str | None = None, instrum
     return data
 
 
+def uge_wave_fixture(wave_tables: list[dict] | None = None) -> dict:
+    data = {
+        "version": 2,
+        "title": "Wave bank test",
+        "type": "bgm",
+        "tempo": 6,
+        "instruments": [],
+        "order": ["main"],
+        "patterns": {
+            "main": {
+                "channels": {
+                    "pulse1": [],
+                    "pulse2": [],
+                    "wave": [],
+                    "noise": [],
+                }
+            }
+        },
+    }
+    if wave_tables is not None:
+        data["wave_tables"] = wave_tables
+    return data
+
+
+def read_uge_wave_banks(uge: bytes) -> tuple[bytes, ...]:
+    header_size = 4 + (3 * len(json_to_uge.pack_short_string("", "test")))
+    instrument_size = len(json_to_uge.pack_instrument(json_to_uge.IT_SQUARE, ""))
+    wave_offset = header_size + (3 * json_to_uge.INSTRUMENT_COUNT * instrument_size)
+    return tuple(
+        uge[wave_offset + index * json_to_uge.WAVE_BYTES : wave_offset + (index + 1) * json_to_uge.WAVE_BYTES]
+        for index in range(json_to_uge.WAVE_COUNT)
+    )
+
+
 class WaveInstrumentValidationTests(unittest.TestCase):
     def validate(self, data: dict) -> json_to_uge.InstrumentSpec:
         return json_to_uge.validate_instruments(data)["wave"][1]
@@ -864,6 +898,83 @@ class WaveSamplePackingTests(unittest.TestCase):
             with self.subTest(samples=samples):
                 with self.assertRaisesRegex(ValueError, "array expected"):
                     json_to_uge.pack_wave_samples(samples)
+
+
+class UgeWaveBankTests(unittest.TestCase):
+    def tables(self, count: int) -> list[dict]:
+        return [
+            {"name": f"wave_{index}", "samples": [index % 16] * 32}
+            for index in range(count)
+        ]
+
+    def test_version_2_wave_banks_are_always_16_banks_and_512_bytes(self) -> None:
+        for count in (1, 3, 11, 12, 16):
+            with self.subTest(count=count):
+                banks = read_uge_wave_banks(json_to_uge.build_uge(uge_wave_fixture(self.tables(count))))
+                self.assertEqual(len(banks), 16)
+                self.assertEqual(sum(len(bank) for bank in banks), 512)
+                for index, bank in enumerate(banks):
+                    if index < count:
+                        self.assertEqual(bank, bytes([index % 16] * 32))
+                    elif index <= 10:
+                        self.assertEqual(bank, bytes(json_to_uge.DEFAULT_WAVES[index]))
+                    else:
+                        self.assertEqual(bank, bytes(32))
+
+    def test_version_2_defined_wave_table_is_not_packed_for_uge(self) -> None:
+        samples = [1, 2, 10, 15] + [0] * 28
+        banks = read_uge_wave_banks(
+            json_to_uge.build_uge(
+                uge_wave_fixture([{"name": "bass", "samples": samples}])
+            )
+        )
+        self.assertEqual(banks[0][:4], bytes([1, 2, 10, 15]))
+        self.assertNotEqual(banks[0][:2], bytes([0x12, 0xAF]))
+
+    def test_version_2_without_wave_tables_uses_standard_banks(self) -> None:
+        for data in (uge_wave_fixture(), uge_wave_fixture([])):
+            with self.subTest(has_wave_tables="wave_tables" in data):
+                banks = read_uge_wave_banks(json_to_uge.build_uge(data))
+                self.assertEqual(banks[:11], tuple(bytes(wave) for wave in json_to_uge.DEFAULT_WAVES))
+                self.assertEqual(banks[11:], tuple(bytes(32) for _ in range(5)))
+
+    def test_unreferenced_wave_tables_are_still_output_in_array_order(self) -> None:
+        tables = [
+            {"name": "used", "samples": [1] * 32},
+            {"name": "unused", "samples": [2] * 32},
+        ]
+        banks = read_uge_wave_banks(json_to_uge.build_uge(uge_wave_fixture(tables)))
+        self.assertEqual(banks[0], bytes([1] * 32))
+        self.assertEqual(banks[1], bytes([2] * 32))
+
+    def test_wave_instrument_index_matches_uge_wave_bank_position(self) -> None:
+        tables = self.tables(3)
+        tables[2]["samples"] = list(range(16)) * 2
+        data = uge_wave_fixture(tables)
+        data["instruments"] = [{
+            "id": 1,
+            "name": "bass",
+            "channel": "wave",
+            "waveform": "wave_2",
+        }]
+        banks = read_uge_wave_banks(json_to_uge.build_uge(data))
+        specs = json_to_uge.validate_instruments(data)
+        self.assertEqual(specs["wave"][1].waveform_index, 2)
+        self.assertEqual(banks[2], bytes(tables[2]["samples"]))
+
+    def test_direct_wave_bank_builder_rejects_invalid_internal_state(self) -> None:
+        valid = json_to_uge.WaveTableSpec("wave", 0, (0,) * 32)
+        invalid_specs = (
+            (json_to_uge.WaveTableSpec("wave", True, (0,) * 32), "integer"),
+            (json_to_uge.WaveTableSpec("wave", 1, (0,) * 32), "expected 0"),
+            (json_to_uge.WaveTableSpec("wave", 0, (0,) * 31), "exactly 32"),
+            (json_to_uge.WaveTableSpec("wave", 0, (-1,) + (0,) * 31), r"samples\[0\]"),
+        )
+        for spec, message in invalid_specs:
+            with self.subTest(spec=spec):
+                with self.assertRaisesRegex(ValueError, message):
+                    json_to_uge.build_uge_wave_banks((spec,))
+        self.assertEqual(len(json_to_uge.build_uge_wave_banks((valid,))), 16)
 
 
 class PackedWaveInstrumentTests(unittest.TestCase):

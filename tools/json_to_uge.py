@@ -401,6 +401,37 @@ def pack_wave_table(wave_table: WaveTableSpec) -> bytes:
     return pack_wave_samples(wave_table.samples)
 
 
+def build_uge_wave_banks(
+    wave_tables: tuple[WaveTableSpec, ...] | None,
+) -> tuple[tuple[int, ...], ...]:
+    if wave_tables is None:
+        wave_tables = ()
+    if len(wave_tables) > WAVE_COUNT:
+        fail(f"wave_tables: at most {WAVE_COUNT} tables are allowed")
+
+    banks: list[tuple[int, ...]] = []
+    for index in range(WAVE_COUNT):
+        if index < len(wave_tables):
+            wave_table = wave_tables[index]
+            if type(wave_table.index) is not int:
+                fail(f"wave_tables[{index}].index: integer expected")
+            if wave_table.index != index:
+                fail(f"wave_tables[{index}].index: expected {index}, got {wave_table.index}")
+            samples = validate_wave_samples(wave_table.samples, f"wave_tables[{index}].samples")
+            banks.append(samples)
+        elif index < len(DEFAULT_WAVES):
+            banks.append(tuple(DEFAULT_WAVES[index]))
+        else:
+            banks.append((0,) * WAVE_BYTES)
+    return tuple(banks)
+
+
+def pack_uge_waves(wave_banks: tuple[tuple[int, ...], ...]) -> bytes:
+    if len(wave_banks) != WAVE_COUNT:
+        fail(f"UGE Wave bank count must be {WAVE_COUNT}")
+    return b"".join(bytes(validate_wave_samples(bank, f"wave_banks[{index}]")) for index, bank in enumerate(wave_banks))
+
+
 def validate_wave_instrument(
     instrument: dict[str, Any],
     path: str,
@@ -450,9 +481,19 @@ def validate_wave_instrument(
     return waveform, waveform_index[waveform], WAVE_OUTPUT_LEVELS[output_level_name], length, length_enable
 
 
-def validate_instruments(data: dict[str, Any]) -> dict[str, dict[int, InstrumentSpec]]:
+_UNSET_WAVE_TABLES = object()
+
+
+def validate_instruments(
+    data: dict[str, Any],
+    wave_tables: tuple[WaveTableSpec, ...] | None | object = _UNSET_WAVE_TABLES,
+) -> dict[str, dict[int, InstrumentSpec]]:
     version = validate_json_version(data)
-    wave_tables = validate_wave_tables(data, version)
+    if wave_tables is _UNSET_WAVE_TABLES:
+        wave_tables = validate_wave_tables(data, version)
+    elif version == JSON_VERSION:
+        wave_tables = None
+    assert wave_tables is None or isinstance(wave_tables, tuple)
     waveform_index = build_waveform_index(wave_tables)
     result: dict[str, dict[int, InstrumentSpec]] = {"duty": {}, "wave": {}, "noise": {}}
     instruments = expect_list(data.get("instruments"), "instruments")
@@ -806,7 +847,12 @@ def pack_instruments(overrides: dict[str, dict[int, InstrumentSpec]]) -> bytes:
     return b"".join(parts)
 
 
-def pack_waves() -> bytes:
+def pack_waves(
+    wave_tables: tuple[WaveTableSpec, ...] | None = None,
+    json_version: int = JSON_VERSION,
+) -> bytes:
+    if json_version == 2:
+        return pack_uge_waves(build_uge_wave_banks(wave_tables))
     waves = [bytes(wave) for wave in DEFAULT_WAVES]
     while len(waves) < WAVE_COUNT:
         waves.append(bytes(WAVE_BYTES))
@@ -815,7 +861,9 @@ def pack_waves() -> bytes:
 
 def build_uge(data: dict[str, Any]) -> bytes:
     validate_header(data)
-    instruments = validate_instruments(data)
+    json_version = validate_json_version(data)
+    wave_tables = validate_wave_tables(data, json_version)
+    instruments = validate_instruments(data, wave_tables=wave_tables)
     patterns, order_matrix = build_patterns(data)
 
     output = bytearray()
@@ -824,7 +872,7 @@ def build_uge(data: dict[str, Any]) -> bytes:
     output += pack_short_string("", "artist")
     output += pack_short_string("", "comment")
     output += pack_instruments(instruments)
-    output += pack_waves()
+    output += pack_waves(wave_tables, json_version)
     output += pack_int(expect_int(data["tempo"], "tempo"))
     output += pack_bool(False)
     output += pack_int(0)
