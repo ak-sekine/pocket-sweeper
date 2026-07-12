@@ -273,6 +273,22 @@ def validate_range(value: int, path: str, minimum: int, maximum: int) -> int:
     return value
 
 
+def validate_wave_samples(samples: Any, path: str) -> tuple[int, ...]:
+    if not isinstance(samples, (list, tuple)):
+        fail(f"{path}: array expected")
+    if len(samples) != WAVE_BYTES:
+        fail(f"{path}: expected exactly {WAVE_BYTES} samples")
+    return tuple(
+        validate_range(
+            expect_int(sample, f"{path}[{sample_index}]"),
+            f"{path}[{sample_index}]",
+            0,
+            15,
+        )
+        for sample_index, sample in enumerate(samples)
+    )
+
+
 def parse_envelope_direction(value: Any, path: str, default: int) -> int:
     if value is None:
         return default
@@ -357,18 +373,7 @@ def validate_wave_tables(
             fail(f"{path}.name: must match ^[a-z][a-z0-9_]*$")
         if any(spec.name == name for spec in wave_tables_specs):
             fail(f"{path}.name: duplicate Wave table name '{name}'")
-        samples = expect_list(table.get("samples"), f"{path}.samples")
-        if len(samples) != WAVE_BYTES:
-            fail(f"{path}.samples: expected exactly {WAVE_BYTES} samples")
-        validated_samples = tuple(
-            validate_range(
-                expect_int(sample, f"{path}.samples[{sample_index}]"),
-                f"{path}.samples[{sample_index}]",
-                0,
-                15,
-            )
-            for sample_index, sample in enumerate(samples)
-        )
+        validated_samples = validate_wave_samples(table.get("samples"), f"{path}.samples")
         wave_tables_specs.append(
             WaveTableSpec(name=name, index=index, samples=validated_samples)
         )
@@ -382,6 +387,18 @@ def build_waveform_index(
     if wave_tables is None:
         return None
     return {wave_table.name: wave_table.index for wave_table in wave_tables}
+
+
+def pack_wave_samples(samples: Any) -> bytes:
+    validated_samples = validate_wave_samples(samples, "samples")
+    return bytes(
+        (validated_samples[index] << 4) | validated_samples[index + 1]
+        for index in range(0, WAVE_BYTES, 2)
+    )
+
+
+def pack_wave_table(wave_table: WaveTableSpec) -> bytes:
+    return pack_wave_samples(wave_table.samples)
 
 
 def validate_wave_instrument(

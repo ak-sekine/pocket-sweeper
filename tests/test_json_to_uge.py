@@ -784,6 +784,88 @@ class WaveInstrumentValidationTests(unittest.TestCase):
         self.assertEqual(result["wave"][1].waveform_index, 0)
 
 
+class WaveSamplePackingTests(unittest.TestCase):
+    def test_all_zero_and_all_max_samples_pack_to_fixed_length(self) -> None:
+        self.assertEqual(json_to_uge.pack_wave_samples([0] * 32), bytes([0x00] * 16))
+        self.assertEqual(json_to_uge.pack_wave_samples([15] * 32), bytes([0xFF] * 16))
+
+    def test_sequential_samples_pack_in_order(self) -> None:
+        samples = list(range(16)) * 2
+        expected = bytes([0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF] * 2)
+        packed = json_to_uge.pack_wave_samples(samples)
+        self.assertEqual(packed, expected)
+        self.assertEqual(len(packed), 16)
+
+    def test_upper_and_lower_nibbles_are_not_reversed(self) -> None:
+        self.assertEqual(json_to_uge.pack_wave_samples([15, 0] * 16), bytes([0xF0] * 16))
+        self.assertEqual(json_to_uge.pack_wave_samples([0, 15] * 16), bytes([0x0F] * 16))
+        samples = [0] * 32
+        samples[0:4] = [1, 2, 10, 15]
+        self.assertEqual(json_to_uge.pack_wave_samples(samples)[0:2], bytes([0x12, 0xAF]))
+
+    def test_packing_does_not_mutate_input_and_is_deterministic(self) -> None:
+        samples = list(range(16)) * 2
+        original = samples.copy()
+        first = json_to_uge.pack_wave_samples(samples)
+        second = json_to_uge.pack_wave_samples(samples)
+        self.assertEqual(samples, original)
+        self.assertEqual(first, second)
+
+    def test_wave_table_spec_packs_samples_without_changing_metadata(self) -> None:
+        samples = tuple(range(16)) * 2
+        wave_table = json_to_uge.WaveTableSpec("bass_wave", 3, samples)
+        self.assertEqual(json_to_uge.pack_wave_table(wave_table), bytes([0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF] * 2))
+        self.assertEqual(wave_table.name, "bass_wave")
+        self.assertEqual(wave_table.index, 3)
+        self.assertEqual(wave_table.samples, samples)
+
+    def test_multiple_wave_tables_are_packed_independently(self) -> None:
+        first = json_to_uge.WaveTableSpec("first", 0, tuple([1, 2] * 16))
+        second = json_to_uge.WaveTableSpec("second", 1, tuple([3, 4] * 16))
+        self.assertEqual(json_to_uge.pack_wave_table(first), bytes([0x12] * 16))
+        self.assertEqual(json_to_uge.pack_wave_table(second), bytes([0x34] * 16))
+
+    def test_default_wave_can_be_packed(self) -> None:
+        samples = json_to_uge.DEFAULT_WAVES[0]
+        expected = bytes(
+            (samples[index] << 4) | samples[index + 1]
+            for index in range(0, len(samples), 2)
+        )
+        packed = json_to_uge.pack_wave_samples(samples)
+        self.assertEqual(len(packed), 16)
+        self.assertEqual(packed, expected)
+
+    def test_invalid_sample_lengths_are_rejected(self) -> None:
+        for samples in ([], [0] * 31, [0] * 33):
+            with self.subTest(length=len(samples)):
+                with self.assertRaisesRegex(ValueError, "exactly 32"):
+                    json_to_uge.pack_wave_samples(samples)
+
+    def test_invalid_sample_types_and_ranges_are_rejected_at_multiple_positions(self) -> None:
+        cases = (
+            (0, -1),
+            (15, 16),
+            (1, 1.5),
+            (2, "1"),
+            (3, True),
+            (16, None),
+            (12, []),
+            (31, {}),
+        )
+        for index, value in cases:
+            with self.subTest(index=index, value=value):
+                samples = [0] * 32
+                samples[index] = value
+                with self.assertRaisesRegex(ValueError, rf"samples\[{index}\]"):
+                    json_to_uge.pack_wave_samples(samples)
+
+    def test_non_array_input_is_rejected(self) -> None:
+        for samples in (None, "samples", {}, 0):
+            with self.subTest(samples=samples):
+                with self.assertRaisesRegex(ValueError, "array expected"):
+                    json_to_uge.pack_wave_samples(samples)
+
+
 class PackedWaveInstrumentTests(unittest.TestCase):
     def pack(self, data: dict) -> bytes:
         return json_to_uge.pack_instruments(json_to_uge.validate_instruments(data))
