@@ -2230,6 +2230,40 @@ class NoiseLengthNoRetriggerTests(unittest.TestCase):
         hardware_length = read_uge_pattern_cells(json_to_uge.build_uge(self.data(32)))[3]
         self.assertEqual(short[:4], hardware_length[:4])
 
+    def test_repeated_same_note_has_two_trigger_candidate_rows(self) -> None:
+        data = self.data(0)
+        data["patterns"]["main"]["channels"]["noise"] = [
+            {"note": "C4", "length": 2, "instrument": 1},
+            {"note": "C4", "length": 2, "instrument": 1},
+        ]
+        cells = read_uge_pattern_cells(json_to_uge.build_uge(data))[3]
+        valid_rows = [index for index, cell in enumerate(cells[:4]) if cell["note"] != json_to_uge.NO_NOTE]
+        empty_rows = [index for index, cell in enumerate(cells[:4]) if cell["note"] == json_to_uge.NO_NOTE]
+        self.assertEqual(valid_rows, [0, 2])
+        self.assertEqual(empty_rows, [1, 3])
+        self.assertEqual([(cells[index]["note"], cells[index]["instrument"]) for index in valid_rows], [(12, 1), (12, 1)])
+        self.assertTrue(all(cells[index]["instrument"] == 0 for index in empty_rows))
+
+        asm_lines = json_to_huge_asm.build_asm(data, "song").splitlines()
+        start = asm_lines.index("song_P3:")
+        pattern = asm_lines[start + 1 : start + 65]
+        self.assertEqual(pattern[:4], [
+            " dn C_4,1,$000",
+            " dn ___,0,$000",
+            " dn C_4,1,$000",
+            " dn ___,0,$000",
+        ])
+        self.assertEqual(
+            [index for index, line in enumerate(pattern[:4]) if line != " dn ___,0,$000"],
+            [0, 2],
+        )
+
+        noise_start = asm_lines.index("song_noise_instruments:")
+        noise_end = asm_lines.index("song_routines:")
+        noise_lines = asm_lines[noise_start:noise_end]
+        self.assertIn("song_itNoiseinst1:", noise_lines)
+        self.assertNotIn("song_itNoiseinst2:", noise_lines)
+
 
 class WaveTableAsmTests(unittest.TestCase):
     def wave_lines(self, tables: list[dict]) -> list[str]:
