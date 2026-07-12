@@ -496,6 +496,49 @@ class Ch4NoiseNoteTests(unittest.TestCase):
         self.assertEqual(cells[0].instrument, 1)
 
 
+class NoisePolyTests(unittest.TestCase):
+    def reference(self, note_number: int) -> tuple[int, int | None, int | None]:
+        x = (~((note_number + 192) & 0xFF)) & 0xFF
+        if x < 7:
+            return x, None, None
+        clock_shift = ((x - 4) // 4) & 0x0F
+        divisor_code = (x % 4) + 4
+        return (clock_shift << 4) | divisor_code, clock_shift, divisor_code
+
+    def test_representative_noise_note_values(self) -> None:
+        for note_number in (0, 1, 12, 24, 48, 56, 57, 58, 63, 64, 71):
+            with self.subTest(note_number=note_number):
+                poly = json_to_uge.noise_note_to_poly(note_number)
+                self.assertEqual(
+                    (poly.value, poly.clock_shift, poly.divisor_code),
+                    self.reference(note_number),
+                )
+
+    def test_all_valid_noise_notes_match_reference(self) -> None:
+        for note_number in range(72):
+            with self.subTest(note_number=note_number):
+                poly = json_to_uge.noise_note_to_poly(note_number)
+                self.assertEqual(
+                    (poly.value, poly.clock_shift, poly.divisor_code),
+                    self.reference(note_number),
+                )
+                self.assertEqual(poly.value & 0x08, 0)
+
+    def test_special_branch_57_through_63_returns_raw_poly(self) -> None:
+        for note_number, expected in zip(range(57, 64), range(6, -1, -1)):
+            with self.subTest(note_number=note_number):
+                poly = json_to_uge.noise_note_to_poly(note_number)
+                self.assertEqual(poly.value, expected)
+                self.assertIsNone(poly.clock_shift)
+                self.assertIsNone(poly.divisor_code)
+
+    def test_invalid_noise_note_numbers_are_rejected(self) -> None:
+        for value in (-1, 72, 89, 90, 91, 256, True, False, "12", 12.0, None, {}):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, r"note_number.*0-71"):
+                    json_to_uge.noise_note_to_poly(value)
+
+
 class PackedNoiseInstrumentTests(unittest.TestCase):
     def pack(self, data: dict) -> bytes:
         return json_to_uge.pack_instruments(json_to_uge.validate_instruments(data))

@@ -130,6 +130,13 @@ class Cell:
 
 
 @dataclass(frozen=True)
+class NoisePoly:
+    value: int
+    clock_shift: int | None
+    divisor_code: int | None
+
+
+@dataclass(frozen=True)
 class WaveTableSpec:
     name: str
     index: int
@@ -281,6 +288,25 @@ def parse_note(note: Any, path: str) -> int:
     if note_number < 0 or note_number > 71:
         fail(f"{path}: note '{value}' is out of supported range C3-B8")
     return note_number
+
+
+def noise_note_to_poly(note_number: Any) -> NoisePoly:
+    if not isinstance(note_number, int) or isinstance(note_number, bool):
+        fail(f"note_number: expected integer 0-71, got {note_number!r}")
+    if note_number < 0 or note_number > 71:
+        fail(f"note_number: expected integer 0-71, got {note_number}")
+
+    x = (~((note_number + 192) & 0xFF)) & 0xFF
+    if x < 7:
+        return NoisePoly(value=x, clock_shift=None, divisor_code=None)
+
+    clock_shift = ((x - 4) // 4) & 0x0F
+    divisor_code = (x % 4) + 4
+    return NoisePoly(
+        value=(clock_shift << 4) | divisor_code,
+        clock_shift=clock_shift,
+        divisor_code=divisor_code,
+    )
 
 
 def validate_instrument_id(value: Any, path: str) -> int:
