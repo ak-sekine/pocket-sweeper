@@ -351,7 +351,7 @@
         - [x] Noise Instrumentの`width_mode`とnote由来値を合成する
         - [x] CH4 noteをUGE出力へ反映する
         - [x] CH4 noteをhUGEDriver用ASMへ反映する
-      - [ ] Version 2 CH4 note変換を検証する
+      - [x] Version 2 CH4 note変換を検証する
         - [x] 同一Instrumentで異なるNoise noteを再生できることを確認する
         - [x] 同一Noise noteを異なる`width_mode`で再生した結果を確認する
         - [x] noteの`length`展開後の空行で再triggerされないことを確認する
