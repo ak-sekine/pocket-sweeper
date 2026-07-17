@@ -14,6 +14,36 @@ import json_to_uge  # noqa: E402
 import json_to_huge_asm  # noqa: E402
 
 
+class UgePatternCellPackingTests(unittest.TestCase):
+    def test_cell_field_order_sizes_and_little_endian_values(self) -> None:
+        packed = json_to_uge.pack_cell(
+            json_to_uge.Cell(
+                note=0x01020304,
+                instrument=0x11121314,
+                volume=15,
+                effect_code=0x21222324,
+                effect_param=0x31,
+            )
+        )
+        self.assertEqual(len(packed), 17)
+        self.assertEqual(
+            packed,
+            bytes.fromhex(
+                "04 03 02 01 "
+                "14 13 12 11 "
+                "0F 00 00 00 "
+                "24 23 22 21 "
+                "31"
+            ),
+        )
+
+    def test_empty_volume_and_explicit_zero_have_same_packed_value(self) -> None:
+        empty = json_to_uge.pack_cell(json_to_uge.Cell())
+        explicit_zero = json_to_uge.pack_cell(json_to_uge.Cell(volume=0))
+        self.assertEqual(empty, explicit_zero)
+        self.assertEqual(empty[8:12], b"\x00\x00\x00\x00")
+
+
 def pulse_data(version: int = 2, channel: str = "pulse1") -> dict:
     return {
         "version": version,

@@ -360,7 +360,7 @@
         - [x] SameBoyでNoise BGMを再生確認する
         - [x] Version 1の既存Noise / SFX動作に影響がないことを確認する
       - [ ] Version 2 note volumeの出力方式を確定する
-        - [ ] UGE pattern cellのVolume表現を確認する
+        - [x] UGE pattern cellのVolume表現を確認する
         - [ ] hUGEDriver用ASMのvolume表現を確認する
       - [ ] Version 2 note volume変換を実装する
         - [ ] note volumeをUGEへ反映する
