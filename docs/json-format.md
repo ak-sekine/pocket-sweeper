@@ -1071,7 +1071,17 @@ Version 2のCH4 / Noise noteでInstrumentと`volume`を同じnoteに指定した
 - down / sweep 2 / volume 0 → `C20`
 - up / sweep 2 / volume 15 → `CAF`
 
-同じ条件で`volume`を省略した場合はCxyを生成せず、従来どおりInstrumentの`initial_volume`とenvelopeを使用する。この規則はVersion 2のCH4 noteでInstrumentと`volume`を同時指定した場合だけに適用し、Version 1のNoise変換には適用しない。pattern / order / loopをまたぐenvelope状態、および`length`展開で生成される空行の規則は、それぞれ後続WBSで決定する。
+同じ条件で`volume`を省略した場合はCxyを生成せず、従来どおりInstrumentの`initial_volume`とenvelopeを使用する。この規則はVersion 2のCH4 noteでInstrumentと`volume`を同時指定した場合だけに適用し、Version 1のNoise変換には適用しない。`length`展開で生成される空行の規則は後続WBSで決定する。
+
+#### Version 2 CH4 note volumeのpattern / order / loop境界
+
+hUGEDriverの確認済み動作として、通常のpattern切替とorder遷移はpattern pointer、`current_order`、`row`を更新するだけであり、`NR42`またはCH4のenvelope状態を初期化しない。order末尾からorder 0へ戻る全体ループでも同様である。このため、APU上の状態を曲全体で連続して追跡する方式では、ループ後に初回と同じ開始状態になる保証がなく、同じpatternを複数のorder位置から参照した場合も進入元によって開始時の状態が異なり得る。
+
+Pocket SweeperのVersion 2 CH4 note volumeでは、この継続状態を変換時の入力として使用しない。`volume`を持つ各有効noteについて、同じnoteで必須指定される1～15のNoise Instrumentからenvelope nibble `x`を必ず生成し、noteの`volume`を`y`として`Cxy`を出力する。曲頭、pattern先頭、order先頭、loop先頭へ専用のreset cellやCxyは追加せず、order位置ごとの状態計算も行わない。従って、同一patternはどのorder位置から参照されても同じcell列へ変換し、loopによる再進入でもvolume指定noteへ到達した時点の`NR42`は初回と同じ値へ設定される。volume指定noteより前にあるvolume未指定行のAPU状態や聴感まで初回と同一にする仕様ではない。
+
+この方式は、各noteのInstrumentが必須でInstrument 0を禁止する現行仕様、およびInstrument指定時に対象InstrumentのenvelopeをCxyへ反映する確定済み方針を利用する。`.uge`では通常pattern cellの`EffectCode = $C`と`EffectParams.Value = xy`、hUGEDriver用ASM直接出力では同じcellの`$Cxy`として表現し、両出力で同一のpattern cell列と意味を維持する。境界専用データを出力形式ごとに追加しない。
+
+なお、コード上のレジスタ書き込み順と状態非初期化は確認済みだが、実機またはエミュレータでpattern再利用とloop再進入を含む聴感比較は未実施である。また、Version 2の`loop.mode = "range"` / `"none"`自体のUGE・ASM実現方式は別の後続WBSで未確定であり、ここで確定するのは、どのorder境界へ遷移する場合もCH4 note volumeの変換規則を進入元に依存させないことまでとする。
 
 #### JSON noteにおけるInstrument 0とinstrument省略
 
@@ -1319,7 +1329,7 @@ wave/noise未使用実装時の注意:
 
 - 非null effectを実装対象に追加する場合、各effectのチャンネル制約、tick上の挙動、parameterの意味を個別に確認する。
 - noteの `volume` をSong Version 6の通常patternにある`TCellV2.Volume`へ単純変換できないことを踏まえ、`.uge`での代替表現を決める。
-- noteの `volume` はhUGEDriver用ASMでCxyへ変換する。CH4のenvelope状態追跡を含む具体的な生成方法は後続WBSで実装する。
+- noteの `volume` はhUGEDriver用ASMでCxyへ変換する。CH4では各volume指定noteのInstrumentからenvelope nibbleを生成し、境界をまたぐ状態追跡は行わない。具体的な生成処理は後続WBSで実装する。
 - volume省略と `volume: 0` が別の結果になることを確認する。
 - CH1 / CH2 / CH3 / CH4でvolume指定の変換結果を確認する。
 - hUGETracker Export ASMと比較して、volume変換による再生上の差異がないことを確認する。
