@@ -1065,7 +1065,15 @@ Version 2のCH4 / Noise noteでInstrumentと`volume`を同じnoteに指定した
 - down / sweep 2 / volume 0 → `C20`
 - up / sweep 2 / volume 15 → `CAF`
 
-同じ条件で`volume`を省略した場合はCxyを生成せず、従来どおりInstrumentの`initial_volume`とenvelopeを使用する。この規則はVersion 2のCH4 noteでInstrumentと`volume`を同時指定した場合だけに適用し、Version 1のNoise変換には適用しない。Instrument 0、Instrumentを指定しないnote、pattern / order / loopをまたぐenvelope状態、および`length`展開で生成される空行の規則は、それぞれ後続WBSで決定する。
+同じ条件で`volume`を省略した場合はCxyを生成せず、従来どおりInstrumentの`initial_volume`とenvelopeを使用する。この規則はVersion 2のCH4 noteでInstrumentと`volume`を同時指定した場合だけに適用し、Version 1のNoise変換には適用しない。pattern / order / loopをまたぐenvelope状態、および`length`展開で生成される空行の規則は、それぞれ後続WBSで決定する。
+
+#### JSON noteにおけるInstrument 0とinstrument省略
+
+Version 1 / Version 2とも、JSONのnoteでは`instrument`を必須とし、Instrument IDは従来どおり1～15とする。Instrument 0の明示指定および`instrument`の省略は許可しない。現在のゲームでInstrumentなしnoteをJSONから生成する明確な利用目的はなく、Version 2 CH4のnote volumeは同じnoteで指定するNoise InstrumentからCxyのenvelope nibbleを生成することで表現できるためである。Instrument 0を許可すると、直前のInstrumentまたはNR42状態をpattern / order / loop境界をまたいで追跡し、UGEと直接生成ASMで一致させる必要があり、変換結果が再生経路へ依存する。将来のMIDI変換でInstrument再指定を省略できる可能性や小さなROM削減だけを理由に、この状態依存を導入しない。
+
+従って、Version 2 CH4 noteで`volume`を指定する場合は、必ず同じnoteのNoise InstrumentからCxyの`x`を生成し、直前のenvelope状態は取得・追跡しない。Instrument 0用のenvelope定義やデフォルト値も設けない。この決定によるVersion 1のJSON仕様、バリデーション、Noise変換への変更はない。
+
+JSONの`rest`もnote共通仕様に従って`instrument`に1～15を必須とするが、変換後のrest cellではInstrument 0を使用してInstrumentを再ロードしない。また、noteの`length`展開で生成される後続の空cellおよび64行までの補完空cellでも、内部表現としてInstrument 0を使用できる。これらは変換処理が生成する「Instrumentなし」の内部値であり、JSON入力でInstrument 0または`instrument`省略を許可することを意味しない。
 
 JSON側で採用するeffect表記:
 
