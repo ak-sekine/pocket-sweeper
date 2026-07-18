@@ -985,11 +985,13 @@ def build_version_2_patterns(
     data: dict[str, Any],
     instruments: dict[str, dict[int, InstrumentSpec]],
 ) -> tuple[dict[tuple[str, str], list[Cell]], list[list[tuple[str, str]]]]:
-    """Validate and resolve Version 2's channel-local pattern namespace.
+    """Validate and resolve Version 2's channel-local orders and patterns.
 
-    The tuple key is intentional: ``(channel, pattern_name)`` prevents equal
-    names in different channels from becoming the same internal pattern.
-    Order-length matching and unused-channel padding belong to a later WBS.
+    Patterns use ``(channel, pattern_name)`` keys so equal names in different
+    channels remain separate. Used-channel order lengths are validated, and
+    unused channels receive channel-specific blank-pattern references so the
+    returned pattern mapping and four-channel order matrix have uniform order
+    counts.
     """
     order_obj = expect_dict(data.get("order"), "order")
     patterns_obj = expect_dict(data.get("patterns"), "patterns")
