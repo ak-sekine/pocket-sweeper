@@ -380,7 +380,7 @@
           - [x] volumeキー省略時は既存のVersion 1変換結果を維持する
           - [x] Version 1のvolume禁止に関するバリデーションテストを追加する
         - [x] Version 2のCH4でrest要素にvolumeが存在する入力をバリデーションエラーにする
-      - [ ] Version 2 note volume変換を検証する
+      - [x] Version 2 note volume変換を検証する
         - [x] volume省略と`volume: 0`の差を確認する
         - [x] CH1 / CH2 / CH3 / CH4で変換結果を確認する
       - [ ] Version 2 order / patternsの検証・内部表現を実装する
