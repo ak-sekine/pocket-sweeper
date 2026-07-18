@@ -2925,6 +2925,73 @@ class LoopValidationTests(unittest.TestCase):
             spec = json_to_uge.resolve_loop_boundaries(data, 2, matrix)
             self.assertEqual((spec.playback_start, spec.order_count, spec.start_order, spec.end_order), expected)
 
+    def resolved_data(self, channel_count, mode="full", start_order=None, order_count=3):
+        channels = json_to_uge.CHANNELS[:channel_count]
+        order = {}
+        patterns = {}
+        for channel in channels:
+            names = [f"{channel}_{index}" for index in range(order_count)]
+            order[channel] = names
+            patterns[channel] = {name: [] for name in names}
+        loop = {"mode": mode}
+        if mode == "range":
+            loop.update({"start_order": start_order, "end_order": order_count})
+        return {
+            "version": 2, "title": "resolved-loop", "type": "bgm", "tempo": 6,
+            "instruments": [], "order": order, "patterns": patterns, "loop": loop,
+        }
+
+    def assert_resolved_count_matches_loop(self, data, expected):
+        instruments = json_to_uge.validate_instruments(data)
+        _, order_matrix = json_to_uge.build_version_2_patterns(data, instruments)
+        self.assertEqual([len(orders) for orders in order_matrix], [expected] * 4)
+        spec = json_to_uge.resolve_loop_boundaries(data, 2, order_matrix)
+        self.assertEqual(spec.order_count, expected)
+        return spec
+
+    def test_all_used_channel_counts_share_completed_order_count(self):
+        for channel_count in range(1, 5):
+            with self.subTest(channel_count=channel_count):
+                spec = self.assert_resolved_count_matches_loop(
+                    self.resolved_data(channel_count), 3
+                )
+                self.assertEqual((spec.start_order, spec.end_order), (0, 3))
+
+    def test_completed_order_count_is_used_by_each_loop_mode(self):
+        for mode, start, expected_boundaries in (
+            ("full", None, (0, 3)),
+            ("range", 0, (0, 3)),
+            ("range", 2, (2, 3)),
+            ("none", None, (None, None)),
+        ):
+            with self.subTest(mode=mode, start=start):
+                data = self.resolved_data(1, mode, start)
+                spec = self.assert_resolved_count_matches_loop(data, 3)
+                self.assertEqual((spec.start_order, spec.end_order), expected_boundaries)
+
+    def test_range_end_order_must_match_completed_order_count_in_both_converters(self):
+        for end_order in (2, 4):
+            with self.subTest(end_order=end_order):
+                data = self.resolved_data(1, "range", 1)
+                data["loop"]["end_order"] = end_order
+                self.assert_both_reject(data)
+
+    def test_range_start_order_must_be_before_completed_end_order(self):
+        data = self.resolved_data(2, "range", 3)
+        self.assert_both_reject(data)
+
+    def test_resolve_loop_boundaries_rejects_invalid_order_matrices(self):
+        data = self.resolved_data(1)
+        cases = (
+            ([[], [], []], "channel count"),
+            ([[1, 2], [1], [1, 2], [1, 2]], "order count"),
+            ([[], [], [], []], "at least one"),
+        )
+        for matrix, label in cases:
+            with self.subTest(matrix=matrix, label=label):
+                with self.assertRaises(ValueError):
+                    json_to_uge.resolve_loop_boundaries(data, 2, matrix)
+
     def test_both_converters_accept_valid_loop_inputs(self):
         for mode, values in (("full", {}), ("none", {}), ("range", {"start_order": 1, "end_order": 2}), ("range", {"start_order": 0, "end_order": 2})):
             data = self.data(mode, values)

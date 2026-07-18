@@ -396,10 +396,10 @@
         - [x] UGEでの`full`、`range`、`none`の表現方法を確認する
         - [x] hUGEDriver用ASMでの全体ループ・部分ループ表現方法を確認する
         - [x] 非ループ再生後の停止、無音維持、終了通知の扱いを確認する
-      - [ ] Version 2 loopの検証・内部表現を実装する
+      - [x] Version 2 loopの検証・内部表現を実装する
         - [x] `loop.mode`、rangeの境界、SFX制約、未知のmodeを検証する
         - [x] ループ境界を全チャンネル共通のOrderMatrix位置へ反映する
-        - [ ] ループ範囲と未使用チャンネル補完後のorder数が一致することを確認する
+        - [x] ループ範囲と未使用チャンネル補完後のorder数が一致することを確認する
       - [ ] Version 2 loopをUGEへ反映する
       - [ ] Version 2 loopをhUGEDriver用ASMへ反映する
       - [ ] Version 2 loopの再生動作とVersion 1互換性を確認する
