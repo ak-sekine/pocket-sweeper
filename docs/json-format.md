@@ -1054,7 +1054,7 @@ Version 2のCH4 / Noise noteでInstrumentと`volume`を同じnoteに指定した
 | `down` | 0～7 | `$0`～`$7` |
 | `up` | 0～7 | `$8`～`$F` |
 
-従って、down / sweep 0、1、7はそれぞれ`x = 0`、`1`、`7`、up / sweep 0、1、7はそれぞれ`x = 8`、`9`、`F`となる。sweep 0でも方向bitは保持し、down / sweep 0とup / sweep 0を同一扱いにしない。Game BoyのNR42では両者の下位nibbleはそれぞれ`$0`と`$8`であり、hardware上はenvelope period 0を8として扱う。hUGETracker Effect Editorの「`x = 0`は現在のenvelopeを維持」「`x = 8`はenvelope off」という説明はCxyの入力支援上の説明だが、CH4の`fx_set_volume`はswap後の値全体をNR42へ直接書くため、CH4ではその説明どおりの保持・off動作にはならない。
+従って、down / sweep 0、1、7はそれぞれ`x = 0`、`1`、`7`、up / sweep 0、1、7はそれぞれ`x = 8`、`9`、`F`となる。down / sweep 0とup / sweep 0のNR42下位nibbleはそれぞれ`$0`と`$8`であり、どちらもsweep paceが0なので通常のenvelope変化は無効となる。ただし、対象InstrumentのNR42ビット列を忠実に反映するため、sweep 0でもdirection bitを維持し、両者を同じバイト値へ正規化しない。`x = 8`はhUGETracker Effect Editorの「envelope off」という説明とハードウェア動作が整合する。一方、`x = 0`の「現在のenvelopeを維持」という説明は、現在のenvelope下位nibbleを残すCH1 / CH2のdriver処理には当てはまるが、swap後の値全体でNR42を書き換えるCH4には当てはまらない。
 
 具体例:
 
