@@ -126,6 +126,58 @@ class Version2ChannelPatternTests(unittest.TestCase):
         self.assertEqual(numbered_matrix, [[0], [1], [2], [3]])
         self.assertEqual(numbered[1], json_to_uge.blank_pattern())
 
+    def test_version_2_asm_uses_channel_aware_pattern_numbers(self):
+        data = self.data(
+            {"pulse1": ["p1", "p1"], "pulse2": ["p2", "p3"],
+             "wave": ["p4", "p4"], "noise": ["p5", "p5"]},
+            {channel: {name: [] for name in names} for channel, names in {
+                "pulse1": ["p1"], "pulse2": ["p2", "p3"],
+                "wave": ["p4"], "noise": ["p5"],
+            }.items()},
+        )
+        asm = json_to_huge_asm.build_asm(data, "song")
+        self.assertIn("song_order1: dw song_P0,song_P0", asm)
+        self.assertIn("song_order2: dw song_P1,song_P2", asm)
+        self.assertIn("song_order3: dw song_P3,song_P3", asm)
+        self.assertIn("song_order4: dw song_P4,song_P4", asm)
+
+    def test_version_2_asm_reuses_same_pattern_and_emits_blank_patterns(self):
+        data = self.data(
+            {"pulse1": ["main", "main"]},
+            {"pulse1": {"main": []}},
+        )
+        asm = json_to_huge_asm.build_asm(data, "song")
+        self.assertIn("song_order1: dw song_P0,song_P0", asm)
+        self.assertIn("song_order2: dw song_P1,song_P1", asm)
+        self.assertIn("song_order3: dw song_P2,song_P2", asm)
+        self.assertIn("song_order4: dw song_P3,song_P3", asm)
+        for number in range(4):
+            start = asm.splitlines().index(f"song_P{number}:")
+            self.assertEqual(asm.splitlines()[start + 1], " dn ___,0,$000")
+            self.assertEqual(
+                asm.splitlines()[start + 1 : start + 65],
+                [" dn ___,0,$000"] * 64,
+            )
+
+    def test_version_2_asm_keeps_same_named_patterns_channel_local(self):
+        data = self.data(
+            {"pulse1": ["shared"], "pulse2": ["shared"]},
+            {
+                "pulse1": {"shared": [{"note": "C4", "length": 1, "instrument": 1}]},
+                "pulse2": {"shared": [{"note": "E4", "length": 1, "instrument": 2}]},
+            },
+        )
+        data["instruments"] = [
+            {"id": 1, "name": "p1", "channel": "pulse1"},
+            {"id": 2, "name": "p2", "channel": "pulse2"},
+        ]
+        asm = json_to_huge_asm.build_asm(data, "song")
+        lines = asm.splitlines()
+        self.assertIn("song_order1: dw song_P0", asm)
+        self.assertIn("song_order2: dw song_P1", asm)
+        self.assertEqual(lines[lines.index("song_P0:") + 1], " dn C_4,1,$000")
+        self.assertEqual(lines[lines.index("song_P1:") + 1], " dn E_4,2,$000")
+
     def test_version_2_uge_order_matrices_are_four_byte_and_uniform(self):
         data = self.data(
             {"pulse1": ["a", "a"], "pulse2": ["b", "c"]},
