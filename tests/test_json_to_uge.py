@@ -2072,6 +2072,27 @@ class Ch4AsmPatternTests(unittest.TestCase):
             " dn B_8,1,$000",
         ])
 
+    def test_note_volume_is_emitted_as_cxy(self) -> None:
+        lines = self.pattern_lines([
+            {"note": "C4", "length": 1, "instrument": 1, "volume": 0},
+            {"note": "C4", "length": 1, "instrument": 1, "volume": 5},
+            {"note": "C4", "length": 1, "instrument": 1, "volume": 15},
+        ])
+        self.assertEqual(lines[:3], [
+            " dn C_4,1,$C00",
+            " dn C_4,1,$C05",
+            " dn C_4,1,$C0F",
+        ])
+
+    def test_noise_volume_keeps_envelope_nibble_in_asm(self) -> None:
+        data = uge_noise_pattern_fixture(
+            [{"note": "C4", "length": 1, "instrument": 1, "volume": 5}],
+            [{"id": 1, "name": "noise", "channel": "noise", "envelope_direction": "up", "envelope_sweep": 2}],
+        )
+        lines = json_to_huge_asm.build_asm(data, "song").splitlines()
+        start = lines.index("song_P3:")
+        self.assertEqual(lines[start + 1], " dn C_4,1,$CA5")
+
     def test_rest_and_length_tail_are_empty_note_rows(self) -> None:
         lines = self.pattern_lines(
             [

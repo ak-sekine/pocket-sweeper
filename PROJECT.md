@@ -373,7 +373,7 @@
           - [x] noteのlength展開で生成される空行ではenvelope状態を変更しないことを決める
           - [x] Version 1のNoise変換へ影響を与えない方針を決める
         - [x] note volumeをUGEへ反映する
-        - [ ] note volumeをhUGEDriver用ASMへ反映する
+        - [x] note volumeをhUGEDriver用ASMへ反映する
         - [ ] Version 1のnoteにvolumeが存在する入力をバリデーションエラーにする
           - [ ] `volume: null`を含め、Version 1のnoteに`volume`キーが存在する場合にエラーにする
           - [ ] pulse1 / pulse2 / wave / noiseの各チャンネルで同じ禁止規則を適用する

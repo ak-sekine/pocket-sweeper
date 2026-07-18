@@ -38,7 +38,8 @@ def note_to_asm(note: int) -> str:
 
 
 def render_cell(cell: json_to_uge.Cell) -> str:
-    return f" dn {note_to_asm(cell.note)},{cell.instrument},$000"
+    effect = (cell.effect_code << 8) | cell.effect_param
+    return f" dn {note_to_asm(cell.note)},{cell.instrument},${effect:03X}"
 
 
 def render_order(label: str, order_matrix: list[list[int]]) -> list[str]:
