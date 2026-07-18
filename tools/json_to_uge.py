@@ -850,6 +850,28 @@ def validate_event_effect(event: dict[str, Any], path: str) -> None:
         fail(f"{path}.effect_param: only null is supported in the initial version")
 
 
+def note_volume_effect(
+    event: dict[str, Any],
+    path: str,
+    note: int,
+    channel: str | None,
+    instrument: int,
+    instruments: dict[str, dict[int, InstrumentSpec]] | None,
+) -> tuple[int, int]:
+    """Return the Cxy effect for an explicitly specified Version 2 note volume."""
+    if note == NO_NOTE or "volume" not in event or event["volume"] is None:
+        return 0, 0
+    volume = validate_range(expect_int(event["volume"], f"{path}.volume"), f"{path}.volume", 0, 15)
+    envelope = 0
+    if channel == "noise":
+        assert instruments is not None
+        spec = instruments["noise"][instrument]
+        envelope = spec.vol_sweep_amount
+        if spec.vol_sweep_direction == ST_UP:
+            envelope |= 0x8
+    return 0xC, (envelope << 4) | volume
+
+
 def build_channel_pattern(
     events: list[Any],
     path: str,
@@ -881,7 +903,17 @@ def build_channel_pattern(
         validate_event_effect(event, event_path)
 
         first_instrument = 0 if note == NO_NOTE else instrument
-        rows.append(Cell(note=note, instrument=first_instrument))
+        effect_code, effect_param = (0, 0)
+        if version == 2:
+            effect_code, effect_param = note_volume_effect(
+                event, event_path, note, channel, instrument, instruments
+            )
+        rows.append(Cell(
+            note=note,
+            instrument=first_instrument,
+            effect_code=effect_code,
+            effect_param=effect_param,
+        ))
         for _ in range(length - 1):
             rows.append(Cell())
         if len(rows) > PATTERN_ROWS:

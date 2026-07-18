@@ -1090,6 +1090,66 @@ def uge_noise_pattern_fixture(events: list[dict], instruments: list[dict]) -> di
     }
 
 
+class NoteVolumeUgeTests(unittest.TestCase):
+    def pulse_data(self, channel: str, volume: int | None = None, *, include_volume: bool = True) -> dict:
+        event = {"note": "C4", "length": 1, "instrument": 1}
+        if include_volume:
+            event["volume"] = volume
+        instrument = {"id": 1, "name": "pulse", "channel": channel}
+        return {
+            "version": 2, "title": "volume", "type": "bgm", "tempo": 6,
+            "instruments": [instrument], "order": ["main"],
+            "patterns": {"main": {"channels": {
+                "pulse1": [event] if channel == "pulse1" else [],
+                "pulse2": [event] if channel == "pulse2" else [],
+                "wave": [event] if channel == "wave" else [], "noise": [],
+            }}},
+        }
+
+    def cell(self, data: dict, channel_index: int) -> dict[str, int]:
+        return read_uge_pattern_cells(json_to_uge.build_uge(data))[channel_index * 1][0]
+
+    def test_pulse1_and_pulse2_use_c0y_and_not_uge_volume(self) -> None:
+        for channel, index in (("pulse1", 0), ("pulse2", 1)):
+            for volume in (0, 1, 15):
+                with self.subTest(channel=channel, volume=volume):
+                    cell = self.cell(self.pulse_data(channel, volume), index)
+                    self.assertEqual((cell["volume"], cell["effect_code"], cell["effect_param"]), (0, 0xC, volume))
+
+    def test_wave_preserves_all_volume_values_in_c0y(self) -> None:
+        data = self.pulse_data("wave", 15)
+        data["wave_tables"] = [{"name": "wave", "samples": [0] * 32}]
+        data["instruments"][0].update({"waveform": "wave", "output_level": "100%"})
+        for volume in range(16):
+            data["patterns"]["main"]["channels"]["wave"][0]["volume"] = volume
+            cell = self.cell(data, 2)
+            self.assertEqual((cell["volume"], cell["effect_code"], cell["effect_param"]), (0, 0xC, volume))
+
+    def test_noise_envelope_is_upper_nibble_and_zero_is_explicit(self) -> None:
+        for direction, high in (("down", 2), ("up", 0xA)):
+            data = uge_noise_pattern_fixture(
+                [{"note": "C4", "length": 1, "instrument": 1, "volume": 0}],
+                [{"id": 1, "name": "noise", "channel": "noise", "envelope_direction": direction, "envelope_sweep": 2}],
+            )
+            cell = read_uge_pattern_cells(json_to_uge.build_uge(data))[3][0]
+            self.assertEqual((cell["volume"], cell["effect_code"], cell["effect_param"]), (0, 0xC, high << 4))
+
+    def test_omitted_volume_and_expanded_rows_are_effect_free(self) -> None:
+        data = uge_noise_pattern_fixture(
+            [{"note": "C4", "length": 4, "instrument": 1, "volume": 5}],
+            [{"id": 1, "name": "noise", "channel": "noise"}],
+        )
+        cells = read_uge_pattern_cells(json_to_uge.build_uge(data))[3]
+        self.assertEqual((cells[0]["effect_code"], cells[0]["effect_param"]), (0xC, 5))
+        self.assertTrue(all((cell["effect_code"], cell["effect_param"]) == (0, 0) for cell in cells[1:]))
+        omitted = uge_noise_pattern_fixture(
+            [{"note": "C4", "length": 1, "instrument": 1}],
+            [{"id": 1, "name": "noise", "channel": "noise"}],
+        )
+        cell = read_uge_pattern_cells(json_to_uge.build_uge(omitted))[3][0]
+        self.assertEqual((cell["volume"], cell["effect_code"], cell["effect_param"]), (0, 0, 0))
+
+
 class WaveInstrumentValidationTests(unittest.TestCase):
     def validate(self, data: dict) -> json_to_uge.InstrumentSpec:
         return json_to_uge.validate_instruments(data)["wave"][1]
