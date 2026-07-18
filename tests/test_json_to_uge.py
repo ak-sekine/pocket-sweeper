@@ -2856,6 +2856,43 @@ class LoopValidationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             json_to_huge_asm.build_asm(data, "loop")
 
+    def test_loop_must_be_an_object(self):
+        for value in (None, [], "full", 1):
+            with self.subTest(loop=value):
+                data = self.data()
+                data["loop"] = value
+                self.assert_both_reject(data)
+
+    def test_range_end_order_type_is_validated_individually(self):
+        for value in (None, True, 2.0, "2"):
+            with self.subTest(end_order=value):
+                data = self.data("range", {"start_order": 0, "end_order": value})
+                self.assert_both_reject(data)
+
+    def test_range_start_order_greater_than_end_order(self):
+        data = self.data("range", {"start_order": 2, "end_order": 1})
+        data["order"]["pulse1"].append("c")
+        data["patterns"]["pulse1"]["c"] = []
+        self.assert_both_reject(data)
+
+    def test_none_forbids_start_order_and_both_boundaries(self):
+        for loop in (
+            {"mode": "none", "start_order": 0},
+            {"mode": "none", "start_order": 0, "end_order": 2},
+        ):
+            with self.subTest(loop=loop):
+                data = self.data(loop_overrides=loop)
+                self.assert_both_reject(data)
+
+    def test_full_forbids_each_boundary_individually(self):
+        for loop in (
+            {"mode": "full", "start_order": 0},
+            {"mode": "full", "end_order": 2},
+        ):
+            with self.subTest(loop=loop):
+                data = self.data(loop_overrides=loop)
+                self.assert_both_reject(data)
+
     def test_modes_and_internal_representation(self):
         for mode in ("full", "none"):
             spec = json_to_uge.validate_loop(self.data(mode), 2, 2)
