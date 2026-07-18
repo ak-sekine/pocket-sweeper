@@ -1392,6 +1392,21 @@ wave/noise未使用実装時の注意:
 - ラベル順、コメント、未使用データの配置など、再生に影響しない差分は許容する。
 - バイト単位またはテキスト単位での完全一致は必須としない。
 
+### Version 2 note volume追加時のVersion 1 Noise互換性方針
+
+Version 2のCH4 note `volume`を実装しても、Version 1のNoise変換結果と動作を変更しない。互換性の境界はJSONの`version`値で明示し、note `volume`の検証、内部表現、Cxy生成、およびそれに伴う空行補完はVersion 2の処理経路だけで行う。共通処理を変更する場合は、Version 1入力では従来と同じ値を渡す分岐または専用の互換経路を設け、Version 1の出力を固定する。
+
+Version 1で維持する出力は次のとおりとする。
+
+- Version 1のnoteに`volume`キーを追加しない。キーが存在する場合はVersion 1入力のバリデーションエラーとする。
+- UGEでは、従来のpattern cellのnote、Instrument、Volume、EffectCode、EffectParams.Value、および`length`展開後の空行を変更しない。Noise Instrument bankは15個の固定領域を維持し、Version 1のNoise Instrumentは名前を除き、`length=0`、`length_enable=false`、`initial_volume=15`、音量sweep下降、sweep量0、`counter_step=15bit`相当の既定値を維持する。未定義のNoise Instrumentも同じ既定値とする。
+- hUGEDriver用通常ASMでは、Version 1のpattern cellを従来どおり`dn <note>,<instrument>,$000`で出力し、effectは`$000`のままとする。`noise_instruments:`は従来どおり空のbankラベルとし、Version 2 Noise Instrument entryやCxyを追加しない。未使用channelの空patternも従来どおり`dn ___,0,$000`とする。
+- Version 1のNoise Instrumentを、Version 2のnote `volume`用のenvelope補完やInstrument 0解決の入力として扱わない。Version 2で必要な状態はVersion 2専用の内部表現で保持する。
+
+実装時は、まず入力Versionを取得し、Version 1では従来のnote変換、Instrument packing、pattern cell生成、空行補完、Noise bank生成をそのまま選択する。Version 2でのみ`volume`を検証し、UGEで表現できない場合の扱いを含めた方式と、hUGEDriver ASMのCxy生成を適用する。CxyはVersion 1のeffect出力へ遡及して追加しない。
+
+この方針の回帰確認では、既存のVersion 1 Noiseを含むJSON（`assets/se_cursor.json`およびNoiseを含む既存サンプル）から変更前後のUGEをバイト単位で比較し、通常ASMをテキスト単位で比較する。差分が出た場合は、再生に影響しない差分として許容する前に原因を特定する。さらに、Version 1 Noise BGM/SFXをテストROMまたはSameBoy等で再生し、note、音量envelope、7bit/15bit、length、再trigger、空行の挙動に変化がないことを確認する。これらの自動比較・再生確認は、note volume変換実装および検証の後続WBSで回帰テストとして追加する。
+
 
 ## 関連仕様
 
