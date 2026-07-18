@@ -622,7 +622,7 @@ def validate_wave_instrument(
         expect_optional_int(instrument.get("length"), f"{path}.length", 0),
         f"{path}.length",
         0,
-        255,
+        63,
     )
     length_enable = expect_optional_bool(
         instrument.get("length_enable"),

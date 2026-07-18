@@ -1567,14 +1567,14 @@ class WaveInstrumentValidationTests(unittest.TestCase):
             wave_data(
                 waveform="bass_wave",
                 output_level="50%",
-                length=255,
+                length=63,
                 length_enable=True,
             )
         )
         self.assertEqual(spec.waveform, "bass_wave")
         self.assertIsInstance(spec.waveform, str)
         self.assertEqual(spec.output_level, 2)
-        self.assertEqual(spec.length, 255)
+        self.assertEqual(spec.length, 63)
         self.assertTrue(spec.length_enable)
         self.assertEqual(spec.json_version, 2)
         self.assertEqual(spec.bank, "wave")
@@ -1607,7 +1607,7 @@ class WaveInstrumentValidationTests(unittest.TestCase):
             ("output_level", 1),
             ("output_level", "75%"),
             ("length", -1),
-            ("length", 256),
+            ("length", 64),
             ("length", True),
             ("length_enable", 1),
         )
@@ -1615,6 +1615,17 @@ class WaveInstrumentValidationTests(unittest.TestCase):
             with self.subTest(field=field, value=value):
                 with self.assertRaises(ValueError):
                     self.validate(wave_data(**{field: value}))
+
+    def test_version_2_wave_length_is_huge_tracker_compatible(self) -> None:
+        valid = wave_data_with_tables(["wave"], instruments=[{
+            "id": 1, "name": "wave", "channel": "wave", "waveform": "wave", "length": 63,
+        }])
+        self.assertEqual(self.validate(valid).length, 63)
+        with self.assertRaisesRegex(ValueError, r"length.*0.*63"):
+            invalid = wave_data_with_tables(["wave"], instruments=[{
+                "id": 1, "name": "wave", "channel": "wave", "waveform": "wave", "length": 64,
+            }])
+            self.validate(invalid)
 
     def test_version_2_wave_rejects_pulse_and_noise_only_fields(self) -> None:
         for field in (
@@ -2125,7 +2136,7 @@ class PackedWaveInstrumentTests(unittest.TestCase):
                     "channel": "wave",
                     "waveform": "pad_wave",
                     "output_level": "50%",
-                    "length": 173,
+                    "length": 63,
                     "length_enable": True,
                 }
             ],
@@ -2136,7 +2147,7 @@ class PackedWaveInstrumentTests(unittest.TestCase):
             {
                 "type": json_to_uge.IT_WAVE,
                 "name": "Wave Bass",
-                "length": 173,
+                "length": 63,
                 "length_enable": True,
                 "output_level": 2,
                 "waveform": 2,
@@ -2188,7 +2199,7 @@ class PackedWaveInstrumentTests(unittest.TestCase):
                     "name": "max",
                     "channel": "wave",
                     "waveform": "max_wave",
-                    "length": 255,
+                    "length": 63,
                     "length_enable": True,
                 },
             ],
@@ -2196,7 +2207,7 @@ class PackedWaveInstrumentTests(unittest.TestCase):
         packed = self.pack(data)
         self.assertEqual(read_wave_instrument(packed, 1)["length"], 0)
         self.assertFalse(read_wave_instrument(packed, 1)["length_enable"])
-        self.assertEqual(read_wave_instrument(packed, 2)["length"], 255)
+        self.assertEqual(read_wave_instrument(packed, 2)["length"], 63)
         self.assertTrue(read_wave_instrument(packed, 2)["length_enable"])
 
     def test_multiple_wave_instruments_keep_independent_values(self) -> None:
@@ -2264,14 +2275,14 @@ class WaveAsmInstrumentTests(unittest.TestCase):
                     "channel": "wave",
                     "waveform": "wave_5",
                     "output_level": "50%",
-                    "length": 173,
+                    "length": 63,
                     "length_enable": True,
                 }
             ]
         )
         self.assertEqual(
             json_to_huge_asm.wave_instrument_bytes(3, instruments),
-            (173, 0x40, 5, 0, 0, 0xC0),
+            (63, 0x40, 5, 0, 0, 0xC0),
         )
 
     def test_wave_instrument_rendering_preserves_field_order_and_boundaries(self) -> None:

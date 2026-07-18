@@ -38,7 +38,7 @@
       "channel": "wave",
       "waveform": "compare_wave",
       "output_level": "50%",
-      "length": 64,
+      "length": 63,
       "length_enable": true
     },
     {

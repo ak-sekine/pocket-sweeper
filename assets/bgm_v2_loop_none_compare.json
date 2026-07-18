@@ -7,7 +7,7 @@
   "instruments": [
     {"id": 1, "name": "none pulse", "channel": "pulse1", "duty": 2, "length": 12, "length_enable": true, "initial_volume": 11, "envelope_direction": "up", "envelope_sweep": 2, "sweep_time": 3, "sweep_direction": "up", "sweep_shift": 1},
     {"id": 2, "name": "none backing", "channel": "pulse2", "duty": 1, "length": 20, "length_enable": false, "initial_volume": 8, "envelope_direction": "down", "envelope_sweep": 3},
-    {"id": 1, "name": "none wave", "channel": "wave", "waveform": "none_wave", "output_level": "50%", "length": 64, "length_enable": true},
+    {"id": 1, "name": "none wave", "channel": "wave", "waveform": "none_wave", "output_level": "50%", "length": 63, "length_enable": true},
     {"id": 1, "name": "none noise", "channel": "noise", "length": 0, "length_enable": false, "initial_volume": 15, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "15bit"}
   ],
   "wave_tables": [{"name": "none_wave", "samples": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0]}],

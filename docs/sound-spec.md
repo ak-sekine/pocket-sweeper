@@ -520,10 +520,15 @@ full確認済み事実（2026-07-19）:
 - hUGETrackerで正常に開け、4チャンネル、order 0、row 63まで表示された。B effectはなかった。
 - Duty Instrument、Wave Instrument、Noise Instrument、Wave tableを表示でき、Routine 0～15は空だった。別名保存とRGBDS ASM Exportに成功した。
 - `tools/compare_huge_asm.py`で曲名プレフィックスを正規化し、P0～P3の64行、Routine、Instrumentをラベル表記から分離して比較した。
-- 生成ASMのWave Instrument 1は先頭値が`64`、Export ASMは`63`であり、単なるラベル表記差ではないため「再生動作に影響する不一致」と分類した。
+- 以前のfull比較では生成ASMのWave Instrument 1が`64`、Export ASMが`63`だった。これはhUGETracker互換範囲外の入力値を生成側が許可していたことによる差であり、Wave Instrument lengthの仕様を0～63へ修正したため、今後の正規入力では発生しない。64は使用不可とする。
 - Wave tableは生成側17行（272バイト）、Export側wave0 1行（16バイト）で、実バイト列の長さが異なるため同分類とした。原因（未使用wave tableの保存時省略か、生成データ差か）は推測であり、GUI聴感または仕様確認が必要である。
 - 生成UGEと保存後UGEは`cmp`で一致せず、差分は1バイト（オフセット21808、`0x40`対`0x3f`）だった。これはloop metadataのrow 63表現に対応する保存時正規化と推測できるが、意味影響の有無はhUGETrackerの内部仕様未確認である。
 - range / noneのGUI確認は未実施であり、対応するWBSと子WBSは未完了のままとする。
+
+Wave Instrument length仕様変更（確認済み）:
+
+- JSON、UGE生成、ASM生成で共通して0～63を許可し、64以上は入力エラーとする。
+- hUGETracker互換性維持のため、64をPocket Sweeper独自値として扱わない。
 
 ## 関連仕様
 
