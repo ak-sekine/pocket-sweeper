@@ -44,6 +44,70 @@ class UgePatternCellPackingTests(unittest.TestCase):
         self.assertEqual(empty[8:12], b"\x00\x00\x00\x00")
 
 
+class VersionCompatibilityTests(unittest.TestCase):
+    def version_1_data(self):
+        return {
+            "version": 1,
+            "title": "v1",
+            "type": "bgm",
+            "tempo": 6,
+            "instruments": [],
+            "order": ["main"],
+            "patterns": {"main": {"channels": {"pulse1": [], "pulse2": [], "wave": [], "noise": []}}},
+        }
+
+    def version_2_data(self):
+        return {
+            "version": 2,
+            "title": "v2",
+            "type": "bgm",
+            "tempo": 6,
+            "instruments": [],
+            "order": {"pulse1": ["main"]},
+            "patterns": {"pulse1": {"main": []}},
+        }
+
+    def test_all_existing_version_1_assets_convert_to_uge_and_asm(self):
+        for path in sorted((ROOT / "assets").glob("*.json")):
+            with self.subTest(path=path.name):
+                data = json.loads(path.read_text(encoding="utf-8"))
+                if data["version"] != 1:
+                    continue
+                json_to_uge.build_uge(data)
+                json_to_huge_asm.build_asm(data, path.stem)
+
+    def test_version_1_expands_one_common_order_to_four_channels(self):
+        _, matrix = json_to_uge.build_patterns(self.version_1_data())
+        self.assertEqual(matrix, [[0], [1], [2], [3]])
+
+    def test_mixed_order_shapes_are_rejected_for_both_versions(self):
+        cases = []
+        v1 = self.version_1_data()
+        v1["order"] = {"pulse1": ["main"]}
+        cases.append(v1)
+        v1 = self.version_1_data()
+        v1["patterns"] = {"pulse1": {"main": []}}
+        cases.append(v1)
+        v2 = self.version_2_data()
+        v2["order"] = ["main"]
+        cases.append(v2)
+        v2 = self.version_2_data()
+        v2["patterns"] = {"main": {"channels": {}}}
+        cases.append(v2)
+        v2 = self.version_2_data()
+        v2["patterns"] = {"pulse1": {"main": []}, "main": {"channels": {}}}
+        cases.append(v2)
+        v2 = self.version_2_data()
+        v2["order"] = ["main"]
+        cases.append(v2)
+        for data in cases:
+            with self.subTest(version=data["version"], order_type=type(data["order"]).__name__):
+                with self.assertRaises(ValueError):
+                    json_to_uge.build_uge(data)
+                with self.assertRaises(ValueError):
+                    json_to_huge_asm.build_asm(data, "mixed")
+
+
 class Version2ChannelPatternTests(unittest.TestCase):
     def data(self, order=None, patterns=None):
         return {
@@ -1279,17 +1343,8 @@ def uge_wave_fixture(wave_tables: list[dict] | None = None) -> dict:
         "type": "bgm",
         "tempo": 6,
         "instruments": [],
-        "order": ["main"],
-        "patterns": {
-            "main": {
-                "channels": {
-                    "pulse1": [],
-                    "pulse2": [],
-                    "wave": [],
-                    "noise": [],
-                }
-            }
-        },
+        "order": {"pulse1": ["main"]},
+        "patterns": {"pulse1": {"main": []}},
     }
     if wave_tables is not None:
         data["wave_tables"] = wave_tables
@@ -1381,17 +1436,8 @@ def uge_noise_pattern_fixture(events: list[dict], instruments: list[dict]) -> di
         "type": "bgm",
         "tempo": 6,
         "instruments": instruments,
-        "order": ["main"],
-        "patterns": {
-            "main": {
-                "channels": {
-                    "pulse1": [],
-                    "pulse2": [],
-                    "wave": [],
-                    "noise": events,
-                }
-            }
-        },
+        "order": {"noise": ["main"]},
+        "patterns": {"noise": {"main": events}},
     }
 
 
@@ -1403,12 +1449,8 @@ class NoteVolumeUgeTests(unittest.TestCase):
         instrument = {"id": 1, "name": "pulse", "channel": channel}
         return {
             "version": 2, "title": "volume", "type": "bgm", "tempo": 6,
-            "instruments": [instrument], "order": ["main"],
-            "patterns": {"main": {"channels": {
-                "pulse1": [event] if channel == "pulse1" else [],
-                "pulse2": [event] if channel == "pulse2" else [],
-                "wave": [event] if channel == "wave" else [], "noise": [],
-            }}},
+            "instruments": [instrument], "order": {channel: ["main"]},
+            "patterns": {channel: {"main": [event]}},
         }
 
     def cell(self, data: dict, channel_index: int) -> dict[str, int]:
@@ -1426,7 +1468,7 @@ class NoteVolumeUgeTests(unittest.TestCase):
         data["wave_tables"] = [{"name": "wave", "samples": [0] * 32}]
         data["instruments"][0].update({"waveform": "wave", "output_level": "100%"})
         for volume in range(16):
-            data["patterns"]["main"]["channels"]["wave"][0]["volume"] = volume
+            data["patterns"]["wave"]["main"][0]["volume"] = volume
             cell = self.cell(data, 2)
             self.assertEqual((cell["volume"], cell["effect_code"], cell["effect_param"]), (0, 0xC, volume))
 
@@ -2679,7 +2721,7 @@ class NoiseLengthNoRetriggerTests(unittest.TestCase):
 
     def test_repeated_same_note_has_two_trigger_candidate_rows(self) -> None:
         data = self.data(0)
-        data["patterns"]["main"]["channels"]["noise"] = [
+        data["patterns"]["noise"]["main"] = [
             {"note": "C4", "length": 2, "instrument": 1},
             {"note": "C4", "length": 2, "instrument": 1},
         ]

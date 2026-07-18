@@ -841,9 +841,7 @@ def validate_header(data: dict[str, Any]) -> None:
     tempo = expect_int(data.get("tempo"), "tempo")
     if tempo <= 0:
         fail("tempo: must be a positive integer")
-    if version == 1 or isinstance(data.get("order"), list):
-        # Keep the repository's pre-channel Version 2 fixtures working until
-        # the later UGE/ASM migration WBS replaces their output path.
+    if version == 1:
         expect_list(data.get("order"), "order")
         expect_dict(data.get("patterns"), "patterns")
     else:
@@ -944,7 +942,7 @@ def build_patterns(
     version = validate_json_version(data)
     if version == 2 and instruments is None:
         instruments = validate_instruments(data)
-    if version == 2 and isinstance(data.get("order"), dict):
+    if version == 2:
         return build_version_2_patterns(data, instruments)
 
     order = expect_list(data.get("order"), "order")
