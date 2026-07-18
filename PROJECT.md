@@ -393,7 +393,7 @@
       - [x] Version 2 order / patternsをhUGEDriver用ASMへ反映する
       - [x] Version 1 / Version 2のorder / pattern互換性を確認する
       - [ ] Version 2 loopの出力方式を確定する
-        - [ ] UGEでの`full`、`range`、`none`の表現方法を確認する
+        - [x] UGEでの`full`、`range`、`none`の表現方法を確認する
         - [ ] hUGEDriver用ASMでの全体ループ・部分ループ表現方法を確認する
         - [ ] 非ループ再生後の停止、無音維持、終了通知の扱いを確認する
       - [ ] Version 2 loopの検証・内部表現を実装する
