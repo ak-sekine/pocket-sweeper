@@ -988,6 +988,63 @@ effect parameterの扱い:
 - `1xy` Slide up、`2xy` Slide down、`3xy` Toneporta、`6xy` Call routine、`7xy` Note delay、`Bxy` Position jump、`Dxy` Pattern break、`Exy` Note cut、`Fxy` Set speedなどは `EffectParams.Value` の1バイト値として扱うことを確認した。
 - `4xy` Vibrato、`8xy` Set panning、`9xy` Set duty cycleはdriver-formatおよびhUGEDriverのjump table上に存在するが、パラメータの詳細説明は `src/utils.pas` の `EffectToExplanation` では確認できなかった。
 
+#### hUGEDriver用ASMのnote volume表現
+
+hUGETracker v1.0.11 Release commit `0623f3f`の公式ソース `src/codegen.pas`、`src/utils.pas`、`src/effecteditor.pas`、`src/effecteditor.lfm`と、本リポジトリの`include/hUGE.inc`、`src/hUGEDriver.asm`を照合し、通常patternのcell単位音量変更には`Cxy Set volume`を使用できることを確認した。
+
+通常pattern cellは3バイトで、`dn note,instrument,$EPP`により次の順で格納する。
+
+| byte | bit | 内容 |
+| --- | --- | --- |
+| 0 | bit 0～6 | note番号 |
+| 0 | bit 7 | Instrument番号のbit 4 |
+| 1 | bit 7～4 | Instrument番号のbit 3～0 |
+| 1 | bit 3～0 | effect code `E` |
+| 2 | bit 7～0 | effect parameter `PP` |
+
+例えば`C_4 = 12`、Instrument 1では、effectなしの`dn C_4,1,$000`が`0C 10 00`、音量0の`dn C_4,1,$C00`が`0C 1C 00`、音量1の`dn C_4,1,$C01`が`0C 1C 01`、音量15の`dn C_4,1,$C0F`が`0C 1C 0F`となる。effectなしと明示的な音量0は別のバイト列であり、hUGEDriverでも`000`はeffectなし、`C00`はSet volumeとして別処理になる。
+
+`Cxy`の下位nibble `y`は初期音量0～15、上位nibble `x`はenvelope指定である。hUGETrackerのEffect Editorでは`C - Set Volume`として2つの0～15 TrackBarから入力でき、patternには`Cxy`、RGBDS ASM Exportには`$Cxy`として出力される。公式UIの説明は次のとおりである。
+
+| `x` | 公式UI上の意味 |
+| --- | --- |
+| `0` | 現在のenvelopeを維持 |
+| `1`～`7` | envelope down、周期`x / 64 Hz` |
+| `8` | envelope off |
+| `9`～`F` | envelope up、周期`(x - 8) / 64 Hz` |
+
+hUGEDriverの`fx_set_volume`はparameterを`swap c`して、`y`をAPU音量の上位nibbleへ、`x`をenvelope側の下位nibbleへ配置し、tick 0だけで処理する。代表値の実際の解釈は次のとおりである。
+
+| parameter | swap後 | CH1 / CH2 | CH3 | CH4 |
+| --- | --- | --- | --- | --- |
+| `$00` | `$00` | 音量0、現在のenvelopeを維持 | mute | `NR42 = $00` |
+| `$01` | `$10` | 音量1、現在のenvelopeを維持 | 25% | `NR42 = $10` |
+| `$0F` | `$F0` | 音量15、現在のenvelopeを維持 | 100% | `NR42 = $F0` |
+| `$10` | `$01` | 音量0、現在のenvelope下位nibbleと`1`をOR | 25% | `NR42 = $01` |
+| `$F0` | `$0F` | 音量0、現在のenvelope下位nibbleと`F`をOR | 25% | `NR42 = $0F` |
+| `$FF` | `$FF` | 音量15、現在のenvelope下位nibbleと`F`をOR | 100% | `NR42 = $FF` |
+
+CH1 / CH2では、現在の`NR12` / `NR22`を読み、下位nibbleを残してswap後のparameterをORし、書き戻してnoteをretriggerする。このため`C0y`はInstrumentまたは直前状態のenvelopeを維持し、音量だけを0～15へ変更できる。`x`が0以外の場合、実装は現在の下位nibbleを置換せずORするため、既に立っているenvelope bitをクリアできない。CH1とCH2の差は対象レジスタとretrigger処理だけであり、CH1の周波数sweep設定は変更しない。
+
+CH3では、swap後の値を量子化して`NR32`へ書き、retriggerは行わない。JSON volumeを`C0y`へ対応させる場合のhUGEDriver実装上の対応は、`0 = mute`、`1～4 = 25%`、`5～9 = 50%`、`10～15 = 100%`である。Game BoyのCH3出力レベルがmute / 100% / 50% / 25%の4段階だけであるため、JSONの0～15を15段階のまま表現することはできない。この量子化はhUGEDriver本体に実装済みなのでASM向け変換規則として採用可能だが、異なるJSON値が同じ出力レベルになる。
+
+CH4では、swap後のparameter全体を`NR42`へ直接書いてnoteをretriggerする。従って`y`で音量0～15を指定できるが、CH1 / CH2と異なり`x = 0`でも現在のenvelopeを保持せず、envelope下位nibbleを0へ置き換える。Instrumentのenvelopeを維持するには、同じ行のInstrumentまたは追跡中の状態から`x`を求めて`Cxy`へ含める変換規則が必要である。
+
+tick 0の通常行処理では、valid noteとInstrumentがある場合にInstrumentの`initial_volume`とenvelopeを`NR12` / `NR22` / `NR32` / `NR42`へ先に書き、その後で同じcellのCxyを処理する。このため同じ行のCxyがInstrument値より優先される。noteなしの行でもCxyは処理され、CH1 / CH2 / CH4では現在のnoteをretriggerし、CH3では`NR32`だけを変更する。再生開始直後など有効な現在noteがない状態の聴感は保証しない。
+
+Cxy適用後は専用のソフトウェア音量状態ではなくAPUレジスタ値が維持される。effectなしのrest / 空行、pattern境界、order境界では変更されず、曲ループでも自動リセットされない。次にInstrument番号付きnoteを処理すると、そのInstrumentの音量とenvelopeで先に上書きされる。同じInstrument番号を再指定したnoteでも再ロードされる。Instrument 0のnoteはInstrumentを再ロードしないため現在状態を維持する。ループ後はループ先のInstrumentまたはCxyが再度処理された時点でその値へ変わる。`hUGE_init`を呼び直した場合はdriver内部状態が初期化されるため、曲中の境界とは別に扱う。
+
+以上から、現在のJSON仕様はhUGEDriver用ASMに対して次のように評価する。
+
+| チャンネル | 対応可否 |
+| --- | --- |
+| CH1 / Pulse1 | `volume`省略時はeffectなし、0～15は`C0y`とすれば、そのまま実現可能。Instrument envelopeは維持される。 |
+| CH2 / Pulse2 | CH1と同じ方法で、そのまま実現可能。 |
+| CH3 / Wave | `C0y`へ変換可能だが4段階へ量子化されるため、0～15を完全には実現できない。hUGEDriver既定の境界を変換規則として使用する。 |
+| CH4 / Noise | 0～15の音量自体は表現できるが、Instrumentまたは直前のenvelopeを維持するには`x`を補完する状態追跡規則が必要。 |
+
+UGE出力では通常patternの`TCellV2.Volume`を使用せず、`EffectCode = $C`と`EffectParams.Value = xy`を設定してCxyとしてExportさせる必要がある。JSONのvolume省略または`null`はeffectを追加せず、`volume: 0`は`C00`など対象チャンネルに必要なenvelope nibbleを含むCxyへ変換することで区別する。具体的なUGE / ASM生成実装は後続WBSで行う。
+
 JSON側で採用するeffect表記:
 
 - effect未使用は `effect: null`、`effect_param: null` とする。
@@ -1226,7 +1283,7 @@ wave/noise未使用実装時の注意:
 
 - 非null effectを実装対象に追加する場合、各effectのチャンネル制約、tick上の挙動、parameterの意味を個別に確認する。
 - noteの `volume` をSong Version 6の通常patternにある`TCellV2.Volume`へ単純変換できないことを踏まえ、`.uge`での代替表現を決める。
-- noteの `volume` をhUGEDriver用ASMへ変換する方法を、hUGETracker Export ASMと照合して確認する。
+- noteの `volume` はhUGEDriver用ASMでCxyへ変換する。CH4のenvelope状態追跡を含む具体的な生成方法は後続WBSで実装する。
 - volume省略と `volume: 0` が別の結果になることを確認する。
 - CH1 / CH2 / CH3 / CH4でvolume指定の変換結果を確認する。
 - hUGETracker Export ASMと比較して、volume変換による再生上の差異がないことを確認する。
