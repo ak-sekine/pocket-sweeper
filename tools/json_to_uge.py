@@ -1006,6 +1006,32 @@ def build_version_2_patterns(
     if not used_channels:
         fail("order/patterns: at least one channel is required")
 
+    # Only channels with an order are used channels.  The first channel in the
+    # fixed channel order is the reference for the common order count.
+    order_channels = [channel for channel in CHANNELS if channel in order_obj]
+    if not order_channels:
+        fail("order/patterns: at least one channel order is required")
+    order_values = {
+        channel: expect_list(order_obj[channel], f"order.{channel}")
+        for channel in order_channels
+    }
+    reference_channel = order_channels[0]
+    order_count = len(order_values[reference_channel])
+    mismatched = {
+        channel: len(values)
+        for channel, values in order_values.items()
+        if len(values) != order_count
+    }
+    if mismatched:
+        details = ", ".join(
+            f"{channel}={length}"
+            for channel, length in ((reference_channel, order_count), *mismatched.items())
+        )
+        fail(
+            "order: order count must match across used channels "
+            f"(reference {reference_channel}={order_count}; {details})"
+        )
+
     resolved: dict[tuple[str, str], list[Cell]] = {}
     order_matrix: list[list[tuple[str, str]]] = [[] for _ in CHANNELS]
     for channel in used_channels:
@@ -1026,7 +1052,7 @@ def build_version_2_patterns(
                 )
             continue
 
-        channel_order = expect_list(channel_order, f"order.{channel}")
+        channel_order = order_values[channel]
         if not channel_order:
             fail(f"order.{channel}: at least one pattern name is required")
         if channel_patterns is None:
@@ -1054,6 +1080,18 @@ def build_version_2_patterns(
                     f"is not defined in patterns.{channel}"
                 )
             order_matrix[channel_index].append(key)
+    # Add a channel-local, non-user-addressable blank pattern for each channel
+    # without an order.  Keeping the channel in the key prevents collisions
+    # with user pattern names and leaves a uniform four-channel matrix for the
+    # later UGE/ASM conversion stages.
+    for channel in CHANNELS:
+        if channel in order_obj:
+            continue
+        blank_key = (channel, "\x00pocket-sweeper-blank")
+        while blank_key in resolved:
+            blank_key = (channel, blank_key[1] + "_")
+        resolved[blank_key] = blank_pattern()
+        order_matrix[CHANNELS.index(channel)] = [blank_key] * order_count
     return resolved, order_matrix
 
 

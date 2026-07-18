@@ -60,7 +60,9 @@ class Version2ChannelPatternTests(unittest.TestCase):
         patterns, matrix = json_to_uge.build_patterns(self.data())
         self.assertIn(("pulse1", "main"), patterns)
         self.assertEqual(matrix[0], [("pulse1", "main")])
-        self.assertEqual(matrix[1:], [[], [], []])
+        self.assertEqual([len(row) for row in matrix], [1, 1, 1, 1])
+        for row in matrix[1:]:
+            self.assertEqual(patterns[row[0]], json_to_uge.blank_pattern())
 
     def test_all_channels_have_independent_orders_and_patterns(self):
         order = {channel: ["main"] for channel in json_to_uge.CHANNELS}
@@ -83,9 +85,32 @@ class Version2ChannelPatternTests(unittest.TestCase):
         order = {"pulse1": ["main"], "pulse2": ["main"]}
         definitions = {"pulse1": {"main": []}, "pulse2": {"main": []}}
         patterns, matrix = json_to_uge.build_patterns(self.data(order, definitions))
-        self.assertEqual(set(patterns), {("pulse1", "main"), ("pulse2", "main")})
+        self.assertIn(("pulse1", "main"), patterns)
+        self.assertIn(("pulse2", "main"), patterns)
         self.assertEqual(matrix[0], [("pulse1", "main")])
         self.assertEqual(matrix[1], [("pulse2", "main")])
+
+    def test_order_count_mismatch_reports_channels_and_counts(self):
+        data = self.data(
+            {"pulse1": ["a", "b"], "wave": ["a"]},
+            {"pulse1": {"a": [], "b": []}, "wave": {"a": []}},
+        )
+        with self.assertRaisesRegex(ValueError, r"pulse1.*2.*wave.*1"):
+            json_to_uge.build_patterns(data)
+
+    def test_two_and_three_used_channels_pad_the_rest(self):
+        for used in (2, 3):
+            order = {channel: ["main", "main"] for channel in json_to_uge.CHANNELS[:used]}
+            patterns_json = {channel: {"main": []} for channel in order}
+            patterns, matrix = json_to_uge.build_patterns(self.data(order, patterns_json))
+            self.assertEqual([len(row) for row in matrix], [2] * 4)
+            for index in range(used, 4):
+                self.assertTrue(all(patterns[key] == json_to_uge.blank_pattern() for key in matrix[index]))
+
+    def test_explicit_empty_order_is_rejected(self):
+        data = self.data({"pulse1": []}, {"pulse1": {}})
+        with self.assertRaisesRegex(ValueError, r"order\.pulse1"):
+            json_to_uge.build_patterns(data)
 
     def test_version_2_structure_and_types_are_validated(self):
         cases = [
