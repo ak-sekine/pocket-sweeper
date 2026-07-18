@@ -9,6 +9,7 @@ import json_to_uge
 
 
 NOTE_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
+SONG_DESCRIPTOR_BASE_SIZE = 1 + 2 + (2 * 4) + (2 * 3) + 2 + 2
 
 
 def fail(message: str) -> None:

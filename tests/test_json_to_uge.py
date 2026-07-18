@@ -3079,6 +3079,22 @@ class Version2UgeLoopOutputTests(unittest.TestCase):
         self.assertIn("dn ___,0,$B01", asm)
         self.assertEqual(asm.count("$B01"), 1)
 
+    def test_v2_metadata_pointer_is_at_descriptor_offset_21(self):
+        asm = json_to_huge_asm.build_asm(self.data("range", 1), "song")
+        lines = asm.splitlines()
+        label = lines.index("song::")
+        end = lines.index("", label + 1)
+        descriptor = lines[label + 1 : end]
+        self.assertEqual(json_to_huge_asm.SONG_DESCRIPTOR_BASE_SIZE, 21)
+        self.assertEqual(descriptor[-1], "dw song_loop_metadata")
+        self.assertEqual(descriptor[-1], "dw song_loop_metadata")
+        self.assertEqual(1 + 2 + 8 + 6 + 2 + 2, 21)
+
+    def test_v2_metadata_values_are_encoded_for_each_mode(self):
+        for mode, expected in (("full", "0,1,63"), ("range", "1,1,63"), ("none", "2,1,63")):
+            asm = json_to_huge_asm.build_asm(self.data(mode, 0) if mode == "range" else self.data(mode), "song")
+            self.assertIn(f"song_loop_metadata: db {expected}", asm)
+
     def test_asm_range_start_one_and_shared_pattern_isolated(self):
         data = self.data("range", 1, order_count=2)
         data["order"]["pulse1"] = ["p0", "p0"]

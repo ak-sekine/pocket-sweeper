@@ -170,6 +170,8 @@ hUGE_init::
     xor a
     ld [hUGE_loop_mode], a
     ld [hUGE_bgm_finished_flag], a
+    ld a, PATTERN_LENGTH - 1
+    ld [hUGE_final_row], a
     ld a, [hl+] ; tempo
     ld [ticks_per_row], a
 
@@ -263,7 +265,7 @@ hUGE_init_v2::
     push hl
     call hUGE_init
     pop hl
-    ld bc, 19
+    ld bc, HUGE_SONG_DESCRIPTOR_BASE_SIZE
     add hl, bc
     ld a, [hl+]
     ld e, a
@@ -1884,8 +1886,11 @@ ENDC
     ;; Increment row.
     ld a, [row]
     inc a
-    cp PATTERN_LENGTH
-    jr nz, .noreset
+    ld b, a
+    ld a, [hUGE_final_row]
+    inc a
+    cp b
+    jr nz, .keep_row
 
     ld a, [hUGE_loop_mode]
     cp 2
@@ -1902,6 +1907,7 @@ ENDC
 .continue_order:
 
     ld b, 0
+    jr .neworder
 .neworder:
 IF DEF(PREVIEW_MODE)
     ld a, [loop_order]
@@ -1928,6 +1934,9 @@ ENDC
     call load_patterns
 
     ld a, b
+.keep_row:
+    ld a, b
+    jr .noreset
 .noreset:
     ld [row], a
 

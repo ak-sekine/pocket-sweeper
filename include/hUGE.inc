@@ -83,4 +83,8 @@ DEF LAST_NOTE EQU 72
 DEF ___ EQU 90 ; the default "no note" value
 DEF NO_NOTE EQU ___
 
+;; Bytes from a song descriptor start through its Version 1-compatible fields.
+;; Version 2 appends its loop-metadata pointer immediately after this prefix.
+DEF HUGE_SONG_DESCRIPTOR_BASE_SIZE EQU 1 + 2 + (2 * 4) + (2 * 3) + 2 + 2
+
 ENDC
