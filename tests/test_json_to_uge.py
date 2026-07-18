@@ -90,6 +90,24 @@ class Version2ChannelPatternTests(unittest.TestCase):
         self.assertEqual(matrix[0], [("pulse1", "main")])
         self.assertEqual(matrix[1], [("pulse2", "main")])
 
+    def test_same_name_in_different_channels_keeps_independent_contents(self):
+        order = {"pulse1": ["shared"], "pulse2": ["shared"]}
+        definitions = {
+            "pulse1": {"shared": [{"note": "C4", "length": 1, "instrument": 1}]},
+            "pulse2": {"shared": [{"note": "E4", "length": 1, "instrument": 2}]},
+        }
+        data = self.data(order, definitions)
+        data["instruments"] = [
+            {"id": 1, "name": "pulse1 test", "channel": "pulse1"},
+            {"id": 2, "name": "pulse2 test", "channel": "pulse2"},
+        ]
+        patterns, matrix = json_to_uge.build_patterns(data)
+        self.assertEqual(matrix[0], [("pulse1", "shared")])
+        self.assertEqual(matrix[1], [("pulse2", "shared")])
+        self.assertEqual(patterns[("pulse1", "shared")][0].note, json_to_uge.parse_note("C4", "test"))
+        self.assertEqual(patterns[("pulse2", "shared")][0].note, json_to_uge.parse_note("E4", "test"))
+        self.assertNotEqual(patterns[("pulse1", "shared")], patterns[("pulse2", "shared")])
+
     def test_order_count_mismatch_reports_channels_and_counts(self):
         data = self.data(
             {"pulse1": ["a", "b"], "wave": ["a"]},
