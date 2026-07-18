@@ -403,7 +403,7 @@
       - [x] Version 2 loopをUGEへ反映する
       - [x] Version 2 loopをhUGEDriver用ASMへ反映する
       - [ ] Version 2 loopの再生動作とVersion 1互換性を確認する
-        - [ ] Version 1の既存ループ動作を維持する
+        - [x] Version 1の既存ループ動作を維持する
         - [ ] Version 2のloop構造をhUGETracker Export ASMまたは実際の再生結果と比較する
       - [ ] JSON変換ツールのVersion 2総合確認を行う
         - [ ] Version 1 JSONの互換動作を確認する

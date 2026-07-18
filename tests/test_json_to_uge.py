@@ -91,6 +91,39 @@ class VersionCompatibilityTests(unittest.TestCase):
         _, matrix = json_to_uge.build_patterns(self.version_1_data())
         self.assertEqual(matrix, [[0], [1], [2], [3]])
 
+    def version_1_multi_order_data(self):
+        data = self.version_1_data()
+        data["order"] = ["main", "second"]
+        data["patterns"]["second"] = {
+            "channels": {channel: [] for channel in json_to_uge.CHANNELS}
+        }
+        return data
+
+    def test_version_1_multi_order_keeps_legacy_order_matrix_and_filler(self):
+        data = self.version_1_multi_order_data()
+        _, matrix = json_to_uge.build_patterns(data)
+        self.assertEqual(matrix, [[0, 4], [1, 5], [2, 6], [3, 7]])
+        _, uge_matrix = read_uge_patterns_and_order_matrix(json_to_uge.build_uge(data))
+        self.assertEqual(uge_matrix, [[0, 4, 0], [1, 5, 0], [2, 6, 0], [3, 7, 0]])
+
+    def test_version_1_asm_keeps_legacy_descriptor_without_loop_metadata(self):
+        asm = json_to_huge_asm.build_asm(self.version_1_multi_order_data(), "legacy")
+        self.assertNotIn("loop_metadata", asm)
+        self.assertNotIn("hUGE_init_v2", asm)
+        self.assertIn("legacy_order_cnt: db 4", asm)
+        self.assertIn("legacy_order1: dw legacy_P0,legacy_P4", asm)
+        self.assertIn("legacy_order2: dw legacy_P1,legacy_P5", asm)
+        self.assertIn("legacy_order3: dw legacy_P2,legacy_P6", asm)
+        self.assertIn("legacy_order4: dw legacy_P3,legacy_P7", asm)
+
+    def test_version_1_loop_field_is_rejected_and_not_mixed(self):
+        data = self.version_1_multi_order_data()
+        data["loop"] = {"mode": "full"}
+        with self.assertRaises(ValueError):
+            json_to_uge.build_uge(data)
+        with self.assertRaises(ValueError):
+            json_to_huge_asm.build_asm(data, "legacy")
+
     def test_mixed_order_shapes_are_rejected_for_both_versions(self):
         cases = []
         v1 = self.version_1_data()
