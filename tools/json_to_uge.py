@@ -831,7 +831,7 @@ def validate_instruments(
 
 
 def validate_header(data: dict[str, Any]) -> None:
-    validate_json_version(data)
+    version = validate_json_version(data)
     expect_string(data.get("title"), "title")
     song_type = expect_string(data.get("type"), "type")
     if song_type not in ("bgm", "sfx"):
@@ -839,8 +839,14 @@ def validate_header(data: dict[str, Any]) -> None:
     tempo = expect_int(data.get("tempo"), "tempo")
     if tempo <= 0:
         fail("tempo: must be a positive integer")
-    expect_list(data.get("order"), "order")
-    expect_dict(data.get("patterns"), "patterns")
+    if version == 1 or isinstance(data.get("order"), list):
+        # Keep the repository's pre-channel Version 2 fixtures working until
+        # the later UGE/ASM migration WBS replaces their output path.
+        expect_list(data.get("order"), "order")
+        expect_dict(data.get("patterns"), "patterns")
+    else:
+        expect_dict(data.get("order"), "order")
+        expect_dict(data.get("patterns"), "patterns")
 
 
 def validate_event_effect(event: dict[str, Any], path: str) -> None:
@@ -936,6 +942,9 @@ def build_patterns(
     version = validate_json_version(data)
     if version == 2 and instruments is None:
         instruments = validate_instruments(data)
+    if version == 2 and isinstance(data.get("order"), dict):
+        return build_version_2_patterns(data, instruments)
+
     order = expect_list(data.get("order"), "order")
     patterns_json = expect_dict(data.get("patterns"), "patterns")
     if not order:
@@ -970,6 +979,82 @@ def build_patterns(
             order_matrix[channel_index].append(pattern_key)
 
     return patterns, order_matrix
+
+
+def build_version_2_patterns(
+    data: dict[str, Any],
+    instruments: dict[str, dict[int, InstrumentSpec]],
+) -> tuple[dict[tuple[str, str], list[Cell]], list[list[tuple[str, str]]]]:
+    """Validate and resolve Version 2's channel-local pattern namespace.
+
+    The tuple key is intentional: ``(channel, pattern_name)`` prevents equal
+    names in different channels from becoming the same internal pattern.
+    Order-length matching and unused-channel padding belong to a later WBS.
+    """
+    order_obj = expect_dict(data.get("order"), "order")
+    patterns_obj = expect_dict(data.get("patterns"), "patterns")
+    allowed = set(CHANNELS)
+
+    for root_name, root in (("order", order_obj), ("patterns", patterns_obj)):
+        for channel in root:
+            if channel not in allowed:
+                fail(f"{root_name}.{channel}: unknown channel")
+            if not isinstance(channel, str):
+                fail(f"{root_name}: channel name must be a string")
+
+    used_channels = set(order_obj) | set(patterns_obj)
+    if not used_channels:
+        fail("order/patterns: at least one channel is required")
+
+    resolved: dict[tuple[str, str], list[Cell]] = {}
+    order_matrix: list[list[tuple[str, str]]] = [[] for _ in CHANNELS]
+    for channel in used_channels:
+        channel_order = order_obj.get(channel)
+        channel_patterns = patterns_obj.get(channel)
+        if channel_order is None:
+            # Pattern-only channels are explicitly allowed as unreferenced data.
+            channel_patterns = expect_dict(channel_patterns, f"patterns.{channel}")
+            for name, events in channel_patterns.items():
+                pattern_path = f"patterns.{channel}.{name}"
+                if not isinstance(name, str):
+                    fail(f"patterns.{channel}: pattern name must be a string")
+                if not name:
+                    fail(f"{pattern_path}: pattern name must not be empty")
+                event_list = expect_list(events, pattern_path)
+                resolved[(channel, name)] = build_channel_pattern(
+                    event_list, pattern_path, 2, channel, instruments
+                )
+            continue
+
+        channel_order = expect_list(channel_order, f"order.{channel}")
+        if not channel_order:
+            fail(f"order.{channel}: at least one pattern name is required")
+        if channel_patterns is None:
+            fail(f"order.{channel}: patterns.{channel} is required")
+        channel_patterns = expect_dict(channel_patterns, f"patterns.{channel}")
+        for name, events in channel_patterns.items():
+            pattern_path = f"patterns.{channel}.{name}"
+            if not isinstance(name, str):
+                fail(f"patterns.{channel}: pattern name must be a string")
+            if not name:
+                fail(f"{pattern_path}: pattern name must not be empty")
+            event_list = expect_list(events, pattern_path)
+            resolved[(channel, name)] = build_channel_pattern(
+                event_list, pattern_path, 2, channel, instruments
+            )
+        channel_index = CHANNELS.index(channel)
+        for index, name_value in enumerate(channel_order):
+            name = expect_string(name_value, f"order.{channel}[{index}]")
+            if not name:
+                fail(f"order.{channel}[{index}]: pattern name must not be empty")
+            key = (channel, name)
+            if key not in resolved:
+                fail(
+                    f"order.{channel}[{index}]: pattern '{name}' "
+                    f"is not defined in patterns.{channel}"
+                )
+            order_matrix[channel_index].append(key)
+    return resolved, order_matrix
 
 
 def pack_instrument(

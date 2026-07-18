@@ -44,6 +44,62 @@ class UgePatternCellPackingTests(unittest.TestCase):
         self.assertEqual(empty[8:12], b"\x00\x00\x00\x00")
 
 
+class Version2ChannelPatternTests(unittest.TestCase):
+    def data(self, order=None, patterns=None):
+        return {
+            "version": 2,
+            "title": "channel patterns",
+            "type": "bgm",
+            "tempo": 6,
+            "instruments": [],
+            "order": order if order is not None else {"pulse1": ["main"]},
+            "patterns": patterns if patterns is not None else {"pulse1": {"main": []}},
+        }
+
+    def test_one_channel_is_resolved(self):
+        patterns, matrix = json_to_uge.build_patterns(self.data())
+        self.assertIn(("pulse1", "main"), patterns)
+        self.assertEqual(matrix[0], [("pulse1", "main")])
+        self.assertEqual(matrix[1:], [[], [], []])
+
+    def test_all_channels_have_independent_orders_and_patterns(self):
+        order = {channel: ["main"] for channel in json_to_uge.CHANNELS}
+        definitions = {channel: {"main": []} for channel in json_to_uge.CHANNELS}
+        patterns, matrix = json_to_uge.build_patterns(self.data(order, definitions))
+        self.assertEqual(set(patterns), {(channel, "main") for channel in json_to_uge.CHANNELS})
+        self.assertEqual([row[0] for row in matrix], [(channel, "main") for channel in json_to_uge.CHANNELS])
+
+    def test_missing_order_reference_is_descriptive(self):
+        data = self.data({"pulse1": ["missing"]}, {"pulse1": {"main": []}})
+        with self.assertRaisesRegex(ValueError, r"order\.pulse1\[0\].*missing.*patterns\.pulse1"):
+            json_to_uge.build_patterns(data)
+
+    def test_empty_pattern_name_is_rejected(self):
+        data = self.data({"pulse1": [""]}, {"pulse1": {"": []}})
+        with self.assertRaisesRegex(ValueError, "pattern name must not be empty"):
+            json_to_uge.build_patterns(data)
+
+    def test_same_name_in_different_channels_is_namespaced(self):
+        order = {"pulse1": ["main"], "pulse2": ["main"]}
+        definitions = {"pulse1": {"main": []}, "pulse2": {"main": []}}
+        patterns, matrix = json_to_uge.build_patterns(self.data(order, definitions))
+        self.assertEqual(set(patterns), {("pulse1", "main"), ("pulse2", "main")})
+        self.assertEqual(matrix[0], [("pulse1", "main")])
+        self.assertEqual(matrix[1], [("pulse2", "main")])
+
+    def test_version_2_structure_and_types_are_validated(self):
+        cases = [
+            ({"pulse1": "main"}, {"pulse1": {"main": []}}),
+            ({"pulse1": ["main"]}, {"pulse1": {"main": {}}}),
+            ({"pulse1": ["main"]}, {"pulse1": {"main": ["not an event"]}}),
+            ({"pulse1": [1]}, {"pulse1": {"main": []}}),
+        ]
+        for order, patterns in cases:
+            with self.subTest(order=order, patterns=patterns):
+                with self.assertRaises(ValueError):
+                    json_to_uge.build_patterns(self.data(order, patterns))
+
+
 def pulse_data(version: int = 2, channel: str = "pulse1") -> dict:
     return {
         "version": version,
