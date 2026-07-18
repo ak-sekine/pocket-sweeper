@@ -5,7 +5,7 @@ import json
 import re
 import struct
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -1200,6 +1200,59 @@ def assign_version_2_pattern_numbers(
     return numbered_patterns, numbered_orders
 
 
+def apply_version_2_loop_effect(
+    patterns: dict[tuple[str, str], list[Cell]],
+    order_matrix: list[list[tuple[str, str]]],
+    loop: LoopSpec | None,
+) -> tuple[dict[tuple[str, str], list[Cell]], list[list[tuple[str, str]]]]:
+    """Add the UGE-only range-loop jump before shared pattern numbering."""
+    if loop is None or loop.mode != "range":
+        return patterns, order_matrix
+    if loop.start_order is None or loop.start_order > 127:
+        fail("loop.start_order: UGE position jump target must be in the range 0..127")
+
+    final_order = loop.order_count - 1
+    ch1_index = CHANNELS.index("pulse1")
+    source_key = order_matrix[ch1_index][final_order]
+    source_pattern = patterns[source_key]
+    final_cell = source_pattern[PATTERN_ROWS - 1]
+    if final_cell.effect_code != 0:
+        fail(
+            "loop.range: final order CH1 row 63 already has an effect; "
+            "the loop B effect cannot overwrite it"
+        )
+
+    shared_before = any(
+        key == source_key
+        for channel_orders in order_matrix
+        for key in channel_orders[:final_order]
+    )
+    target_key = source_key
+    if shared_before:
+        suffix = "\x00pocket-sweeper-loop"
+        target_key = (source_key[0], source_key[1] + suffix)
+        while target_key in patterns:
+            suffix += "_"
+            target_key = (source_key[0], source_key[1] + suffix)
+        patterns = dict(patterns)
+        patterns[target_key] = list(source_pattern)
+    else:
+        patterns = dict(patterns)
+        patterns[target_key] = list(source_pattern)
+
+    updated_cell = replace(
+        final_cell,
+        effect_code=0xB,
+        effect_param=loop.start_order + 1,
+    )
+    updated_pattern = list(patterns[target_key])
+    updated_pattern[PATTERN_ROWS - 1] = updated_cell
+    patterns[target_key] = updated_pattern
+    order_matrix = [list(channel_orders) for channel_orders in order_matrix]
+    order_matrix[ch1_index][final_order] = target_key
+    return patterns, order_matrix
+
+
 def pack_instrument(
     type_: int,
     name: str,
@@ -1401,6 +1454,7 @@ def build_uge(data: dict[str, Any]) -> bytes:
     patterns, order_matrix = build_patterns(data, instruments)
     loop = resolve_loop_boundaries(data, json_version, order_matrix)
     if json_version == 2:
+        patterns, order_matrix = apply_version_2_loop_effect(patterns, order_matrix, loop)
         patterns, order_matrix = assign_version_2_pattern_numbers(patterns, order_matrix)
 
     output = bytearray()

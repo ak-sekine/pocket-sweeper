@@ -400,7 +400,7 @@
         - [x] `loop.mode`、rangeの境界、SFX制約、未知のmodeを検証する
         - [x] ループ境界を全チャンネル共通のOrderMatrix位置へ反映する
         - [x] ループ範囲と未使用チャンネル補完後のorder数が一致することを確認する
-      - [ ] Version 2 loopをUGEへ反映する
+      - [x] Version 2 loopをUGEへ反映する
       - [ ] Version 2 loopをhUGEDriver用ASMへ反映する
       - [ ] Version 2 loopの再生動作とVersion 1互換性を確認する
         - [ ] Version 1の既存ループ動作を維持する

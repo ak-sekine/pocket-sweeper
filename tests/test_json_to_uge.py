@@ -3035,5 +3035,79 @@ class LoopValidationTests(unittest.TestCase):
         self.assert_both_reject(data)
 
 
+class Version2UgeLoopOutputTests(unittest.TestCase):
+    def data(self, mode="full", start_order=None, order_count=2, events=None, channel="pulse1"):
+        events = [] if events is None else events
+        names = [f"p{index}" for index in range(order_count)]
+        loop = {"mode": mode}
+        if mode == "range":
+            loop.update({"start_order": start_order, "end_order": order_count})
+        return {
+            "version": 2, "title": "loop output", "type": "bgm", "tempo": 6,
+            "instruments": [{"id": 1, "name": "pulse", "channel": channel}],
+            "order": {channel: names},
+            "patterns": {channel: {name: (events if index == order_count - 1 else [])
+                                     for index, name in enumerate(names)}},
+            "loop": loop,
+        }
+
+    def test_full_and_none_do_not_add_b_effect(self):
+        for mode in ("full", "none"):
+            patterns, matrix = read_uge_patterns_and_order_matrix(
+                json_to_uge.build_uge(self.data(mode))
+            )
+            self.assertEqual(len(patterns), 5)
+            self.assertEqual([row[:2] for row in matrix], [[0, 1], [2, 2], [3, 3], [4, 4]])
+            self.assertTrue(all(cell["effect_code"] != 0xB for cells in patterns.values() for cell in cells))
+
+    def test_range_adds_b01_only_to_final_order_ch1(self):
+        events = [{"note": "C4", "length": 64, "instrument": 1}]
+        patterns, matrix = read_uge_patterns_and_order_matrix(
+            json_to_uge.build_uge(self.data("range", 0, events=events))
+        )
+        final = patterns[matrix[0][1]][63]
+        self.assertEqual((final["effect_code"], final["effect_param"]), (0xB, 1))
+        self.assertEqual(matrix[1][1:-1], [2])
+        self.assertTrue(all(patterns[matrix[channel][1]][63]["effect_code"] != 0xB for channel in (1, 2, 3)))
+
+    def test_range_copies_shared_final_pattern_and_rejects_existing_effect(self):
+        data = self.data("range", 1, events=[])
+        data["order"]["pulse1"] = ["p0", "p0"]
+        patterns, matrix = read_uge_patterns_and_order_matrix(json_to_uge.build_uge(data))
+        self.assertNotEqual(matrix[0][0], matrix[0][1])
+        self.assertEqual(patterns[matrix[0][0]][63]["effect_code"], 0)
+        self.assertEqual(patterns[matrix[0][1]][63]["effect_code"], 0xB)
+
+        conflict = self.data(
+            "range", 0,
+            events=[{"note": "C4", "length": 63, "instrument": 1},
+                    {"note": "C4", "length": 1, "instrument": 1, "volume": 3}],
+        )
+        with self.assertRaisesRegex(ValueError, "already has an effect"):
+            json_to_uge.build_uge(conflict)
+
+    def test_range_with_ch1_unused_still_places_one_jump_on_ch1(self):
+        events = [{"note": "C4", "length": 64, "instrument": 1}]
+        patterns, matrix = read_uge_patterns_and_order_matrix(
+            json_to_uge.build_uge(self.data("range", 0, events=events, channel="pulse2"))
+        )
+        self.assertEqual(patterns[matrix[0][-2]][63]["effect_code"], 0xB)
+        self.assertEqual(sum(
+            patterns[row[-2]][63]["effect_code"] == 0xB for row in matrix
+        ), 1)
+
+    def test_range_requires_uge_order_jump_boundary(self):
+        self.assertEqual(
+            (lambda decoded: decoded[0][decoded[1][0][127]][63]["effect_param"])(
+                read_uge_patterns_and_order_matrix(
+                    json_to_uge.build_uge(self.data("range", 127, order_count=128))
+                )
+            ),
+            128,
+        )
+        with self.assertRaisesRegex(ValueError, "0..127"):
+            json_to_uge.build_uge(self.data("range", 128, order_count=129))
+
+
 if __name__ == "__main__":
     unittest.main()
