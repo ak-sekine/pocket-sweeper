@@ -388,7 +388,7 @@
         - [x] order数不一致をエラーにし、未使用チャンネルへ空pattern参照を補完する
         - [x] 同じpattern名を異なるチャンネルで使用できることを確認する
       - [ ] Version 2 order / patternsをUGEへ反映する
-        - [ ] チャンネル別orderを4チャンネル分のOrderMatrixへ変換する
+        - [x] チャンネル別orderを4チャンネル分のOrderMatrixへ変換する
         - [ ] チャンネル別patternsをUGE patternへ変換する
       - [ ] Version 2 order / patternsをhUGEDriver用ASMへ反映する
       - [ ] Version 1 / Version 2のorder / pattern互換性を確認する

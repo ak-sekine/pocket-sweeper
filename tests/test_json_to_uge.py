@@ -108,6 +108,45 @@ class Version2ChannelPatternTests(unittest.TestCase):
         self.assertEqual(patterns[("pulse2", "shared")][0].note, json_to_uge.parse_note("E4", "test"))
         self.assertNotEqual(patterns[("pulse1", "shared")], patterns[("pulse2", "shared")])
 
+    def test_version_2_assigns_reusable_channel_aware_numbers(self):
+        order = {"pulse1": ["same", "same"], "pulse2": ["same", "other"],
+                 "wave": ["wave", "wave"], "noise": ["noise", "noise"]}
+        definitions = {channel: {name: [] for name in names} for channel, names in {
+            "pulse1": ["same"], "pulse2": ["same", "other"],
+            "wave": ["wave"], "noise": ["noise"],
+        }.items()}
+        resolved, matrix = json_to_uge.build_patterns(self.data(order, definitions))
+        numbered, numbered_matrix = json_to_uge.assign_version_2_pattern_numbers(resolved, matrix)
+        self.assertEqual(numbered_matrix, [[0, 0], [1, 2], [3, 3], [4, 4]])
+        self.assertEqual(set(numbered), {0, 1, 2, 3, 4})
+
+    def test_version_2_omitted_channels_receive_blank_pattern_numbers(self):
+        resolved, matrix = json_to_uge.build_patterns(self.data())
+        numbered, numbered_matrix = json_to_uge.assign_version_2_pattern_numbers(resolved, matrix)
+        self.assertEqual(numbered_matrix, [[0], [1], [2], [3]])
+        self.assertEqual(numbered[1], json_to_uge.blank_pattern())
+
+    def test_version_2_uge_order_matrices_are_four_byte_and_uniform(self):
+        data = self.data(
+            {"pulse1": ["a", "a"], "pulse2": ["b", "c"]},
+            {"pulse1": {"a": []}, "pulse2": {"b": [], "c": []}},
+        )
+        uge = json_to_uge.build_uge(data)
+        header = 4 + 3 * len(json_to_uge.pack_short_string("", "test"))
+        instrument = len(json_to_uge.pack_instrument(json_to_uge.IT_SQUARE, ""))
+        offset = header + 3 * json_to_uge.INSTRUMENT_COUNT * instrument
+        offset += json_to_uge.WAVE_COUNT * json_to_uge.WAVE_BYTES + 4 + 1 + 4
+        count = struct.unpack_from("<i", uge, offset)[0]
+        offset += 4 + count * (4 + json_to_uge.PATTERN_ROWS * len(json_to_uge.pack_cell(json_to_uge.Cell())))
+        matrices = []
+        for _ in json_to_uge.CHANNELS:
+            length = struct.unpack_from("<i", uge, offset)[0]
+            offset += 4
+            matrices.append([struct.unpack_from("<i", uge, offset + i * 4)[0] for i in range(length)])
+            offset += length * 4
+        self.assertEqual([len(row) for row in matrices], [3, 3, 3, 3])
+        self.assertEqual([row[:2] for row in matrices], [[0, 0], [1, 2], [3, 3], [4, 4]])
+
     def test_order_count_mismatch_reports_channels_and_counts(self):
         data = self.data(
             {"pulse1": ["a", "b"], "wave": ["a"]},

@@ -19,6 +19,8 @@ PATTERN_ROWS = 64
 INSTRUMENT_COUNT = 15
 WAVE_COUNT = 16
 WAVE_BYTES = 32
+PATTERN_NUMBER_MIN = 0
+PATTERN_NUMBER_MAX = 0x7FFFFFFF
 
 IT_SQUARE = 0
 IT_WAVE = 1
@@ -1097,6 +1099,41 @@ def build_version_2_patterns(
     return resolved, order_matrix
 
 
+def assign_version_2_pattern_numbers(
+    patterns: dict[tuple[str, str], list[Cell]],
+    order_matrix: list[list[tuple[str, str]]],
+) -> tuple[dict[int, list[Cell]], list[list[int]]]:
+    """Resolve channel-local pattern keys to the shared UGE pattern IDs.
+
+    The table is deliberately built from the resolved keys, so the same
+    ``(channel, name)`` is reused everywhere while equal names in different
+    channels remain distinct.  This table is also the correspondence later
+    pattern-data output must use.
+    """
+    number_by_key: dict[tuple[str, str], int] = {}
+    for channel in CHANNELS:
+        for key in order_matrix[CHANNELS.index(channel)]:
+            if key not in number_by_key:
+                number = len(number_by_key)
+                if number > PATTERN_NUMBER_MAX:
+                    fail(
+                        "Version 2 pattern count exceeds the UGE pattern number "
+                        "range (signed 32-bit)"
+                    )
+                number_by_key[key] = number
+
+    numbered_patterns = {
+        number_by_key[key]: pattern
+        for key, pattern in patterns.items()
+        if key in number_by_key
+    }
+    numbered_orders = [
+        [number_by_key[key] for key in channel_orders]
+        for channel_orders in order_matrix
+    ]
+    return numbered_patterns, numbered_orders
+
+
 def pack_instrument(
     type_: int,
     name: str,
@@ -1296,6 +1333,8 @@ def build_uge(data: dict[str, Any]) -> bytes:
     wave_tables = validate_wave_tables(data, json_version)
     instruments = validate_instruments(data, wave_tables=wave_tables)
     patterns, order_matrix = build_patterns(data, instruments)
+    if json_version == 2:
+        patterns, order_matrix = assign_version_2_pattern_numbers(patterns, order_matrix)
 
     output = bytearray()
     output += pack_int(SONG_VERSION)
