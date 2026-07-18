@@ -284,6 +284,7 @@ def build_asm(data: dict, label: str) -> str:
     wave_tables = json_to_uge.validate_wave_tables(data, json_version)
     instruments = json_to_uge.validate_instruments(data, wave_tables=wave_tables)
     patterns, order_matrix = json_to_uge.build_patterns(data, instruments)
+    loop = json_to_uge.validate_loop(data, json_version, len(order_matrix[0]))
     if json_version == 2:
         patterns, order_matrix = json_to_uge.assign_version_2_pattern_numbers(
             patterns, order_matrix

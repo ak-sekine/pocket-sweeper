@@ -2,6 +2,9 @@
   "version": 2,
   "title": "Version 2 ASM comparison sample",
   "type": "bgm",
+  "loop": {
+    "mode": "full"
+  },
   "tempo": 6,
   "instruments": [
     {

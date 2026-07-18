@@ -65,6 +65,7 @@ class VersionCompatibilityTests(unittest.TestCase):
             "instruments": [],
             "order": {"pulse1": ["main"]},
             "patterns": {"pulse1": {"main": []}},
+            "loop": {"mode": "full"},
         }
 
     def test_all_existing_version_1_assets_convert_to_uge_and_asm(self):
@@ -118,6 +119,7 @@ class Version2ChannelPatternTests(unittest.TestCase):
             "instruments": [],
             "order": order if order is not None else {"pulse1": ["main"]},
             "patterns": patterns if patterns is not None else {"pulse1": {"main": []}},
+            "loop": {"mode": "full"},
         }
 
     def test_one_channel_is_resolved(self):
@@ -1345,6 +1347,7 @@ def uge_wave_fixture(wave_tables: list[dict] | None = None) -> dict:
         "instruments": [],
         "order": {"pulse1": ["main"]},
         "patterns": {"pulse1": {"main": []}},
+        "loop": {"mode": "full"},
     }
     if wave_tables is not None:
         data["wave_tables"] = wave_tables
@@ -1438,6 +1441,7 @@ def uge_noise_pattern_fixture(events: list[dict], instruments: list[dict]) -> di
         "instruments": instruments,
         "order": {"noise": ["main"]},
         "patterns": {"noise": {"main": events}},
+        "loop": {"mode": "full"},
     }
 
 
@@ -1451,6 +1455,7 @@ class NoteVolumeUgeTests(unittest.TestCase):
             "version": 2, "title": "volume", "type": "bgm", "tempo": 6,
             "instruments": [instrument], "order": {channel: ["main"]},
             "patterns": {channel: {"main": [event]}},
+            "loop": {"mode": "full"},
         }
 
     def cell(self, data: dict, channel_index: int) -> dict[str, int]:
@@ -2832,6 +2837,74 @@ class WaveTableAsmTests(unittest.TestCase):
         lines = asm.splitlines()
         start = lines.index("bgm_title_waves:")
         self.assertEqual(lines[start + 1 :], [])
+
+
+class LoopValidationTests(unittest.TestCase):
+    def data(self, mode="full", loop_overrides=None, song_type="bgm"):
+        loop = {"mode": mode}
+        if loop_overrides:
+            loop.update(loop_overrides)
+        return {
+            "version": 2, "title": "loop", "type": song_type, "tempo": 6,
+            "instruments": [], "order": {"pulse1": ["a", "b"]},
+            "patterns": {"pulse1": {"a": [], "b": []}}, "loop": loop,
+        }
+
+    def assert_both_reject(self, data):
+        with self.assertRaises(ValueError):
+            json_to_uge.build_uge(data)
+        with self.assertRaises(ValueError):
+            json_to_huge_asm.build_asm(data, "loop")
+
+    def test_modes_and_internal_representation(self):
+        for mode in ("full", "none"):
+            spec = json_to_uge.validate_loop(self.data(mode), 2, 2)
+            self.assertEqual(spec, json_to_uge.LoopSpec(mode))
+        for start in (0, 1):
+            spec = json_to_uge.validate_loop(self.data("range", {"start_order": start, "end_order": 2}), 2, 2)
+            self.assertEqual((spec.mode, spec.start_order, spec.end_order), ("range", start, 2))
+
+    def test_both_converters_accept_valid_loop_inputs(self):
+        for mode, values in (("full", {}), ("none", {}), ("range", {"start_order": 1, "end_order": 2}), ("range", {"start_order": 0, "end_order": 2})):
+            data = self.data(mode, values)
+            json_to_uge.build_uge(data)
+            json_to_huge_asm.build_asm(data, "loop")
+        data = self.data("none", song_type="sfx")
+        json_to_uge.build_uge(data)
+        json_to_huge_asm.build_asm(data, "loop")
+
+    def test_invalid_loop_inputs_are_rejected_by_both_converters(self):
+        cases = [
+            ({},), ({"mode": "unknown"},), ({"mode": 1},),
+            ({"mode": "full", "start_order": None},),
+            ({"mode": "none", "end_order": None},),
+            ({"mode": "range", "end_order": 2},),
+            ({"mode": "range", "start_order": 0},),
+            ({"mode": "range", "start_order": None, "end_order": 2},),
+            ({"mode": "range", "start_order": True, "end_order": 2},),
+            ({"mode": "range", "start_order": 0.5, "end_order": 2},),
+            ({"mode": "range", "start_order": "0", "end_order": 2},),
+            ({"mode": "range", "start_order": -1, "end_order": 2},),
+            ({"mode": "range", "start_order": 2, "end_order": 2},),
+            ({"mode": "range", "start_order": 1, "end_order": 1},),
+            ({"mode": "range", "start_order": 0, "end_order": 3},),
+            ({"mode": "range", "start_order": 0, "end_order": 1},),
+            ({"mode": "full", "end_order": 1},),
+            ({"mode": "range", "start_order": 0, "end_order": 2}, "sfx"),
+            ({"mode": "full"}, "sfx"),
+            ({"mode": "full", "extra": 1},),
+        ]
+        for item in cases:
+            loop, *song_type = item
+            data = self.data(loop_overrides=loop, song_type=song_type[0] if song_type else "bgm")
+            if not loop:
+                data.pop("loop")
+            self.assert_both_reject(data)
+
+    def test_version_1_loop_is_rejected(self):
+        data = VersionCompatibilityTests().version_1_data()
+        data["loop"] = None
+        self.assert_both_reject(data)
 
 
 if __name__ == "__main__":

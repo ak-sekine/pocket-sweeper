@@ -167,6 +167,13 @@ class InstrumentSpec:
     width_mode: str = NOISE_WIDTH_15BIT
 
 
+@dataclass(frozen=True)
+class LoopSpec:
+    mode: str
+    start_order: int | None = None
+    end_order: int | None = None
+
+
 def fail(message: str) -> None:
     raise ValueError(message)
 
@@ -393,6 +400,48 @@ def validate_json_version(data: dict[str, Any]) -> int:
         supported = ", ".join(str(item) for item in SUPPORTED_JSON_VERSIONS)
         fail(f"version: expected one of {supported}, got {version}")
     return version
+
+
+def validate_loop(data: dict[str, Any], version: int, order_count: int) -> LoopSpec | None:
+    if version == 1:
+        if "loop" in data:
+            fail("loop: Version 1では指定できません")
+        return None
+
+    if "loop" not in data:
+        fail("loop: Version 2では必須です")
+    loop = expect_dict(data["loop"], "loop")
+    allowed = {"mode", "start_order", "end_order"}
+    for key in loop:
+        if key not in allowed:
+            fail(f"loop.{key}: unknown key")
+    if "mode" not in loop:
+        fail("loop.mode: required")
+    mode = expect_string(loop["mode"], "loop.mode")
+    if mode not in {"full", "range", "none"}:
+        fail(f"loop.mode: unknown mode {mode!r}")
+    if data.get("type") == "sfx" and mode != "none":
+        fail("loop.mode: Version 2のsfxでは'none'のみ指定できます")
+    if mode in {"full", "none"}:
+        for key in ("start_order", "end_order"):
+            if key in loop:
+                fail(f"loop.{key}: {mode}では指定できません")
+        return LoopSpec(mode)
+
+    for key in ("start_order", "end_order"):
+        if key not in loop:
+            fail(f"loop.{key}: required")
+    start = expect_int(loop["start_order"], "loop.start_order")
+    end = expect_int(loop["end_order"], "loop.end_order")
+    if not 0 <= start < order_count:
+        fail(f"loop.start_order: must satisfy 0 <= start_order < N (N={order_count})")
+    if not 1 <= end <= order_count:
+        fail(f"loop.end_order: must satisfy 1 <= end_order <= N (N={order_count})")
+    if start >= end:
+        fail("loop.start_order: must be less than loop.end_order")
+    if end != order_count:
+        fail(f"loop.end_order: must equal N (N={order_count})")
+    return LoopSpec(mode, start, end)
 
 
 PULSE_VERSION_2_FIELDS = (
@@ -1331,6 +1380,7 @@ def build_uge(data: dict[str, Any]) -> bytes:
     wave_tables = validate_wave_tables(data, json_version)
     instruments = validate_instruments(data, wave_tables=wave_tables)
     patterns, order_matrix = build_patterns(data, instruments)
+    loop = validate_loop(data, json_version, len(order_matrix[0]))
     if json_version == 2:
         patterns, order_matrix = assign_version_2_pattern_numbers(patterns, order_matrix)
 
