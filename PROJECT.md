@@ -363,7 +363,7 @@
         - [x] UGE pattern cellのVolume表現を確認する
         - [x] hUGEDriver用ASMのvolume表現を確認する
       - [ ] Version 2 note volume変換を実装する
-        - [ ] CH4 note volumeのenvelope補完規則を決める
+        - [x] CH4 note volumeのenvelope補完規則を決める
           - [x] Instrument指定時は対象InstrumentのenvelopeをCxyへ反映するか決める
           - [x] Instrument 0を許可する場合のenvelope取得方法を決める
           - [x] CH4のrestにnote volumeを指定できるか決める
