@@ -374,11 +374,11 @@
           - [x] Version 1のNoise変換へ影響を与えない方針を決める
         - [x] note volumeをUGEへ反映する
         - [x] note volumeをhUGEDriver用ASMへ反映する
-        - [ ] Version 1のnoteにvolumeが存在する入力をバリデーションエラーにする
-          - [ ] `volume: null`を含め、Version 1のnoteに`volume`キーが存在する場合にエラーにする
-          - [ ] pulse1 / pulse2 / wave / noiseの各チャンネルで同じ禁止規則を適用する
-          - [ ] volumeキー省略時は既存のVersion 1変換結果を維持する
-          - [ ] Version 1のvolume禁止に関するバリデーションテストを追加する
+        - [x] Version 1のnoteにvolumeが存在する入力をバリデーションエラーにする
+          - [x] `volume: null`を含め、Version 1のnoteに`volume`キーが存在する場合にエラーにする
+          - [x] pulse1 / pulse2 / wave / noiseの各チャンネルで同じ禁止規則を適用する
+          - [x] volumeキー省略時は既存のVersion 1変換結果を維持する
+          - [x] Version 1のvolume禁止に関するバリデーションテストを追加する
         - [ ] Version 2のCH4でrest要素にvolumeが存在する入力をバリデーションエラーにする
       - [ ] Version 2 note volume変換を検証する
         - [ ] volume省略と`volume: 0`の差を確認する

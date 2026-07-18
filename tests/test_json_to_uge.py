@@ -1150,6 +1150,19 @@ class NoteVolumeUgeTests(unittest.TestCase):
         self.assertEqual((cell["volume"], cell["effect_code"], cell["effect_param"]), (0, 0, 0))
 
 
+class Version1NoteVolumeValidationTests(unittest.TestCase):
+    def test_volume_key_is_rejected_regardless_of_value_on_all_channels(self) -> None:
+        for channel in ("pulse1", "pulse2", "wave", "noise"):
+            for value in (None, 0, 15, "anything"):
+                with self.subTest(channel=channel, value=value):
+                    event = {"note": "C4", "length": 1, "instrument": 1, "volume": value}
+                    with self.assertRaisesRegex(ValueError, "Version 1ではvolume指定は使用できません"):
+                        json_to_uge.build_channel_pattern(
+                            [event], f"patterns.main.channels.{channel}",
+                            version=1, channel=channel,
+                        )
+
+
 class WaveInstrumentValidationTests(unittest.TestCase):
     def validate(self, data: dict) -> json_to_uge.InstrumentSpec:
         return json_to_uge.validate_instruments(data)["wave"][1]

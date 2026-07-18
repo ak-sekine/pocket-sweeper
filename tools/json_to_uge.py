@@ -883,6 +883,8 @@ def build_channel_pattern(
     for index, item in enumerate(events):
         event_path = f"{path}[{index}]"
         event = expect_dict(item, event_path)
+        if version == 1 and "volume" in event:
+            fail(f"{event_path}.volume: Version 1ではvolume指定は使用できません")
         if version == 2 and channel == "noise":
             for field in NOISE_NOTE_FORBIDDEN_FIELDS:
                 if field in event:
