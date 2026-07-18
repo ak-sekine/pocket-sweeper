@@ -404,7 +404,28 @@
       - [x] Version 2 loopをhUGEDriver用ASMへ反映する
       - [ ] Version 2 loopの再生動作とVersion 1互換性を確認する
         - [x] Version 1の既存ループ動作を維持する
-        - [ ] Version 2のloop構造をhUGETracker Export ASMまたは実際の再生結果と比較する
+        - [x] Version 2のloop構造を生成ASM・driver・ROMビルド結果と比較する
+          - [x] `full`でB effectを出力せず暗黙の全体loopになる構造を確認する
+          - [x] `range`で最終orderのCH1 row 63へBxxを出力する構造を確認する
+          - [x] `range`で共有CH1 patternを必要に応じて複製することを確認する
+          - [x] `none`で最終order・rowを使用した終了判定構造を確認する
+          - [x] Version 2 loop metadataのdescriptor参照位置を確認する
+          - [x] Version 1のdescriptor、OrderMatrix、暗黙loopへ影響しないことを確認する
+          - [x] `full`、`range`、`none`のASM生成とROMビルドが成功することを確認する
+        - [ ] Version 2のloop構造をhUGETracker Export ASMと手動比較する
+          - [ ] hUGETrackerでloop確認用UGEを開き、保存・再Exportする
+          - [ ] hUGETracker Export ASMのdescriptor、OrderMatrix、pattern、B effect、Instrument bank、routine、waveを生成ASMと比較する
+          - [ ] hUGETracker標準形式と本プロジェクト独自loop metadataを区別して記録する
+        - [ ] Version 2のloop動作をSameBoyまたはBGBで手動確認する
+          - [ ] `full`でB effectがなく、最終order後にorder 0へ戻ることを確認する
+          - [ ] `range`で最終orderのCH1 row 63だけにBxxがあり、指定start orderへ戻ることを確認する
+          - [ ] `none`で最終order・row 63まで終了通知がなく、到達時にBGMが終了することを確認する
+          - [ ] BGM終了後もSFXのmute・再生経路を利用できることを確認する
+          - [ ] 実際の音・画面でloop先と終了状態を記録する
+        - [ ] 手動確認用の最小JSONからASM・ROMを生成する
+          - [ ] `python3 tools/json_to_huge_asm.py <loop.json> <loop.asm>`を実行する
+          - [ ] `python3 tools/build_sound_test_rom.py <loop.asm> <loop.gb>`を実行する
+          - [ ] 生成ROMをSameBoyまたはBGBで起動する
       - [ ] JSON変換ツールのVersion 2総合確認を行う
         - [ ] Version 1 JSONの互換動作を確認する
         - [ ] 4チャンネル使用時のUGEをhUGETrackerで確認する

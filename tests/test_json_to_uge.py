@@ -3198,30 +3198,44 @@ class Version2UgeLoopOutputTests(unittest.TestCase):
 class Version2DriverLoopStructureTests(unittest.TestCase):
     DRIVER = (ROOT / "src" / "hUGEDriver.asm").read_text(encoding="utf-8")
 
-    def test_v2_init_reads_metadata_after_21_byte_descriptor_prefix(self):
-        init = self.DRIVER[self.DRIVER.index("hUGE_init_v2::") : self.DRIVER.index("hUGE_bgm_finished::")]
-        self.assertIn("ld bc, HUGE_SONG_DESCRIPTOR_BASE_SIZE", init)
-        self.assertIn("add hl, bc", init)
-        self.assertIn("ld a, [hl+]", init)
-        self.assertIn("ld [hUGE_loop_mode], a", init)
-        self.assertIn("ld [hUGE_final_order], a", init)
-        self.assertIn("ld [hUGE_final_row], a", init)
+    @classmethod
+    def instructions_between(cls, start: str, end: str) -> list[str]:
+        source = cls.DRIVER[cls.DRIVER.index(start) : cls.DRIVER.index(end)]
+        return [line.strip() for line in source.splitlines()
+                if line.strip() and not line.lstrip().startswith(";")]
 
-    def test_none_finishes_only_at_final_order_and_final_row(self):
-        update = self.DRIVER[self.DRIVER.index(".no_break:") : self.DRIVER.index(".neworder:")]
-        self.assertIn("ld a, [hUGE_final_row]", update)
-        self.assertIn("ld a, [hUGE_loop_mode]", update)
-        self.assertIn("cp 2", update)
-        self.assertIn("ld a, [hUGE_final_order]", update)
-        self.assertIn("ld [hUGE_bgm_finished_flag], a", update)
+    def test_v2_init_structure_uses_descriptor_base_and_reads_loop_metadata(self):
+        init = self.instructions_between("hUGE_init_v2::", "hUGE_bgm_finished::")
+        positions = [
+            init.index("ld bc, HUGE_SONG_DESCRIPTOR_BASE_SIZE"),
+            init.index("add hl, bc"),
+            init.index("ld a, [hl+]"),
+            init.index("ld [hUGE_loop_mode], a"),
+            init.index("ld [hUGE_final_order], a"),
+            init.index("ld [hUGE_final_row], a"),
+        ]
+        self.assertEqual(positions, sorted(positions))
 
-    def test_driver_keeps_sfx_mute_boundary_and_does_not_stop_all_channels(self):
-        finished = self.DRIVER[self.DRIVER.index("hUGE_bgm_finished::") : self.DRIVER.index(";;; Sets a channel's muting status.")]
-        self.assertIn("ld a, [hUGE_bgm_finished_flag]", finished)
-        self.assertNotIn("note_cut", finished)
-        mute = self.DRIVER[self.DRIVER.index("hUGE_mute_channel::") : self.DRIVER.index(";;; Reads a pattern's current row.")]
-        self.assertIn("note_cut", mute)
-        self.assertIn("hUGE_mute_channel::", self.DRIVER)
+    def test_none_finish_structure_checks_mode_row_and_order_before_flag(self):
+        update = self.instructions_between(".no_break:", ".neworder:")
+        mode = update.index("ld a, [hUGE_loop_mode]")
+        mode_check = update.index("cp 2")
+        row = update.index("ld a, [hUGE_final_row]")
+        order = update.index("ld a, [hUGE_final_order]")
+        flag = update.index("ld [hUGE_bgm_finished_flag], a")
+        self.assertLess(row, mode)
+        self.assertLess(mode, mode_check)
+        self.assertLess(mode_check, order)
+        self.assertLess(order, flag)
+        self.assertIn("jr nz, .continue_order", update)
+        self.assertIn("ld a, 1", update)
+
+    def test_bgm_finished_query_is_separate_from_channel_mute(self):
+        finished = self.instructions_between("hUGE_bgm_finished::", ";;; Sets a channel's muting status.")
+        self.assertEqual(finished[:3], ["hUGE_bgm_finished::", "ld a, [hUGE_bgm_finished_flag]", "ret"])
+        self.assertNotIn("note_cut", finished[:3])
+        mute = self.instructions_between("hUGE_mute_channel::", ";;; Reads a pattern's current row.")
+        self.assertTrue(any("note_cut" in line for line in mute))
 
 
 if __name__ == "__main__":
