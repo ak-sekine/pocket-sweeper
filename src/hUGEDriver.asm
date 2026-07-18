@@ -82,6 +82,12 @@ next_order: db
 row: db
 current_order: db
 
+;; Version 2 playback metadata (loaded by hUGE_init_v2).
+hUGE_loop_mode: db
+hUGE_final_order: db
+hUGE_final_row: db
+hUGE_bgm_finished_flag: db
+
 IF DEF(PREVIEW_MODE)
 loop_order: db
 single_stepping: db
@@ -161,6 +167,9 @@ ENDC
 ;;; Param: HL = Pointer to the "song descriptor" you wish to load (typically exported by hUGETracker).
 ;;; Destroys: AF C DE HL
 hUGE_init::
+    xor a
+    ld [hUGE_loop_mode], a
+    ld [hUGE_bgm_finished_flag], a
     ld a, [hl+] ; tempo
     ld [ticks_per_row], a
 
@@ -246,6 +255,34 @@ ENDC
     ld a, [hl]
     ld [de], a
     inc de
+    ret
+
+;;; Initialize a Version 2 descriptor with its trailing loop metadata pointer.
+;;; Param: HL = Version 2 descriptor.
+hUGE_init_v2::
+    push hl
+    call hUGE_init
+    pop hl
+    ld bc, 19
+    add hl, bc
+    ld a, [hl+]
+    ld e, a
+    ld a, [hl]
+    ld d, a
+    ld h, d
+    ld l, e
+    ld a, [hl+]
+    ld [hUGE_loop_mode], a
+    ld a, [hl+]
+    ld [hUGE_final_order], a
+    ld a, [hl]
+    ld [hUGE_final_row], a
+    xor a
+    ld [hUGE_bgm_finished_flag], a
+    ret
+
+hUGE_bgm_finished::
+    ld a, [hUGE_bgm_finished_flag]
     ret
 
 IF DEF(GBDK)
@@ -1849,6 +1886,20 @@ ENDC
     inc a
     cp PATTERN_LENGTH
     jr nz, .noreset
+
+    ld a, [hUGE_loop_mode]
+    cp 2
+    jr nz, .continue_order
+    ld a, [current_order]
+    srl a
+    ld b, a
+    ld a, [hUGE_final_order]
+    cp b
+    jr nz, .continue_order
+    ld a, 1
+    ld [hUGE_bgm_finished_flag], a
+    ret
+.continue_order:
 
     ld b, 0
 .neworder:

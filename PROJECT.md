@@ -401,7 +401,7 @@
         - [x] ループ境界を全チャンネル共通のOrderMatrix位置へ反映する
         - [x] ループ範囲と未使用チャンネル補完後のorder数が一致することを確認する
       - [x] Version 2 loopをUGEへ反映する
-      - [ ] Version 2 loopをhUGEDriver用ASMへ反映する
+      - [x] Version 2 loopをhUGEDriver用ASMへ反映する
       - [ ] Version 2 loopの再生動作とVersion 1互換性を確認する
         - [ ] Version 1の既存ループ動作を維持する
         - [ ] Version 2のloop構造をhUGETracker Export ASMまたは実際の再生結果と比較する

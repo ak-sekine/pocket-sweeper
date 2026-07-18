@@ -3070,6 +3070,33 @@ class Version2UgeLoopOutputTests(unittest.TestCase):
             self.assertEqual([row[:2] for row in matrix], [[0, 1], [2, 2], [3, 3], [4, 4]])
             self.assertTrue(all(cell["effect_code"] != 0xB for cells in patterns.values() for cell in cells))
 
+    def test_asm_loop_effect_and_metadata(self):
+        for mode, expected in (("full", "$000"), ("none", "$000")):
+            asm = json_to_huge_asm.build_asm(self.data(mode), "song")
+            self.assertIn("dw song_loop_metadata", asm)
+            self.assertNotIn("$B01", asm)
+        asm = json_to_huge_asm.build_asm(self.data("range", 0), "song")
+        self.assertIn("dn ___,0,$B01", asm)
+        self.assertEqual(asm.count("$B01"), 1)
+
+    def test_asm_range_start_one_and_shared_pattern_isolated(self):
+        data = self.data("range", 1, order_count=2)
+        data["order"]["pulse1"] = ["p0", "p0"]
+        data["patterns"]["pulse1"] = {"p0": []}
+        asm = json_to_huge_asm.build_asm(data, "song")
+        self.assertIn("song_order1: dw song_P0,song_P1", asm)
+        self.assertIn("dn ___,0,$B02", asm)
+        self.assertEqual(asm.count("$B02"), 1)
+        self.assertEqual(asm.count("$B01"), 0)
+
+    def test_asm_range_rejects_existing_final_effect_and_start_128(self):
+        data = self.data("range", 0, events=[{"note": "C4", "length": 64, "instrument": 1, "effect": "A", "effect_param": 1}])
+        with self.assertRaises(ValueError):
+            json_to_huge_asm.build_asm(data, "song")
+        data = self.data("range", 128)
+        with self.assertRaises(ValueError):
+            json_to_huge_asm.build_asm(data, "song")
+
     def test_range_adds_b01_only_to_final_order_ch1(self):
         events = [{"note": "C4", "length": 64, "instrument": 1}]
         patterns, matrix = read_uge_patterns_and_order_matrix(

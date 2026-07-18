@@ -109,6 +109,11 @@ Sound_Update::
     and a
     jr z, .updateSfx
     call hUGE_dosound
+    call hUGE_bgm_finished
+    and a
+    jr z, .updateSfx
+    xor a
+    ld [wSoundPlaybackActive], a
 .updateSfx:
     jp Sound_UpdateSfx
 

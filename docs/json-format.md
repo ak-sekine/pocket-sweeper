@@ -294,6 +294,8 @@ B effectのhUGETracker GUI表示値、Export ASMの実例、B00/B01を含む実E
 
 `none` はUGEだけでは表現できないが、今回のUGE出力には非ループ専用情報も追加effectも保存しない。生成ASM／ROM側の追加対応が必要であり、生成ASMはloop mode（少なくともnone）と最終order・最終rowの終了位置を、UGEとは別の曲ディスクリプタ情報としてROM再生管理へ渡す。hUGEDriverはその境界を検出できる更新APIを後続実装で提供し、ROM側が通常更新を止め、SFXを保護しながらBGM終了を通知する。
 
+今回のASM実装では、Version 2の既存hUGEDriverディスクリプタの末尾に `dw <song>_loop_metadata` を追加する。metadataは `db mode, final_order, final_row` の3バイトで、modeは `full=0`、`range=1`、`none=2`、`final_order`は0始まり、`final_row`は63とする。Version 1のディスクリプタにはこのポインタを追加しない。Version 2は `hUGE_init_v2` でmetadataを読み込み、`hUGE_bgm_finished` が終了状態を返す。`none`で最終orderのrow 63処理後にこの状態となり、呼び出し側はhUGEDriverの更新だけを停止してSFX更新を継続する。全チャンネルを自動停止・初期化しない。
+
 なお、`loop` の意図をJSON利用者にeffectとして直接指定させる方式は採用しない。`range` のB effectは変換ツールが内部生成するUGE専用表現であり、JSONのnote effectとして公開しない。`full` は追加effectなしで通常のOrderMatrixによるorder 0からのループを使用し、`none` は非ループ専用情報・追加effectなしで通常のpattern／OrderMatrixだけを出力する。`range` は最終orderのCH1 row 63へPosition JumpのBxxを生成し、parameterは`start_order + 1`、CH2～CH4には生成しない。最終CH1 patternが以前のorderでも共有されている場合は最終order専用patternを複製し、row 63に既存effectがある場合は変換エラーとする。UGEのジャンプ先制約により`start_order`は0～127とする。hUGEDriver用ASMおよびROM側のloop反映は別WBSであり、今回のUGE実装には含まれない。
 
 `full` は従来どおりOrderMatrixの末尾からorder 0へ戻る。`range` は既定のB effectによるorderジャンプを使う。`none` だけが追加の終了メタデータを必要とし、Version 1の変換結果や暗黙の全体ループを変更しない。

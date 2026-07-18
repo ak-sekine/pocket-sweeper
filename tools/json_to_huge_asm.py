@@ -51,6 +51,14 @@ def render_order(label: str, order_matrix: list[list[int]]) -> list[str]:
     return lines
 
 
+def render_loop_metadata(label: str, loop: json_to_uge.LoopSpec) -> list[str]:
+    mode = {"full": 0, "range": 1, "none": 2}[loop.mode]
+    return [
+        f"{label}_loop_metadata: db {mode},{loop.order_count - 1},63",
+        "",
+    ]
+
+
 def render_patterns(label: str, patterns: dict[int, list[json_to_uge.Cell]]) -> list[str]:
     lines: list[str] = []
     for key in sorted(patterns):
@@ -286,6 +294,9 @@ def build_asm(data: dict, label: str) -> str:
     patterns, order_matrix = json_to_uge.build_patterns(data, instruments)
     loop = json_to_uge.resolve_loop_boundaries(data, json_version, order_matrix)
     if json_version == 2:
+        patterns, order_matrix = json_to_uge.apply_version_2_loop_effect(
+            patterns, order_matrix, loop
+        )
         patterns, order_matrix = json_to_uge.assign_version_2_pattern_numbers(
             patterns, order_matrix
         )
@@ -305,6 +316,8 @@ def build_asm(data: dict, label: str) -> str:
         f"dw {label}_waves",
         "",
     ]
+    if json_version == 2:
+        lines.insert(11, f"dw {label}_loop_metadata")
     lines.extend(render_order(label, order_matrix))
     lines.extend(render_patterns(label, patterns))
     lines.extend(render_duty_instruments(label, patterns, order_matrix, instruments))
@@ -312,6 +325,8 @@ def build_asm(data: dict, label: str) -> str:
     lines.extend(render_noise_instruments(label, patterns, order_matrix, instruments, json_version))
     lines.extend(render_routines(label))
     lines.extend(render_waves(label, wave_tables, json_version))
+    if json_version == 2:
+        lines.extend(render_loop_metadata(label, loop))
     return "\n".join(lines).rstrip() + "\n"
 
 
