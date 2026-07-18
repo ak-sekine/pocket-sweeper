@@ -77,6 +77,16 @@ class VersionCompatibilityTests(unittest.TestCase):
                 json_to_uge.build_uge(data)
                 json_to_huge_asm.build_asm(data, path.stem)
 
+    def test_version_1_uge_has_no_version_2_loop_effect(self):
+        uge = json_to_uge.build_uge(self.version_1_data())
+        patterns, _ = read_uge_patterns_and_order_matrix(uge)
+        self.assertTrue(patterns)
+        self.assertTrue(all(
+            cell["effect_code"] != 0xB
+            for pattern in patterns.values()
+            for cell in pattern
+        ))
+
     def test_version_1_expands_one_common_order_to_four_channels(self):
         _, matrix = json_to_uge.build_patterns(self.version_1_data())
         self.assertEqual(matrix, [[0], [1], [2], [3]])
