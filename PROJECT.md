@@ -417,15 +417,12 @@
           - [ ] hUGETracker Export ASMのdescriptor、OrderMatrix、pattern、B effect、Instrument bank、routine、waveを生成ASMと比較する
           - [ ] hUGETracker標準形式と本プロジェクト独自loop metadataを区別して記録する
         - [ ] Version 2のloop動作をSameBoyまたはBGBで手動確認する
+          - [ ] `full`、`range`、`none`の確認用ROMをSameBoyまたはBGBで起動する
           - [ ] `full`でB effectがなく、最終order後にorder 0へ戻ることを確認する
           - [ ] `range`で最終orderのCH1 row 63だけにBxxがあり、指定start orderへ戻ることを確認する
           - [ ] `none`で最終order・row 63まで終了通知がなく、到達時にBGMが終了することを確認する
           - [ ] BGM終了後もSFXのmute・再生経路を利用できることを確認する
           - [ ] 実際の音・画面でloop先と終了状態を記録する
-        - [ ] 手動確認用の最小JSONからASM・ROMを生成する
-          - [ ] `python3 tools/json_to_huge_asm.py <loop.json> <loop.asm>`を実行する
-          - [ ] `python3 tools/build_sound_test_rom.py <loop.asm> <loop.gb>`を実行する
-          - [ ] 生成ROMをSameBoyまたはBGBで起動する
       - [ ] JSON変換ツールのVersion 2総合確認を行う
         - [ ] Version 1 JSONの互換動作を確認する
         - [ ] 4チャンネル使用時のUGEをhUGETrackerで確認する
