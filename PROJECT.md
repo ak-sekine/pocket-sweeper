@@ -366,14 +366,15 @@
         - [ ] CH4 note volumeのenvelope補完規則を決める
           - [x] Instrument指定時は対象InstrumentのenvelopeをCxyへ反映するか決める
           - [x] Instrument 0を許可する場合のenvelope取得方法を決める
-          - [ ] CH4のrestにnote volumeを指定できるか決める
-            - [ ] restへのvolume指定を禁止するか決める
-            - [ ] 許可する場合のCxyとretrigger動作を決める
+          - [x] CH4のrestにnote volumeを指定できるか決める
+            - [x] restへのvolume指定を禁止するか決める
+            - [x] 許可する場合のCxyとretrigger動作を決める（禁止したため対象外）
           - [ ] pattern / order / loopをまたぐenvelope状態の扱いを決める
           - [ ] noteのlength展開で生成される空行ではenvelope状態を変更しないことを決める
           - [ ] Version 1のNoise変換へ影響を与えない方針を決める
         - [ ] note volumeをUGEへ反映する
         - [ ] note volumeをhUGEDriver用ASMへ反映する
+        - [ ] Version 2のCH4でrest要素にvolumeが存在する入力をバリデーションエラーにする
       - [ ] Version 2 note volume変換を検証する
         - [ ] volume省略と`volume: 0`の差を確認する
         - [ ] CH1 / CH2 / CH3 / CH4で変換結果を確認する
