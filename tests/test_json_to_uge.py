@@ -147,6 +147,49 @@ class Version2ChannelPatternTests(unittest.TestCase):
         self.assertEqual([len(row) for row in matrices], [3, 3, 3, 3])
         self.assertEqual([row[:2] for row in matrices], [[0, 0], [1, 2], [3, 3], [4, 4]])
 
+    def test_version_2_pattern_bodies_are_written_separately_for_all_channels(self):
+        data = self.data(
+            {channel: ["shared"] for channel in json_to_uge.CHANNELS},
+            {channel: {"shared": [{
+                "note": note,
+                "length": 1,
+                "instrument": index + 1,
+                **({"volume": index + 1} if channel != "noise" else {}),
+            }]} for index, (channel, note) in enumerate(zip(
+                json_to_uge.CHANNELS, ("C4", "E4", "G4", "A4")
+            ))},
+        )
+        data["instruments"] = [
+            {"id": 1, "name": "p1", "channel": "pulse1"},
+            {"id": 2, "name": "p2", "channel": "pulse2"},
+            {"id": 3, "name": "wave", "channel": "wave", "waveform": "w"},
+            {"id": 4, "name": "noise", "channel": "noise"},
+        ]
+        data["wave_tables"] = [{"name": "w", "samples": [0] * 32}]
+        patterns, matrix = read_uge_patterns_and_order_matrix(json_to_uge.build_uge(data))
+
+        self.assertEqual(set(patterns), {0, 1, 2, 3})
+        self.assertEqual([row[0] for row in matrix], [0, 1, 2, 3])
+        self.assertEqual([len(row) for row in matrix], [2, 2, 2, 2])  # sentinel included
+        self.assertEqual([patterns[index][0]["note"] for index in range(4)], [
+            json_to_uge.parse_note(note, "test") for note in ("C4", "E4", "G4", "A4")
+        ])
+        self.assertEqual([patterns[index][0]["instrument"] for index in range(4)], [1, 2, 3, 4])
+        self.assertEqual([patterns[index][0]["effect_code"] for index in range(4)], [0xC] * 3 + [0])
+        self.assertEqual([patterns[index][0]["effect_param"] for index in range(4)], [1, 2, 3, 0])
+        for pattern in patterns.values():
+            self.assertEqual(len(pattern), json_to_uge.PATTERN_ROWS)
+            self.assertEqual(pattern[1]["note"], json_to_uge.NO_NOTE)
+
+    def test_version_2_omitted_channel_blank_patterns_are_written(self):
+        data = self.data()
+        patterns, matrix = read_uge_patterns_and_order_matrix(json_to_uge.build_uge(data))
+        self.assertEqual(set(patterns), {0, 1, 2, 3})
+        self.assertEqual([row[0] for row in matrix], [0, 1, 2, 3])
+        for number in (1, 2, 3):
+            self.assertTrue(all(cell["note"] == json_to_uge.NO_NOTE for cell in patterns[number]))
+            self.assertTrue(all(cell["instrument"] == 0 for cell in patterns[number]))
+
     def test_order_count_mismatch_reports_channels_and_counts(self):
         data = self.data(
             {"pulse1": ["a", "b"], "wave": ["a"]},
@@ -1240,6 +1283,43 @@ def read_uge_pattern_cells(uge: bytes) -> dict[int, tuple[dict[str, int], ...]]:
             offset += cell_size
         patterns[pattern_key] = tuple(cells)
     return patterns
+
+
+def read_uge_patterns_and_order_matrix(
+    uge: bytes,
+) -> tuple[dict[int, tuple[dict[str, int], ...]], list[list[int]]]:
+    """Decode the pattern map and four OrderMatrix records from a UGE."""
+    header_size = 4 + (3 * len(json_to_uge.pack_short_string("", "test")))
+    instrument_size = len(json_to_uge.pack_instrument(json_to_uge.IT_SQUARE, ""))
+    offset = header_size + (3 * json_to_uge.INSTRUMENT_COUNT * instrument_size)
+    offset += json_to_uge.WAVE_COUNT * json_to_uge.WAVE_BYTES
+    offset += 4 + 1 + 4
+    pattern_count = struct.unpack_from("<i", uge, offset)[0]
+    offset += 4
+    cell_size = len(json_to_uge.pack_cell(json_to_uge.Cell()))
+    patterns = {}
+    for _ in range(pattern_count):
+        pattern_number = struct.unpack_from("<i", uge, offset)[0]
+        offset += 4
+        cells = []
+        for _ in range(json_to_uge.PATTERN_ROWS):
+            cell = uge[offset : offset + cell_size]
+            cells.append({
+                "note": struct.unpack_from("<i", cell, 0)[0],
+                "instrument": struct.unpack_from("<i", cell, 4)[0],
+                "effect_code": struct.unpack_from("<i", cell, 12)[0],
+                "effect_param": cell[16],
+            })
+            offset += cell_size
+        patterns[pattern_number] = tuple(cells)
+
+    order_matrix = []
+    for _ in json_to_uge.CHANNELS:
+        length = struct.unpack_from("<i", uge, offset)[0]
+        offset += 4
+        order_matrix.append(list(struct.unpack_from(f"<{length}i", uge, offset)))
+        offset += length * 4
+    return patterns, order_matrix
 
 
 def uge_noise_pattern_fixture(events: list[dict], instruments: list[dict]) -> dict:
