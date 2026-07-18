@@ -495,6 +495,26 @@ python tools/build_sound_test_rom.py obj/test_draft.asm build/test_sound.gb
 - Noise Instrument詳細は `noise_length = 12`、`initial_volume = 8`、`envelope_direction = "down"`、`envelope_sweep = 2`、`clock_shift = 1`、`width_mode = "7bit"`、`divisor_code = 0`、`length_enable = true` とし、粗めの「ザッ」から高めで短い「チッ」「カチッ」に近いUI向けクリック音へ調整する。
 
 
+#### Version 2 loopのhUGETracker Export比較記録テンプレート
+
+この節は、hUGETracker GUIで保存・Exportを実施した後に、生成ASMとExport ASMを構造単位で比較して埋める記録欄である。GUI操作前の状態では、結果を確認済みとは扱わない。
+
+使用ファイル:
+
+- `full`: `assets/bgm_v2_asm_compare.json` / `assets/bgm_v2_loop_full_generated.uge` / `obj/bgm_v2_loop_full_generated.asm`
+- `range`: `assets/bgm_v2_loop_range_compare.json` / `assets/bgm_v2_loop_range_generated.uge` / `obj/bgm_v2_loop_range_generated.asm`
+- `none`: `assets/bgm_v2_loop_none_compare.json` / `assets/bgm_v2_loop_none_generated.uge` / `obj/bgm_v2_loop_none_generated.asm`
+- 保存後UGE: `assets/bgm_v2_loop_<mode>_hugetracker_saved.uge`
+- Export ASM: `obj/bgm_v2_loop_<mode>_hugetracker_export.asm`
+
+| mode | 標準構造 | B effect | Instrument / routine / wave | loop metadata | 判定 |
+|---|---|---|---|---|---|
+| full | 未確認 | 生成ASMはなし。Exportは未確認 | 未確認 | 生成ASMは`db 0,0,63`。Export側は標準外 | 未確認 |
+| range | 未確認 | 生成ASMはCH1最終order row 63にB02を1つだけ出力。Exportは未確認 | 未確認 | 生成ASMは`db 1,1,63`。Export側は標準外 | 未確認 |
+| none | 未確認 | 生成ASMはなし。Exportは未確認 | 未確認 | 生成ASMは`db 2,1,63`。Export側は標準外 | 未確認 |
+
+比較分類は、`一致`、`表記上の差異`、`hUGETracker標準Exportに存在しない独自拡張`、`再生動作に影響する不一致`、`比較不能`を使用する。`*_loop_metadata`のExport側欠落は標準形式外の独自拡張として記録し、単純な不一致とはしない。
+
 ## 関連仕様
 
 楽曲定義JSONの詳細は [楽曲定義JSON仕様](json-format.md) を参照する。
