@@ -370,7 +370,7 @@
             - [x] restへのvolume指定を禁止するか決める
             - [x] 許可する場合のCxyとretrigger動作を決める（禁止したため対象外）
           - [x] pattern / order / loopをまたぐenvelope状態の扱いを決める
-          - [ ] noteのlength展開で生成される空行ではenvelope状態を変更しないことを決める
+          - [x] noteのlength展開で生成される空行ではenvelope状態を変更しないことを決める
           - [ ] Version 1のNoise変換へ影響を与えない方針を決める
         - [ ] note volumeをUGEへ反映する
         - [ ] note volumeをhUGEDriver用ASMへ反映する
