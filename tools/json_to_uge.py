@@ -170,6 +170,8 @@ class InstrumentSpec:
 @dataclass(frozen=True)
 class LoopSpec:
     mode: str
+    order_count: int
+    playback_start: int = 0
     start_order: int | None = None
     end_order: int | None = None
 
@@ -426,7 +428,9 @@ def validate_loop(data: dict[str, Any], version: int, order_count: int) -> LoopS
         for key in ("start_order", "end_order"):
             if key in loop:
                 fail(f"loop.{key}: {mode}では指定できません")
-        return LoopSpec(mode)
+        if mode == "full":
+            return LoopSpec(mode, order_count, 0, 0, order_count)
+        return LoopSpec(mode, order_count, 0, None, None)
 
     for key in ("start_order", "end_order"):
         if key not in loop:
@@ -441,7 +445,22 @@ def validate_loop(data: dict[str, Any], version: int, order_count: int) -> LoopS
         fail("loop.start_order: must be less than loop.end_order")
     if end != order_count:
         fail(f"loop.end_order: must equal N (N={order_count})")
-    return LoopSpec(mode, start, end)
+    return LoopSpec(mode, order_count, 0, start, end)
+
+
+def resolve_loop_boundaries(
+    data: dict[str, Any], version: int, order_matrix: list[list[Any]]
+) -> LoopSpec | None:
+    """Resolve loop positions against the completed, four-channel OrderMatrix."""
+    if len(order_matrix) != len(CHANNELS):
+        fail("order matrix: exactly four channels are required")
+    order_counts = {len(channel_orders) for channel_orders in order_matrix}
+    if len(order_counts) != 1:
+        fail("order matrix: order count must match across all four channels")
+    order_count = next(iter(order_counts))
+    if order_count < 1:
+        fail("order matrix: at least one order is required")
+    return validate_loop(data, version, order_count)
 
 
 PULSE_VERSION_2_FIELDS = (
@@ -1380,7 +1399,7 @@ def build_uge(data: dict[str, Any]) -> bytes:
     wave_tables = validate_wave_tables(data, json_version)
     instruments = validate_instruments(data, wave_tables=wave_tables)
     patterns, order_matrix = build_patterns(data, instruments)
-    loop = validate_loop(data, json_version, len(order_matrix[0]))
+    loop = resolve_loop_boundaries(data, json_version, order_matrix)
     if json_version == 2:
         patterns, order_matrix = assign_version_2_pattern_numbers(patterns, order_matrix)
 

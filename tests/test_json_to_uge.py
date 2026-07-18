@@ -2896,10 +2896,34 @@ class LoopValidationTests(unittest.TestCase):
     def test_modes_and_internal_representation(self):
         for mode in ("full", "none"):
             spec = json_to_uge.validate_loop(self.data(mode), 2, 2)
-            self.assertEqual(spec, json_to_uge.LoopSpec(mode))
+            if mode == "full":
+                self.assertEqual(spec, json_to_uge.LoopSpec("full", 2, 0, 0, 2))
+            else:
+                self.assertEqual(spec, json_to_uge.LoopSpec("none", 2, 0, None, None))
         for start in (0, 1):
             spec = json_to_uge.validate_loop(self.data("range", {"start_order": start, "end_order": 2}), 2, 2)
-            self.assertEqual((spec.mode, spec.start_order, spec.end_order), ("range", start, 2))
+            self.assertEqual(
+                (spec.mode, spec.order_count, spec.playback_start, spec.start_order, spec.end_order),
+                ("range", 2, 0, start, 2),
+            )
+
+    def test_resolved_order_matrix_is_the_loop_coordinate_system(self):
+        data = self.data("range", {"start_order": 1, "end_order": 2})
+        patterns, matrix = json_to_uge.build_version_2_patterns(
+            data, json_to_uge.validate_instruments(data)
+        )
+        spec = json_to_uge.resolve_loop_boundaries(data, 2, matrix)
+        self.assertEqual([len(orders) for orders in matrix], [2, 2, 2, 2])
+        self.assertEqual((spec.order_count, spec.playback_start, spec.start_order, spec.end_order), (2, 0, 1, 2))
+
+    def test_resolved_matrix_normalizes_full_and_none(self):
+        for mode, expected in (("full", (0, 3, 0, 3)), ("none", (0, 3, None, None))):
+            data = self.data(mode)
+            data["order"]["pulse1"] = ["a", "b", "c"]
+            data["patterns"]["pulse1"]["c"] = []
+            _, matrix = json_to_uge.build_version_2_patterns(data, json_to_uge.validate_instruments(data))
+            spec = json_to_uge.resolve_loop_boundaries(data, 2, matrix)
+            self.assertEqual((spec.playback_start, spec.order_count, spec.start_order, spec.end_order), expected)
 
     def test_both_converters_accept_valid_loop_inputs(self):
         for mode, values in (("full", {}), ("none", {}), ("range", {"start_order": 1, "end_order": 2}), ("range", {"start_order": 0, "end_order": 2})):
