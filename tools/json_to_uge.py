@@ -893,6 +893,10 @@ def build_channel_pattern(
                 if field not in NOISE_NOTE_ALLOWED_FIELDS:
                     fail(f"{event_path}.{field}: unknown Noise note field")
         note = parse_note(event.get("note"), f"{event_path}.note")
+        if version == 2 and channel == "noise" and note == NO_NOTE and "volume" in event:
+            fail(
+                f"{event_path}.volume: Version 2のCH4/Noiseではrestにvolumeを指定できません"
+            )
         length = expect_int(event.get("length"), f"{event_path}.length")
         if length < 1:
             fail(f"{event_path}.length: must be 1 or greater")

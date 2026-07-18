@@ -502,6 +502,41 @@ class Ch4NoiseNoteTests(unittest.TestCase):
         self.assertEqual(cells[0].note, 12)
         self.assertEqual(cells[0].instrument, 1)
 
+    def test_version_2_noise_rest_rejects_volume_key_for_any_value(self) -> None:
+        for volume in (None, 0, 15):
+            with self.subTest(volume=volume):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    r"Version 2のCH4/Noiseではrestにvolumeを指定できません",
+                ):
+                    self.build([{"note": "rest", "length": 1, "instrument": 1, "volume": volume}])
+
+    def test_version_2_noise_rest_without_volume_remains_valid(self) -> None:
+        cells = self.build([{"note": "rest", "length": 1, "instrument": 1}])
+        self.assertEqual(cells[0].note, json_to_uge.NO_NOTE)
+
+    def test_version_2_noise_volume_on_note_remains_valid(self) -> None:
+        cells = self.build([{"note": "C4", "length": 1, "instrument": 1, "volume": 15}])
+        self.assertEqual(cells[0].note, 12)
+
+    def test_version_2_pulse_rest_with_volume_is_not_ch4_error(self) -> None:
+        for channel in ("pulse1", "pulse2", "wave"):
+            with self.subTest(channel=channel):
+                instrument = {"id": 1, "name": channel, "channel": channel}
+                data = {"version": 2, "instruments": [instrument]}
+                if channel == "wave":
+                    instrument["waveform"] = "wave"
+                    data["wave_tables"] = [{"name": "wave", "samples": [0] * 32}]
+                instruments = json_to_uge.validate_instruments(data)
+                cells = json_to_uge.build_channel_pattern(
+                    [{"note": "rest", "length": 1, "instrument": 1, "volume": 0}],
+                    f"patterns.{channel}.main",
+                    version=2,
+                    channel=channel,
+                    instruments=instruments,
+                )
+                self.assertEqual(cells[0].note, json_to_uge.NO_NOTE)
+
     def test_noise_note_requires_noise_bank_instrument(self) -> None:
         for channel in ("pulse1", "pulse2", "wave"):
             with self.subTest(channel=channel):
@@ -1660,6 +1695,16 @@ class UgeCh4PatternTests(unittest.TestCase):
         self.assertEqual((cells[2]["note"], cells[2]["instrument"]), (71, 1))
         self.assertEqual((cells[3]["note"], cells[3]["instrument"]), (90, 0))
 
+    def test_ch4_rest_volume_is_rejected_before_uge_conversion(self) -> None:
+        for volume in (None, 0, 15):
+            with self.subTest(volume=volume):
+                data = uge_noise_pattern_fixture(
+                    [{"note": "rest", "length": 1, "instrument": 1, "volume": volume}],
+                    self.noise_instruments(),
+                )
+                with self.assertRaisesRegex(ValueError, r"Version 2のCH4/Noiseではrestにvolumeを指定できません"):
+                    json_to_uge.build_uge(data)
+
     def test_ch4_length_expands_to_empty_cells_without_retrigger(self) -> None:
         cells = self.cells([{"note": "C4", "length": 4, "instrument": 1}])
         self.assertEqual((cells[0]["note"], cells[0]["instrument"]), (12, 1))
@@ -2084,6 +2129,14 @@ class Ch4AsmPatternTests(unittest.TestCase):
             " dn C#4,2,$000",
             " dn B_8,1,$000",
         ])
+
+    def test_ch4_rest_volume_is_rejected_before_asm_conversion(self) -> None:
+        data = uge_noise_pattern_fixture(
+            [{"note": "rest", "length": 1, "instrument": 1, "volume": 0}],
+            self.noise_instruments(),
+        )
+        with self.assertRaisesRegex(ValueError, r"Version 2のCH4/Noiseではrestにvolumeを指定できません"):
+            json_to_huge_asm.build_asm(data, "song")
 
     def test_note_volume_is_emitted_as_cxy(self) -> None:
         lines = self.pattern_lines([
