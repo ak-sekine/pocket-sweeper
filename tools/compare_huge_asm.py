@@ -4,7 +4,7 @@ import argparse
 import re
 from pathlib import Path
 
-LABEL = re.compile(r"^(?P<label>[A-Za-z_][A-Za-z0-9_]*)(?:::|:)$")
+LABEL = re.compile(r"^(?P<label>[A-Za-z_][A-Za-z0-9_]*)(?:::|:)(?P<rest>.*)$")
 PREFIX_HINT = re.compile(r"^(?P<prefix>.+)_(?:P\d+|duty_instruments|wave_instruments|noise_instruments|routines|waves|it(?:Square|Wave|Noise)inst\d+|_hUGE_Routine_\d+)$")
 STATUS_EQUAL = "一致"
 STATUS_SPELLING = "表記上の差異"
@@ -20,7 +20,7 @@ def sections(path):
         if match:
             if current is not None:
                 result[current] = lines
-            current, lines = match.group("label"), []
+            current, lines = match.group("label"), ([match.group("rest").strip()] if match.group("rest").strip() else [])
         elif current is not None:
             lines.append(line)
     if current is not None:
@@ -76,14 +76,18 @@ def bytes_from(lines):
 def comparable(left, right, category):
     a, b = semantic_lines(left), semantic_lines(right)
     if category in {"descriptor", "OrderMatrix"}:
-        a = [re.sub(r"\b[A-Za-z_][A-Za-z0-9_]*_(?=(?:order|P\d+|duty_instruments|wave_instruments|noise_instruments|routines|waves)\b)", "", x) for x in a]
-        b = [re.sub(r"\b[A-Za-z_][A-Za-z0-9_]*_(?=(?:order|P\d+|duty_instruments|wave_instruments|noise_instruments|routines|waves)\b)", "", x) for x in b]
+        symbol = r"[A-Za-z0-9_]+_((?:order(?:_cnt|[1-4])?|P\d+|duty_instruments|wave_instruments|noise_instruments|routines|waves))\b"
+        a = [re.sub(symbol, r"\1", x) for x in a]
+        b = [re.sub(symbol, r"\1", x) for x in b]
     if category == "descriptor" and len(a) == len(b) + 1:
         a = [x for x in a if "loop_metadata" not in x]  # Version 2 extension.
     if category == "pattern":
         return a == b
     if category == "wave table":
-        return bytes_from(a) == bytes_from(b)
+        # Export ASM commonly emits only the banks referenced by instruments;
+        # compare the common prefix and let the caller report omitted banks.
+        left_bytes, right_bytes = bytes_from(a), bytes_from(b)
+        return left_bytes[:len(right_bytes)] == right_bytes
     if category == "instrument":
         return bytes_from(a) == bytes_from(b)
     if category == "routine":
@@ -127,6 +131,7 @@ def main(argv=None):
         exported["waves"] = exported["waves"] + sum((v for k, v in exported.items()
                                                         if re.fullmatch(r"wave\d+", k)), [])
     labels = sorted(set(generated) | set(exported))
+    labels = [label for label in labels if not (re.fullmatch(r"wave\d+", label) and "waves" in generated)]
     for label in labels:
         kind = category(label)
         left, right = generated.get(label), exported.get(label)
