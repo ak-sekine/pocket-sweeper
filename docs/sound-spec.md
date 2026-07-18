@@ -11,6 +11,10 @@
 - `Sound_Init` はNR52/NR50/NR51を初期化し、BGM再生中フラグとSFX再生状態をクリアする。
 - `Sound_PlayTestBgm` はテストBGMの曲ディスクリプタをHLに設定して `hUGE_init` を呼び、再生中フラグを立てる。
 - `Sound_Update` はBGM再生中のみ `hUGE_dosound` を呼び出し、その後にSFX管理処理を更新する。
+- Version 2 `loop.mode = "none"` の終了判定は、JSONから生成した曲ディスクリプタの終了メタデータとhUGEDriverの再生位置（最終order・最終row）を組み合わせて行う。UGEのOrderMatrixだけから推測しない。`full` / `range` は通常のループ遷移を継続する。
+- 非ループ曲が終了したフレームの最終row処理までは `hUGE_dosound` を呼び、その後はBGM更新を停止する。停止状態のhUGEDriverを毎フレーム呼び続ける方式は採用しない。終了後のrow、current_order、tickは終了位置を保持し、再生開始時の `hUGE_init` で初期化する。
+- 自然終了時はBGMの音を即時に止める。ただしSFXが占有しているチャンネルは消音対象から除外し、SFXの発音とミュート状態を変更しない。hUGEDriverのチャンネルミュート/note cutまたは同等のBGM専用消音APIを、チャンネル占有状態を確認して使う。hardware envelope、length、自然減衰を終了条件・無音維持の手段にはしない。
+- BGM再生状態は少なくとも「再生中」「自然終了」「呼び出し元停止」「新曲による置換」を区別する。終了通知は自然終了イベントを1回だけ観測できる状態フラグとし、`wSoundPlaybackActive` は更新呼び出し可否の内部状態として扱う。停止・置換では自然終了イベントを発生させない。新曲開始時に状態とhUGEDriverを初期化する。
 - ゲーム開始時およびリスタート時に `Sound_PlayTestBgm` を呼び、テストBGMを再生開始する。
 - `hUGE_dosound` はAF/BC/DE/HLを破壊するため、呼び出し側はレジスタ値を跨いで依存しない。
 - SFX管理用WRAMとして、現在の効果音ID、step pointer、残りwait frames、現在のpriority、channel kind、残りstep数、SFX再生中フラグを保持する。
@@ -24,6 +28,14 @@
 - 決定、キャンセル、マス開封、旗操作などのSFX呼び出しは後続WBSで行う。
 
 ### BGMと効果音の再生制御方針
+
+#### 非ループBGMの終了
+
+`loop.mode = "none"` は最終orderの最終rowを一度処理した時点で自然終了とする。終了判定とBGM更新停止はROM側の `Sound_Update` 系管理で行い、hUGEDriver用生成ASMの終了メタデータを参照する。終了後は `hUGE_dosound` を呼ばず、hUGEDriverの再生位置はデバッグ・状態確認のため終了位置に保持する。`hUGE_init` は既存の初期化経路を使ってrow、current_order、tick、ミュート等を新曲用に初期化できるものとする。これは後続実装で確認する。
+
+自然終了時の消音は、最終noteのhardware envelopeまたはlengthによる減衰待ちではなく、BGMが管理する4チャンネルの即時消音とする。Pulse（CH1/CH2）、Wave（CH3）、Noise（CH4）は、更新停止だけではAPU上の音が残る可能性があるためである。NR51全体を変更して全音源を切る方法や、APUレジスタを無条件に直接書き換える方法は、SFXを破壊するため採用しない。終了時点でSFXが占有しているチャンネルはそのSFXに任せ、未占有のBGMチャンネルだけをnote cut/ミュートする。
+
+BGM終了後も `Sound_UpdateSfx` は毎フレーム呼び続ける。SFX終了時のunmuteはSFXが占有していたチャンネルに限定し、終了済みBGMを再開させる処理を行わない。BGM終了通知とSFX終了は別の状態・フラグで管理する。
 
 - 初版では、BGMはhUGEDriverで再生する。
 - hUGEDriverは1つの曲状態を持つ前提で扱い、効果音再生のたびに `hUGE_init` で別曲へ切り替える運用は採用しない。
