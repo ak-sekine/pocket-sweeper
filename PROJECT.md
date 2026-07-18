@@ -382,7 +382,7 @@
         - [x] Version 2のCH4でrest要素にvolumeが存在する入力をバリデーションエラーにする
       - [ ] Version 2 note volume変換を検証する
         - [x] volume省略と`volume: 0`の差を確認する
-        - [ ] CH1 / CH2 / CH3 / CH4で変換結果を確認する
+        - [x] CH1 / CH2 / CH3 / CH4で変換結果を確認する
       - [ ] Version 2 order / patternsの検証・内部表現を実装する
         - [ ] チャンネル別order / patternsの構造と参照を検証する
         - [ ] order数不一致をエラーにし、未使用チャンネルへ空pattern参照を補完する
