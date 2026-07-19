@@ -4,6 +4,8 @@ SECTION "Sound WRAM", WRAM0
 
 wSoundPlaybackActive::
     ds 1
+wSoundBgmFinishedEvent::
+    ds 1
 wSoundSfxCurrentId::
     ds 1
 wSoundSfxStepPtr::
@@ -30,6 +32,7 @@ Sound_Init::
     ldh [rAUDTERM], a
     xor a
     ld [wSoundPlaybackActive], a
+    ld [wSoundBgmFinishedEvent], a
     ld [wSoundSfxCurrentId], a
     ld [wSoundSfxStepPtr], a
     ld [wSoundSfxStepPtr + 1], a
@@ -40,9 +43,22 @@ Sound_Init::
     ld [wSoundSfxActive], a
     ret
 
+IF !DEF(SOUND_NO_TEST_BGM)
 Sound_PlayTestBgm::
     ld hl, TestBgm
     call hUGE_init
+    xor a
+    ld [wSoundBgmFinishedEvent], a
+    ld a, 1
+    ld [wSoundPlaybackActive], a
+    ret
+ENDC
+
+; Start a Version 2 song descriptor supplied in HL.
+Sound_PlayBgmV2::
+    call hUGE_init_v2
+    xor a
+    ld [wSoundBgmFinishedEvent], a
     ld a, 1
     ld [wSoundPlaybackActive], a
     ret
@@ -114,8 +130,71 @@ Sound_Update::
     jr z, .updateSfx
     xor a
     ld [wSoundPlaybackActive], a
+    inc a
+    ld [wSoundBgmFinishedEvent], a
+    call Sound_SilenceFinishedBgmChannels
 .updateSfx:
     jp Sound_UpdateSfx
+
+; Silence only BGM-owned channels after a natural end.  An active SFX channel is
+; already muted in hUGEDriver and must retain both its APU state and mute bit.
+Sound_SilenceFinishedBgmChannels:
+    ld b, 0
+    call Sound_SilenceFinishedBgmChannel
+    ld b, 1
+    call Sound_SilenceFinishedBgmChannel
+    ld b, 2
+    call Sound_SilenceFinishedBgmChannel
+    ld b, 3
+    jp Sound_SilenceFinishedBgmChannel
+
+; Return the one-shot natural-finish event in A and clear it.
+Sound_TakeBgmFinishedEvent::
+    ld a, [wSoundBgmFinishedEvent]
+    push af
+    xor a
+    ld [wSoundBgmFinishedEvent], a
+    pop af
+    ret
+
+Sound_SilenceFinishedBgmChannel:
+    ld a, [wSoundSfxActive]
+    and a
+    jr z, .silence
+    ld a, [wSoundSfxChannelKind]
+    cp b
+    ret z
+
+.silence:
+    push bc
+    ld c, 1
+    call hUGE_mute_channel
+    pop bc
+    ld a, b
+    and a
+    jr z, .pulse1
+    dec a
+    jr z, .pulse2
+    dec a
+    jr z, .wave
+    xor a
+    ldh [rAUD4ENV], a
+    ret
+
+.pulse1:
+    xor a
+    ldh [rAUD1ENV], a
+    ret
+
+.pulse2:
+    xor a
+    ldh [rAUD2ENV], a
+    ret
+
+.wave:
+    xor a
+    ldh [rAUD3ENA], a
+    ret
 
 Sound_UpdateSfx:
     ld a, [wSoundSfxActive]

@@ -11,6 +11,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OBJ_DIR = PROJECT_ROOT / "obj"
 HUGE_DRIVER = PROJECT_ROOT / "src" / "hUGEDriver.asm"
+SOUND_MANAGER = PROJECT_ROOT / "src" / "sound.asm"
+SFX_ASSET = PROJECT_ROOT / "assets" / "se_cursor.json"
+SFX_CONVERTER = PROJECT_ROOT / "tools" / "json_to_sfx_asm.py"
 
 
 def fail(message: str) -> None:
@@ -41,9 +44,78 @@ def parse_song_version(path: Path) -> int:
     return 1
 
 
-def generate_main_asm(input_asm: Path, song_label: str, song_version: int) -> str:
+def parse_loop_mode(path: Path) -> int | None:
+    text = path.read_text(encoding="utf-8")
+    match = re.search(r"_loop_metadata:\s*db\s+([0-9]+)\s*,", text)
+    return int(match.group(1)) if match else None
+
+
+def _screen_data(*lines: str) -> list[int]:
+    width = 20
+    height = 5
+    cells = [ord(" ")] * (width * height)
+    for y, line in enumerate(lines[:height]):
+        for x, char in enumerate(line[:width]):
+            cells[y * width + x] = ord(char)
+    return cells
+
+
+def _db_lines(values: list[int]) -> str:
+    return "\n".join(
+        "    db " + ", ".join(f"${value:02X}" for value in values[offset : offset + 20])
+        for offset in range(0, len(values), 20)
+    )
+
+
+FONT_5X7 = {
+    "A": ("01110", "10001", "10001", "11111", "10001", "10001", "10001"),
+    "B": ("11110", "10001", "10001", "11110", "10001", "10001", "11110"),
+    "C": ("01111", "10000", "10000", "10000", "10000", "10000", "01111"),
+    "D": ("11110", "10001", "10001", "10001", "10001", "10001", "11110"),
+    "E": ("11111", "10000", "10000", "11110", "10000", "10000", "11111"),
+    "F": ("11111", "10000", "10000", "11110", "10000", "10000", "10000"),
+    "G": ("01111", "10000", "10000", "10111", "10001", "10001", "01111"),
+    "I": ("11111", "00100", "00100", "00100", "00100", "00100", "11111"),
+    "L": ("10000", "10000", "10000", "10000", "10000", "10000", "11111"),
+    "M": ("10001", "11011", "10101", "10101", "10001", "10001", "10001"),
+    "N": ("10001", "11001", "10101", "10011", "10001", "10001", "10001"),
+    "O": ("01110", "10001", "10001", "10001", "10001", "10001", "01110"),
+    "P": ("11110", "10001", "10001", "11110", "10000", "10000", "10000"),
+    "R": ("11110", "10001", "10001", "11110", "10100", "10010", "10001"),
+    "S": ("01111", "10000", "10000", "01110", "00001", "00001", "11110"),
+    "T": ("11111", "00100", "00100", "00100", "00100", "00100", "00100"),
+    "U": ("10001", "10001", "10001", "10001", "10001", "10001", "01110"),
+    "V": ("10001", "10001", "10001", "10001", "10001", "01010", "00100"),
+    "X": ("10001", "10001", "01010", "00100", "01010", "10001", "10001"),
+    "Y": ("10001", "10001", "01010", "00100", "00100", "00100", "00100"),
+    ":": ("00000", "00100", "00100", "00000", "00100", "00100", "00000"),
+}
+
+
+def _font_tile_data() -> list[int]:
+    tiles = [0] * (91 * 16)
+    for char, rows in FONT_5X7.items():
+        base = ord(char) * 16
+        for y, row in enumerate(rows):
+            pixels = int(row, 2) << 2
+            tiles[base + (y * 2)] = pixels
+            tiles[base + (y * 2) + 1] = pixels
+    return tiles
+
+
+def generate_main_asm(
+    input_asm: Path,
+    song_label: str,
+    song_version: int,
+    loop_mode: int | None = None,
+    sfx_asm: Path | None = None,
+) -> str:
     include_path = input_asm.resolve()
     init_routine = "hUGE_init_v2" if song_version == 2 else "hUGE_init"
+    if song_version == 2 and loop_mode == 2:
+        if sfx_asm is None:
+            sfx_asm = OBJ_DIR / "sound_test_sfx.asm"
+        return generate_none_sfx_main_asm(include_path, song_label, sfx_asm.resolve())
     return f"""INCLUDE "hardware.inc"
 INCLUDE "{asm_string(include_path)}"
 
@@ -100,6 +172,180 @@ SoundTest_WaitVBlank:
 """
 
 
+def generate_none_sfx_main_asm(input_asm: Path, song_label: str, sfx_asm: Path) -> str:
+    playing = _db_lines(_screen_data("BGM PLAYING"))
+    ready = _db_lines(_screen_data("BGM FINISHED", "A: PLAY SFX", "READY"))
+    sfx_playing = _db_lines(_screen_data("BGM FINISHED", "SFX PLAYING"))
+    sfx_finished = _db_lines(_screen_data("SFX FINISHED", "BGM STOPPED", "UNMUTE COMPLETE"))
+    font_tiles = _db_lines(_font_tile_data())
+    return f"""INCLUDE "{asm_string(input_asm)}"
+INCLUDE "{asm_string(sfx_asm)}"
+DEF SOUND_NO_TEST_BGM EQU 1
+INCLUDE "{asm_string(SOUND_MANAGER.resolve())}"
+
+SECTION "Sound Test WRAM", WRAM0
+wSoundTestState: ds 1
+wSoundTestDisplayTimer: ds 1
+wSoundTestAWasReleased: ds 1
+
+SECTION "Sound Test ROM Header", ROM0[$0100]
+EntryPoint::
+    nop
+    jp SoundTest_Main
+    ds $0150 - @, 0
+
+SECTION "Sound Test Main", ROM0[$0150]
+SoundTest_Main::
+    di
+    ld sp, $DFFF
+    call SoundTest_InitDisplay
+    call Sound_Init
+    ld hl, {song_label}
+    call Sound_PlayBgmV2
+    ld hl, SoundTestScreenBgmPlaying
+    call SoundTest_ShowScreen
+    xor a
+    ld [wSoundTestState], a
+    ld [wSoundTestDisplayTimer], a
+    ld [wSoundTestAWasReleased], a
+
+.loop:
+    call SoundTest_WaitVBlank
+    call Sound_Update
+    ld a, [wSoundTestState]
+    and a
+    jr z, .waitForBgmEnd
+    cp 1
+    jr z, .ready
+    cp 2
+    jr z, .sfxPlaying
+
+    ld hl, wSoundTestDisplayTimer
+    dec [hl]
+    jr nz, .loop
+    ld hl, SoundTestScreenReady
+    call SoundTest_ShowScreen
+    ld a, 1
+    ld [wSoundTestState], a
+    jr .loop
+
+.waitForBgmEnd:
+    ld a, [wSoundPlaybackActive]
+    and a
+    jr nz, .loop
+    ld hl, SoundTestScreenReady
+    call SoundTest_ShowScreen
+    ld a, 1
+    ld [wSoundTestState], a
+    jr .loop
+
+.ready:
+    call SoundTest_AButtonPressed
+    and a
+    jr z, .loop
+    xor a
+    call Sound_PlaySfx
+    ld hl, SoundTestScreenSfxPlaying
+    call SoundTest_ShowScreen
+    ld a, 2
+    ld [wSoundTestState], a
+    jr .loop
+
+.sfxPlaying:
+    ld a, [wSoundSfxActive]
+    and a
+    jr nz, .loop
+    ld hl, SoundTestScreenSfxFinished
+    call SoundTest_ShowScreen
+    ld a, 60
+    ld [wSoundTestDisplayTimer], a
+    ld a, 3
+    ld [wSoundTestState], a
+    jr .loop
+
+SoundTest_AButtonPressed:
+    ld a, $10
+    ldh [rP1], a
+    ldh a, [rP1]
+    ldh a, [rP1]
+    cpl
+    and 1
+    jr nz, .pressed
+    ld a, 1
+    ld [wSoundTestAWasReleased], a
+    xor a
+    ret
+.pressed:
+    ld a, [wSoundTestAWasReleased]
+    and a
+    ret z
+    xor a
+    ld [wSoundTestAWasReleased], a
+    inc a
+    ret
+
+SoundTest_InitDisplay:
+    xor a
+    ldh [rLCDC], a
+    ld hl, SoundTestFontTiles
+    ld de, $8000
+    ld bc, 91 * 16
+.copyTiles:
+    ld a, [hl+]
+    ld [de], a
+    inc de
+    dec bc
+    ld a, b
+    or c
+    jr nz, .copyTiles
+    ld a, %11100100
+    ldh [rBGP], a
+    ret
+
+SoundTest_ShowScreen:
+    push hl
+    xor a
+    ldh [rLCDC], a
+    ld de, $9800
+    ld bc, 20 * 5
+.copy:
+    ld a, [hl+]
+    ld [de], a
+    inc de
+    dec bc
+    ld a, b
+    or c
+    jr nz, .copy
+    ld a, %10010001
+    ldh [rLCDC], a
+    pop hl
+    ret
+
+SoundTest_WaitVBlank:
+.waitVisible:
+    ldh a, [rLY]
+    cp 144
+    jr nc, .waitVisible
+.waitVBlank:
+    ldh a, [rLY]
+    cp 144
+    jr c, .waitVBlank
+    ret
+
+SECTION "Sound Test Screen Data", ROM0
+SoundTestFontTiles:
+{font_tiles}
+SoundTestScreenBgmPlaying:
+{playing}
+SoundTestScreenReady:
+{ready}
+SoundTestScreenSfxPlaying:
+{sfx_playing}
+SoundTestScreenSfxFinished:
+{sfx_finished}
+"""
+
+
 def run_command(command: list[str]) -> None:
     try:
         subprocess.run(command, cwd=PROJECT_ROOT, check=True)
@@ -120,6 +366,7 @@ def build_rom(input_asm: Path, output_rom: Path) -> tuple[Path, Path, Path, Path
 
     song_label = parse_song_label(input_asm)
     song_version = parse_song_version(input_asm)
+    loop_mode = parse_loop_mode(input_asm)
     stem = output_rom.stem
     main_asm = OBJ_DIR / f"{stem}_sound_test.asm"
     main_obj = OBJ_DIR / f"{stem}_sound_test.o"
@@ -127,7 +374,14 @@ def build_rom(input_asm: Path, output_rom: Path) -> tuple[Path, Path, Path, Path
     map_file = OBJ_DIR / f"{stem}.map"
     sym_file = OBJ_DIR / f"{stem}.sym"
 
-    main_asm.write_text(generate_main_asm(input_asm, song_label, song_version), encoding="utf-8", newline="\n")
+    sfx_asm = OBJ_DIR / f"{stem}_sound_test_sfx.asm"
+    if song_version == 2 and loop_mode == 2:
+        run_command([sys.executable, str(SFX_CONVERTER), str(SFX_ASSET), str(sfx_asm)])
+    main_asm.write_text(
+        generate_main_asm(input_asm, song_label, song_version, loop_mode, sfx_asm),
+        encoding="utf-8",
+        newline="\n",
+    )
 
     rgbasm = tool_name("rgbasm")
     rgblink = tool_name("rgblink")

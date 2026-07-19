@@ -15,15 +15,21 @@ class SoundTestRomTests(unittest.TestCase):
     def load(self, name: str) -> dict:
         return json.loads((ROOT / "assets" / name).read_text(encoding="utf-8"))
 
-    def test_v2_main_uses_v2_init_and_stops_after_finished(self) -> None:
+    def test_v2_none_main_uses_sound_manager_and_remains_interactive(self) -> None:
         source = ROOT / "obj" / "bgm_v2_loop_none_manual_test.asm"
         main = build_sound_test_rom.generate_main_asm(
-            source, build_sound_test_rom.parse_song_label(source), 2
+            source,
+            build_sound_test_rom.parse_song_label(source),
+            2,
+            2,
+            ROOT / "obj" / "se_cursor_sfx.asm",
         )
-        self.assertIn("call hUGE_init_v2", main)
-        self.assertIn("call hUGE_bgm_finished", main)
-        self.assertIn("jr nz, .finished", main)
-        self.assertIn("ldh [rAUDENA], a", main)
+        self.assertIn("call Sound_PlayBgmV2", main)
+        self.assertIn("call Sound_Update", main)
+        self.assertIn("call Sound_PlaySfx", main)
+        self.assertIn("SoundTest_AButtonPressed:", main)
+        self.assertIn("SoundTestScreenSfxFinished:", main)
+        self.assertNotIn("ldh [rAUDENA], a\n.finished_loop:", main)
 
     def test_manual_test_patterns_are_64_rows(self) -> None:
         for filename in (
