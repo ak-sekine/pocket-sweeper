@@ -298,7 +298,7 @@
       - [x] テストROMを再生成する
       - [x] GBエミュレータで再生確認する
       - [x] 問題があればJSONを再修正する
-    - [ ] 楽曲定義JSON仕様を4チャンネル対応へ拡張する
+    - [x] 楽曲定義JSON仕様を4チャンネル対応へ拡張する
       - [x] 現行JSON仕様でCH1 / CH2 / CH3 / CH4を実用的に表現するために不足している項目を洗い出す
         - [x] CH1では周波数スイープ、length、length enableが未表現であることを確認する
         - [x] CH2ではlength、length enable、およびCH1専用項目の禁止規則が必要であることを確認する
@@ -362,7 +362,7 @@
       - [x] Version 2 note volumeの出力方式を確定する
         - [x] UGE pattern cellのVolume表現を確認する
         - [x] hUGEDriver用ASMのvolume表現を確認する
-      - [ ] Version 2 note volume変換を実装する
+      - [x] Version 2 note volume変換を実装する
         - [x] CH4 note volumeのenvelope補完規則を決める
           - [x] Instrument指定時は対象InstrumentのenvelopeをCxyへ反映するか決める
           - [x] Instrument 0を許可する場合のenvelope取得方法を決める
@@ -529,7 +529,7 @@
       - [x] タイトルBGMを使用する
       - [x] プレイ中BGMを使用する
       - [x] クリアBGMを使用する
-    - [ ] タイトルBGMを作成する
+    - [x] タイトルBGMを作成する
       - [x] `assets/bgm_title.json` の初稿を作成する
       - [x] `tools/json_to_huge_asm.py` でASMを生成する
       - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
