@@ -421,6 +421,7 @@
           - [x] `none`: hUGETrackerで開き、保存・再Exportして比較する
           - [x] `none`: B effectなし、標準ASM一致、Pattern統合・Instrument省略・Wave省略を表記差として確認する
         - [ ] Version 2のloop動作をSameBoyまたはBGBで手動確認する
+          - [x] `full`、`range`、`none`の確認用ROMを作成する
           - [ ] `full`、`range`、`none`の確認用ROMをSameBoyまたはBGBで起動する
           - [ ] `full`でB effectがなく、最終order後にorder 0へ戻ることを確認する
           - [ ] `range`で最終orderのCH1 row 63だけにBxxがあり、指定start orderへ戻ることを確認する
