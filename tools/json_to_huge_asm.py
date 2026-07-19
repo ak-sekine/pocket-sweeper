@@ -10,6 +10,7 @@ import json_to_uge
 
 NOTE_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 SONG_DESCRIPTOR_BASE_SIZE = 1 + 2 + (2 * 4) + (2 * 3) + 2 + 2
+PATTERN_LENGTH = 64
 
 
 def fail(message: str) -> None:
@@ -65,6 +66,8 @@ def render_patterns(label: str, patterns: dict[int, list[json_to_uge.Cell]]) -> 
     for key in sorted(patterns):
         lines.append(f"{label}_P{key}:")
         lines.extend(render_cell(cell) for cell in patterns[key])
+        empty = json_to_uge.Cell()
+        lines.extend(render_cell(empty) for _ in range(PATTERN_LENGTH - len(patterns[key])))
         lines.append("")
     return lines
 

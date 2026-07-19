@@ -421,13 +421,15 @@
           - [x] `none`: hUGETrackerで開き、保存・再Exportして比較する
           - [x] `none`: B effectなし、標準ASM一致、Pattern統合・Instrument省略・Wave省略を表記差として確認する
         - [ ] Version 2のloop動作をSameBoyまたはBGBで手動確認する
-          - [x] `full`、`range`、`none`の確認用ROMを作成する
-          - [ ] `full`、`range`、`none`の確認用ROMをSameBoyまたはBGBで起動する
-          - [ ] `full`でB effectがなく、最終order後にorder 0へ戻ることを確認する
-          - [ ] `range`で最終orderのCH1 row 63だけにBxxがあり、指定start orderへ戻ることを確認する
-          - [ ] `none`で最終order・row 63まで終了通知がなく、到達時にBGMが終了することを確認する
+          - [x] `full`、`range`、`none`の確認用ROMの異常音原因を調査する
+          - [x] loop modeを判別できる確認用ROMへ修正する
+          - [x] 修正版の`full`、`range`、`none`確認用ROMを作成する
+          - [x] 修正版ROMをSameBoyまたはBGBで起動する
+          - [x] `full`で最終order後にorder 0へ戻ることを確認する
+          - [x] `range`で最終orderのCH1 row 63だけにBxxがあり、指定start orderへ戻ることを確認する
+          - [x] `none`で最終order・row 63まで終了通知がなく、到達時にBGMが終了することを確認する
           - [ ] BGM終了後もSFXのmute・再生経路を利用できることを確認する
-          - [ ] 実際の音・画面でloop先と終了状態を記録する
+          - [x] 実際の音・画面でloop先と終了状態を記録する
       - [ ] JSON変換ツールのVersion 2総合確認を行う
         - [ ] Version 1 JSONの互換動作を確認する
         - [ ] 4チャンネル使用時のUGEをhUGETrackerで確認する

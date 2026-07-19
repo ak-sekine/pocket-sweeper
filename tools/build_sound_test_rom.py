@@ -34,8 +34,16 @@ def parse_song_label(path: Path) -> str:
     fail(f"{path}: song descriptor label ending with '::' was not found")
 
 
-def generate_main_asm(input_asm: Path, song_label: str) -> str:
+def parse_song_version(path: Path) -> int:
+    text = path.read_text(encoding="utf-8")
+    if "_loop_metadata" in text:
+        return 2
+    return 1
+
+
+def generate_main_asm(input_asm: Path, song_label: str, song_version: int) -> str:
     include_path = input_asm.resolve()
+    init_routine = "hUGE_init_v2" if song_version == 2 else "hUGE_init"
     return f"""INCLUDE "hardware.inc"
 INCLUDE "{asm_string(include_path)}"
 
@@ -53,12 +61,22 @@ SoundTest_Main::
     ld sp, $DFFF
     call SoundTest_InitAudio
     ld hl, {song_label}
-    call hUGE_init
+    call {init_routine}
 
 .loop:
     call SoundTest_WaitVBlank
     call hUGE_dosound
+    call hUGE_bgm_finished
+    and a
+    jr nz, .finished
     jr .loop
+
+.finished:
+    xor a
+    ldh [rAUDENA], a
+.finished_loop:
+    halt
+    jr .finished_loop
 
 SoundTest_InitAudio:
     ld a, %10000000
@@ -101,6 +119,7 @@ def build_rom(input_asm: Path, output_rom: Path) -> tuple[Path, Path, Path, Path
     output_rom.parent.mkdir(parents=True, exist_ok=True)
 
     song_label = parse_song_label(input_asm)
+    song_version = parse_song_version(input_asm)
     stem = output_rom.stem
     main_asm = OBJ_DIR / f"{stem}_sound_test.asm"
     main_obj = OBJ_DIR / f"{stem}_sound_test.o"
@@ -108,7 +127,7 @@ def build_rom(input_asm: Path, output_rom: Path) -> tuple[Path, Path, Path, Path
     map_file = OBJ_DIR / f"{stem}.map"
     sym_file = OBJ_DIR / f"{stem}.sym"
 
-    main_asm.write_text(generate_main_asm(input_asm, song_label), encoding="utf-8", newline="\n")
+    main_asm.write_text(generate_main_asm(input_asm, song_label, song_version), encoding="utf-8", newline="\n")
 
     rgbasm = tool_name("rgbasm")
     rgblink = tool_name("rgblink")

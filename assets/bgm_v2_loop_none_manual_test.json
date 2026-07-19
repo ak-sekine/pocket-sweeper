@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "title": "Version 2 none loop manual test",
+  "type": "bgm",
+  "loop": {"mode": "none"},
+  "tempo": 6,
+  "instruments": [
+    {"id": 1, "name": "manual pulse", "channel": "pulse1", "duty": 2, "length": 12, "length_enable": true, "initial_volume": 12, "envelope_direction": "down", "envelope_sweep": 0}
+  ],
+  "order": {"pulse1": ["c", "e", "g"]},
+  "patterns": {
+    "pulse1": {
+      "c": [{"note": "C4", "length": 1, "instrument": 1}],
+      "e": [{"note": "E4", "length": 1, "instrument": 1}],
+      "g": [{"note": "G4", "length": 1, "instrument": 1}]
+    }
+  }
+}
