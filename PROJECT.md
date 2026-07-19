@@ -413,9 +413,11 @@
           - [x] Version 1のdescriptor、OrderMatrix、暗黙loopへ影響しないことを確認する
           - [x] `full`、`range`、`none`のASM生成とROMビルドが成功することを確認する
         - [ ] Version 2のloop構造をhUGETracker Export ASMと手動比較する
-          - [ ] hUGETrackerでloop確認用UGEを開き、保存・再Exportする
-          - [ ] hUGETracker Export ASMのdescriptor、OrderMatrix、pattern、B effect、Instrument bank、routine、waveを生成ASMと比較する
-          - [ ] hUGETracker標準形式と本プロジェクト独自loop metadataを区別して記録する
+          - [x] `full`: hUGETrackerで開き、保存・再Exportし、生成UGEと保存後UGEが一致することを確認する
+          - [x] `full`: descriptor、OrderMatrix、pattern、B effect、Instrument bank、routine、waveを生成ASMと比較する
+          - [x] `full`: hUGETracker標準形式と本プロジェクト独自loop metadataを区別して記録する
+          - [ ] `range`: hUGETrackerで開き、保存・再Exportして比較する
+          - [ ] `none`: hUGETrackerで開き、保存・再Exportして比較する
         - [ ] Version 2のloop動作をSameBoyまたはBGBで手動確認する
           - [ ] `full`、`range`、`none`の確認用ROMをSameBoyまたはBGBで起動する
           - [ ] `full`でB effectがなく、最終order後にorder 0へ戻ることを確認する

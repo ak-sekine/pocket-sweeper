@@ -509,7 +509,7 @@ python tools/build_sound_test_rom.py obj/test_draft.asm build/test_sound.gb
 
 | mode | 標準構造 | B effect | Instrument / routine / wave | loop metadata | 判定 |
 |---|---|---|---|---|---|
-| full | 標準descriptor・OrderMatrixは表記差のみで意味一致。P0～P3各64行を確認 | B effectなし（GUI確認・ASM確認） | Duty / Noise / Routine 0～15 / Wave tableを確認。Wave Instrumentの値1か所は不一致 | 生成ASMは`db 0,0,63`、Export側にはなし（標準Exportにない独自拡張） | 構造比較は完了。Wave Instrumentとwave tableは要調査 |
+| full | descriptor、OrderMatrix、P0～P3各64行は意味的に一致 | B effectなし（GUI確認・ASM確認） | Duty / Wave / Noise Instrument bank、各Instrument、Routine 0～15、Wave tableは表記上の差異のみ | 生成ASMの独自loop metadataは標準Exportに存在しない独自拡張 | 確認完了。再生動作に影響する不一致・比較不能なし |
 | range | 未確認 | 生成ASMはCH1最終order row 63にB02を1つだけ出力。Exportは未確認 | 未確認 | 生成ASMは`db 1,1,63`。Export側は標準外 | 未確認 |
 | none | 未確認 | 生成ASMはなし。Exportは未確認 | 未確認 | 生成ASMは`db 2,1,63`。Export側は標準外 | 未確認 |
 
@@ -520,9 +520,10 @@ full確認済み事実（2026-07-19）:
 - hUGETrackerで正常に開け、4チャンネル、order 0、row 63まで表示された。B effectはなかった。
 - Duty Instrument、Wave Instrument、Noise Instrument、Wave tableを表示でき、Routine 0～15は空だった。別名保存とRGBDS ASM Exportに成功した。
 - `tools/compare_huge_asm.py`で曲名プレフィックスを正規化し、P0～P3の64行、Routine、Instrumentをラベル表記から分離して比較した。
-- 以前のfull比較では生成ASMのWave Instrument 1が`64`、Export ASMが`63`だった。これはhUGETracker互換範囲外の入力値を生成側が許可していたことによる差であり、Wave Instrument lengthの仕様を0～63へ修正したため、今後の正規入力では発生しない。64は使用不可とする。
-- Wave tableは生成側17行（272バイト）、Export側wave0 1行（16バイト）で、実バイト列の長さが異なるため同分類とした。原因（未使用wave tableの保存時省略か、生成データ差か）は推測であり、GUI聴感または仕様確認が必要である。
-- 生成UGEと保存後UGEは`cmp`で一致せず、差分は1バイト（オフセット21808、`0x40`対`0x3f`）だった。これはloop metadataのrow 63表現に対応する保存時正規化と推測できるが、意味影響の有無はhUGETrackerの内部仕様未確認である。
+- 以前のfull比較で確認されたWave Instrument lengthの`64→63`差異は、JSON仕様を0～63へ修正した後の再生成で解消した。
+- Wave tableの未使用bank省略は表記上の差異であり、実データの再生不一致ではない。
+- 生成UGEとhUGETracker再保存UGEは`cmp`終了コード0で完全一致した。
+- hUGETracker標準ASM部分は意味的に一致し、再生動作に影響する不一致と比較不能はなかった。
 - range / noneのGUI確認は未実施であり、対応するWBSと子WBSは未完了のままとする。
 
 Wave Instrument length仕様変更（確認済み）:
