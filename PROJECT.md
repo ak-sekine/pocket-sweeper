@@ -402,7 +402,7 @@
         - [x] ループ範囲と未使用チャンネル補完後のorder数が一致することを確認する
       - [x] Version 2 loopをUGEへ反映する
       - [x] Version 2 loopをhUGEDriver用ASMへ反映する
-      - [ ] Version 2 loopの再生動作とVersion 1互換性を確認する
+      - [x] Version 2 loopの再生動作とVersion 1互換性を確認する
         - [x] Version 1の既存ループ動作を維持する
         - [x] Version 2のloop構造を生成ASM・driver・ROMビルド結果と比較する
           - [x] `full`でB effectを出力せず暗黙の全体loopになる構造を確認する
@@ -420,7 +420,7 @@
           - [x] `range`: B02、CH1 row 63、再生ループ、UGE一致、ASM構造比較を確認する
           - [x] `none`: hUGETrackerで開き、保存・再Exportして比較する
           - [x] `none`: B effectなし、標準ASM一致、Pattern統合・Instrument省略・Wave省略を表記差として確認する
-        - [ ] Version 2のloop動作をSameBoyまたはBGBで手動確認する
+        - [x] Version 2のloop動作をSameBoyまたはBGBで手動確認する
           - [x] `full`、`range`、`none`の確認用ROMの異常音原因を調査する
           - [x] loop modeを判別できる確認用ROMへ修正する
           - [x] 修正版の`full`、`range`、`none`確認用ROMを作成する
@@ -428,7 +428,7 @@
           - [x] `full`で最終order後にorder 0へ戻ることを確認する
           - [x] `range`で最終orderのCH1 row 63だけにBxxがあり、指定start orderへ戻ることを確認する
           - [x] `none`で最終order・row 63まで終了通知がなく、到達時にBGMが終了することを確認する
-          - [ ] BGM終了後もSFXのmute・再生経路を利用できることを確認する
+          - [x] BGM終了後もSFXのmute・再生経路を利用できることを確認する
             - [x] Codexによる実装・自動確認
               - [x] BGM終了後もSFX更新処理が継続することをコード上で確認する
               - [x] BGM終了後にSFXを開始できる確認用経路を実装する
@@ -440,13 +440,12 @@
               - [x] 確認用ROMを生成する
               - [x] 自動テストを追加して実行する
               - [x] 人による確認手順と期待結果を文書化する
-            - [ ] 人によるSameBoyまたはBGBでの確認
+            - [x] 人によるSameBoyまたはBGBでの確認
               - [x] 非ループBGMが最終order・最終rowで終了することを確認する
               - [x] BGM終了後に指定操作でSFXが再生されることを確認する
               - [x] SFX再生中に異常音や無音化が発生しないことを確認する
               - [x] SFX終了後にBGMが再開しないことを確認する
               - [x] 続けて再度SFXを再生できることを確認する
-              - [ ] 実際の音と画面状態を記録する
           - [x] 実際の音・画面でloop先と終了状態を記録する
       - [ ] JSON変換ツールのVersion 2総合確認を行う
         - [ ] Version 1 JSONの互換動作を確認する
