@@ -510,8 +510,8 @@ python tools/build_sound_test_rom.py obj/test_draft.asm build/test_sound.gb
 | mode | 標準構造 | B effect | Instrument / routine / wave | loop metadata | 判定 |
 |---|---|---|---|---|---|
 | full | descriptor、OrderMatrix、P0～P3各64行は意味的に一致 | B effectなし（GUI確認・ASM確認） | Duty / Wave / Noise Instrument bank、各Instrument、Routine 0～15、Wave tableは表記上の差異のみ | 生成ASMの独自loop metadataは標準Exportに存在しない独自拡張 | 確認完了。再生動作に影響する不一致・比較不能なし |
-| range | 未確認 | 生成ASMはCH1最終order row 63にB02を1つだけ出力。Exportは未確認 | 未確認 | 生成ASMは`db 1,1,63`。Export側は標準外 | 未確認 |
-| none | 未確認 | 生成ASMはなし。Exportは未確認 | 未確認 | 生成ASMは`db 2,1,63`。Export側は標準外 | 未確認 |
+| range | descriptor、OrderMatrix、P0～P4各64行は意味的に一致 | CH1最終pattern row 63だけにB02。CH2～CH4の同rowにはB effectなし | Duty / Wave / Noise Instrument、Routine 0～15は意味的に一致。Wave tableは未使用bank省略による表記上の差異 | 生成ASMの`db 1,1,63`は標準Exportにない独自拡張 | 確認完了。再生動作に影響する不一致・比較不能なし |
+| none | descriptor、OrderMatrix、P0～P3各64行は意味的に一致 | B effectなし | Duty / Wave / Noise Instrument、Routine 0～15は意味的に一致。Pattern統合、Noise Instrument省略、Wave table未使用bank省略は表記上の差異 | 生成ASMの`db 2,1,63`は標準Exportに存在しない独自拡張 | 確認完了。再生動作に影響する不一致・比較不能なし |
 
 比較分類は、`一致`、`表記上の差異`、`hUGETracker標準Exportに存在しない独自拡張`、`再生動作に影響する不一致`、`比較不能`を使用する。`*_loop_metadata`のExport側欠落は標準形式外の独自拡張として記録し、単純な不一致とはしない。
 
@@ -524,7 +524,37 @@ full確認済み事実（2026-07-19）:
 - Wave tableの未使用bank省略は表記上の差異であり、実データの再生不一致ではない。
 - 生成UGEとhUGETracker再保存UGEは`cmp`終了コード0で完全一致した。
 - hUGETracker標準ASM部分は意味的に一致し、再生動作に影響する不一致と比較不能はなかった。
-- range / noneのGUI確認は未実施であり、対応するWBSと子WBSは未完了のままとする。
+- noneのGUI確認は完了した。Pocket Sweeper側のnone停止動作確認は別途未実施である。
+
+range確認済み事実（2026-07-19）:
+
+- `assets/bgm_v2_loop_range_generated.uge`をhUGETrackerで正常に開けた。
+- CH1の最終pattern row 63にB02が表示され、CH2～CH4の同じrowにはB effectがなかった。
+- JSONの`start_order`は1で、B effectは`start_order + 1`の02だった。
+- 再生時はOrder 1→Order 2の後、Order 2を繰り返した。
+- 生成UGEと再保存UGEは`cmp`終了コード0で完全一致した。
+- ASM比較ではP0～P4、Routine 0～15、descriptor、Instrument、OrderMatrixが意味的に一致した。
+- Wave tableの未使用bank省略は表記上の差異、loop metadataは標準Exportに存在しない独自拡張と分類した。
+- 再生動作に影響する不一致と比較不能はなかった。
+
+range確認に基づく推測・未確認事項:
+
+- 今回の確認はfullと同じ比較手順・分類基準に基づく。noneのGUI、保存、再Export、再生確認は未実施である。
+
+none確認済み事実（2026-07-19）:
+
+- `assets/bgm_v2_loop_none_generated.uge`をhUGETrackerで正常に開け、Pattern、Order、Instrumentを表示できた。B effectは存在しなかった。
+- 生成UGEとhUGETracker再保存UGEは`cmp`終了コード0で完全一致した。
+- hUGETracker標準ASM部分は意味的に一致し、再生動作に影響する不一致と比較不能はなかった。
+- generated側のP4がExport側でP0へ統合されたが、Pattern内容は同一であり、Pattern番号変更は表記上の差異だった。
+- generated側のNoise Instrument個別ラベルがExport側で省略されたが、UGEデータは一致しており、hUGETracker Export仕様による表記上の差異だった。
+- Wave table未使用bank省略は表記上の差異だった。
+- Pocket Sweeper独自loop metadataのみがhUGETracker標準Exportに存在しない独自拡張だった。
+- hUGETracker標準再生では曲末から先頭Orderへ戻った。noneによる停止は標準UGEでは表現されず、Pocket Sweeper独自loop metadataをゲーム側が解釈して実現する仕様である。
+
+noneに関する推測・未確認事項:
+
+- 今回はhUGETracker標準再生を確認したものであり、Pocket Sweeperのゲーム側none停止処理を実機・エミュレータで確認したものではない。
 
 Wave Instrument length仕様変更（確認済み）:
 

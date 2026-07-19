@@ -105,6 +105,9 @@ def category(label):
     if label.endswith("loop_metadata"): return "loop metadata"
     return "other"
 
+def referenced_symbols(lines):
+    return re.findall(r"\b(?:[A-Za-z_][A-Za-z0-9_]*_)?P\d+\b", " ".join(clean(lines)))
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("generated"); parser.add_argument("export")
@@ -132,13 +135,33 @@ def main(argv=None):
                                                         if re.fullmatch(r"wave\d+", k)), [])
     labels = sorted(set(generated) | set(exported))
     labels = [label for label in labels if not (re.fullmatch(r"wave\d+", label) and "waves" in generated)]
+    labels = [label for label in labels if not (
+        re.fullmatch(r"P\d+", label) and label in generated and label not in exported
+        and any(comparable(generated[label], exported.get(other, []), "pattern")
+                for other in exported if re.fullmatch(r"P\d+", other))
+    )]
     for label in labels:
         kind = category(label)
         left, right = generated.get(label), exported.get(label)
+        # hUGETracker may deduplicate an unused/identical final pattern. Compare
+        # the referenced cell data rather than the pattern number in OrderMatrix.
+        if kind == "OrderMatrix" and left is not None and right is not None:
+            glabels = [canonical(x, prefix) for x in referenced_symbols(left)]
+            rlabels = referenced_symbols(right)
+            if len(glabels) == len(rlabels) and all(
+                comparable(generated.get(g, []), exported.get(r, []), "pattern")
+                for g, r in zip(glabels, rlabels)
+            ):
+                status = STATUS_SPELLING
+                print(f"{status}\t{kind}\t{label}\tgenerated={len(clean(left))} export={len(clean(right))}")
+                continue
         if kind == "loop metadata" and left is not None and right is None:
             status = STATUS_EXTENSION
         elif left is None or right is None:
-            status = STATUS_UNCOMPARABLE
+            if kind == "instrument" and right is None and "noise_instruments" in exported:
+                status = STATUS_SPELLING
+            else:
+                status = STATUS_UNCOMPARABLE
         elif comparable(left, right, kind):
             original_gen = next((x for x in gen_raw if canonical(x, prefix) == label), label)
             original_exp = next((x for x in exp_raw if x == label), label)
