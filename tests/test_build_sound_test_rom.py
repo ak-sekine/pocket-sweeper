@@ -77,6 +77,34 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertIn("ld [wSoundBgmFinishedEvent], a", take)
         self.assertNotIn("wSoundSfxActive", take)
 
+    def test_screen_data_uses_32_tile_stride_and_clears_three_rows(self) -> None:
+        screens = (
+            ("BGM PLAYING",),
+            ("BGM FINISHED", "A: PLAY SFX", "READY"),
+            ("SFX PLAYING",),
+            ("SFX FINISHED", "UNMUTE COMPLETE"),
+            ("READY",),
+        )
+        for lines in screens:
+            data = build_sound_test_rom._screen_data(*lines)
+            self.assertEqual(len(data), 32 * 3)
+            for row in range(3):
+                expected = lines[row] if row < len(lines) else ""
+                start = row * 32
+                self.assertEqual(bytes(data[start : start + len(expected)]).decode(), expected)
+                self.assertEqual(data[start + len(expected) : start + 32], [ord(" ")] * (32 - len(expected)))
+
+    def test_screen_rejects_text_beyond_visible_width(self) -> None:
+        with self.assertRaisesRegex(ValueError, "exceeds 20 visible tiles"):
+            build_sound_test_rom._screen_data("X" * 21)
+
+    def test_font_contains_visible_h_glyph(self) -> None:
+        self.assertIn("H", build_sound_test_rom.FONT_5X7)
+        tiles = build_sound_test_rom._font_tile_data()
+        h_tile = tiles[ord("H") * 16 : (ord("H") + 1) * 16]
+        self.assertNotEqual(h_tile, [0] * 16)
+        self.assertEqual(h_tile[6:8], [0x7C, 0x7C])
+
     def test_sfx_mute_direct_apu_update_and_unmute_paths(self) -> None:
         play = routine(self.sound, "Sound_PlaySfx::", "Sound_Update::")
         update = routine(self.sound, "Sound_UpdateSfx:", "Sound_StopSfx:")
@@ -121,6 +149,20 @@ class BuildSoundTestRomTests(unittest.TestCase):
                 "SoundTestScreenSfxFinished",
             ):
                 self.assertIn(symbol, symbols)
+
+    def test_generated_none_rom_updates_three_full_bg_map_rows(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_loop_none_manual_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source,
+            build_sound_test_rom.parse_song_label(source),
+            2,
+            2,
+            ROOT / "obj" / "se_cursor_sfx.asm",
+        )
+        show_screen = routine(main, "SoundTest_ShowScreen:", "SoundTest_WaitVBlank:")
+        self.assertIn("ld de, $9800", show_screen)
+        self.assertIn("ld bc, 32 * 3", show_screen)
+        self.assertNotIn("ld bc, 20 * 5", show_screen)
 
     def test_v1_full_and_range_keep_existing_noninteractive_generator(self) -> None:
         v1 = ROOT / "src" / "bgm_test.asm"

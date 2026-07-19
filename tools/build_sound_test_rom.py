@@ -14,6 +14,9 @@ HUGE_DRIVER = PROJECT_ROOT / "src" / "hUGEDriver.asm"
 SOUND_MANAGER = PROJECT_ROOT / "src" / "sound.asm"
 SFX_ASSET = PROJECT_ROOT / "assets" / "se_cursor.json"
 SFX_CONVERTER = PROJECT_ROOT / "tools" / "json_to_sfx_asm.py"
+BG_MAP_WIDTH = 32
+VISIBLE_TILE_WIDTH = 20
+SOUND_TEST_DISPLAY_ROWS = 3
 
 
 def fail(message: str) -> None:
@@ -51,19 +54,19 @@ def parse_loop_mode(path: Path) -> int | None:
 
 
 def _screen_data(*lines: str) -> list[int]:
-    width = 20
-    height = 5
-    cells = [ord(" ")] * (width * height)
-    for y, line in enumerate(lines[:height]):
-        for x, char in enumerate(line[:width]):
-            cells[y * width + x] = ord(char)
+    cells = [ord(" ")] * (BG_MAP_WIDTH * SOUND_TEST_DISPLAY_ROWS)
+    for y, line in enumerate(lines[:SOUND_TEST_DISPLAY_ROWS]):
+        if len(line) > VISIBLE_TILE_WIDTH:
+            fail(f"screen line {y}: text exceeds {VISIBLE_TILE_WIDTH} visible tiles")
+        for x, char in enumerate(line):
+            cells[y * BG_MAP_WIDTH + x] = ord(char)
     return cells
 
 
 def _db_lines(values: list[int]) -> str:
     return "\n".join(
-        "    db " + ", ".join(f"${value:02X}" for value in values[offset : offset + 20])
-        for offset in range(0, len(values), 20)
+        "    db " + ", ".join(f"${value:02X}" for value in values[offset : offset + BG_MAP_WIDTH])
+        for offset in range(0, len(values), BG_MAP_WIDTH)
     )
 
 
@@ -75,6 +78,7 @@ FONT_5X7 = {
     "E": ("11111", "10000", "10000", "11110", "10000", "10000", "11111"),
     "F": ("11111", "10000", "10000", "11110", "10000", "10000", "10000"),
     "G": ("01111", "10000", "10000", "10111", "10001", "10001", "01111"),
+    "H": ("10001", "10001", "10001", "11111", "10001", "10001", "10001"),
     "I": ("11111", "00100", "00100", "00100", "00100", "00100", "11111"),
     "L": ("10000", "10000", "10000", "10000", "10000", "10000", "11111"),
     "M": ("10001", "11011", "10101", "10101", "10001", "10001", "10001"),
@@ -175,8 +179,8 @@ SoundTest_WaitVBlank:
 def generate_none_sfx_main_asm(input_asm: Path, song_label: str, sfx_asm: Path) -> str:
     playing = _db_lines(_screen_data("BGM PLAYING"))
     ready = _db_lines(_screen_data("BGM FINISHED", "A: PLAY SFX", "READY"))
-    sfx_playing = _db_lines(_screen_data("BGM FINISHED", "SFX PLAYING"))
-    sfx_finished = _db_lines(_screen_data("SFX FINISHED", "BGM STOPPED", "UNMUTE COMPLETE"))
+    sfx_playing = _db_lines(_screen_data("SFX PLAYING"))
+    sfx_finished = _db_lines(_screen_data("SFX FINISHED", "UNMUTE COMPLETE"))
     font_tiles = _db_lines(_font_tile_data())
     return f"""INCLUDE "{asm_string(input_asm)}"
 INCLUDE "{asm_string(sfx_asm)}"
@@ -307,7 +311,7 @@ SoundTest_ShowScreen:
     xor a
     ldh [rLCDC], a
     ld de, $9800
-    ld bc, 20 * 5
+    ld bc, 32 * 3
 .copy:
     ld a, [hl+]
     ld [de], a

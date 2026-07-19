@@ -29,6 +29,7 @@ class SoundTestRomTests(unittest.TestCase):
         self.assertIn("call Sound_PlaySfx", main)
         self.assertIn("SoundTest_AButtonPressed:", main)
         self.assertIn("SoundTestScreenSfxFinished:", main)
+        self.assertIn("ld bc, 32 * 3", main)
         self.assertNotIn("ldh [rAUDENA], a\n.finished_loop:", main)
 
     def test_manual_test_patterns_are_64_rows(self) -> None:
