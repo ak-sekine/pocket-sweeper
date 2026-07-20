@@ -113,6 +113,13 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertEqual(two_tile[0:2], [0x38, 0x38])
         self.assertEqual(two_tile[12:14], [0x7C, 0x7C])
 
+    def test_font_contains_visible_digit_four_glyph(self) -> None:
+        self.assertIn("4", build_sound_test_rom.FONT_5X7)
+        tiles = build_sound_test_rom._font_tile_data()
+        four_tile = tiles[ord("4") * 16 : (ord("4") + 1) * 16]
+        self.assertNotEqual(four_tile, [0] * 16)
+        self.assertEqual(four_tile[8:10], [0x7C, 0x7C])
+
     def test_sfx_mute_direct_apu_update_and_unmute_paths(self) -> None:
         play = routine(self.sound, "Sound_PlaySfx::", "Sound_Update::")
         update = routine(self.sound, "Sound_UpdateSfx:", "Sound_StopSfx:")
@@ -273,6 +280,8 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertIn("ld bc, 91 * 16", init)
         self.assertIn("ld bc, 32 * 32", clear)
         self.assertIn("SoundTestScreenCH4Muted", main)
+        four_tile = build_sound_test_rom._font_tile_data()[ord("4") * 16 : (ord("4") + 1) * 16]
+        self.assertIn("db " + ", ".join(f"${value:02X}" for value in four_tile), main)
 
 
 if __name__ == "__main__":
