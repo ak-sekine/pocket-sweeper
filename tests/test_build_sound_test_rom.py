@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import re
 from pathlib import Path
 
 from tools import build_sound_test_rom
@@ -316,6 +317,25 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertIn("SoundTestScreenCH1CH3Solo", main)
         self.assertNotIn("P1F_GET_DPAD", input_routine)
         self.assertIn("cpl\n    and b", input_routine)
+
+    def test_ch2_ch4_screens_have_nonempty_digits_one_to_four(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source, build_sound_test_rom.parse_song_label(source), 2,
+            ch2_ch4_mute_toggle=True,
+        )
+        tiles = build_sound_test_rom._font_tile_data()
+        for char in "1234":
+            tile = tiles[ord(char) * 16 : (ord(char) + 1) * 16]
+            self.assertNotEqual(tile, [0] * 16, char)
+        font_data = main.split("SoundTestFontTiles:\n", 1)[1].split("SoundTestScreenAll:", 1)[0]
+        generated_tiles = [int(value, 16) for value in re.findall(r"\$([0-9A-F]{2})", font_data)]
+        for char in "1234":
+            self.assertNotEqual(generated_tiles[ord(char) * 16 : (ord(char) + 1) * 16], [0] * 16, char)
+        solo_screen = build_sound_test_rom._screen_data("CH1 CH3 SOLO")
+        self.assertEqual(solo_screen[1], ord("H"))
+        self.assertIn(ord("1"), solo_screen)
+        self.assertIn(ord("3"), solo_screen)
 
 
 if __name__ == "__main__":
