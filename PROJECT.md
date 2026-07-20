@@ -432,7 +432,7 @@
               - [x] SFX終了後にBGMが再開しないことを確認する
               - [x] 続けて再度SFXを再生できることを確認する
           - [x] 実際の音・画面でloop先と終了状態を記録する
-      - [ ] JSON変換ツールのVersion 2総合確認を行う
+      - [x] JSON変換ツールのVersion 2総合確認を行う
         - [x] Version 1 JSONの互換動作を確認する
         - [x] 4チャンネル使用時のUGEをhUGETrackerで確認する
           - [x] Codexによる準備・自動確認

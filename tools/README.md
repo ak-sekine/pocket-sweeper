@@ -146,7 +146,7 @@ assets/test_draft.uge
 
 Version 1では、従来形式のJSONを引き続き変換できます。共通の`order`配列でpattern順を指定し、各patternの`channels`内に
 `pulse1`、`pulse2`、`wave`、`noise`のセル列を記述します。noteは`C3`〜`B8`と`rest`、`length`は64行固定patternへ展開されます。
-Version 1ではVersion 2専用のチャンネル別`order` / `patterns`構造、`loop`、Instrument詳細、Noise note、note `volume`などは使用できません。
+Version 1ではVersion 2専用のチャンネル別`order` / `patterns`構造、`loop`、Pulse Instrumentの`length` / `length_enable` / Pulse1専用sweep項目（`sweep_time`、`sweep_direction`、`sweep_shift`）、Wave Instrument、Wave table参照、Noise Instrument、Noise note、note `volume`などは使用できません。
 effectは`effect: null`、`effect_param: null`のみ対応します。
 
 Version 1の主な対応範囲:
