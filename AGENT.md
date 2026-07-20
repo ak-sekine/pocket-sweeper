@@ -68,9 +68,13 @@
 
 WBSに伴う実装・確認作業では、原則としてテスト、commit、pushまで実施する。調査のみ、プロンプト作成のみ、またはユーザーがGit操作を禁止した場合はcommit・pushしない。
 
+- Gitコマンドは `&&` や `;` で連結せず、必ず1コマンドずつ実行する。各コマンドの成否を確認してから次のコマンドを実行する。
+- `git commit` は通常の `workspace-write` サンドボックス内では実行しない。実行前に、サンドボックス外実行に必要なユーザー承認を要求する。
+- `git push` も、必要な権限およびネットワークアクセスについて、実行前にユーザー承認を要求する。承認が必要なGit操作は、通常サンドボックス内で一度失敗させてから再試行せず、最初から承認付きで実行する。
+- Git操作で権限不足または `Read-only file system` が発生した場合は、通常サンドボックス内で再試行せず、処理を中断して状況を報告する。
 - 対象ファイルを明示的にstageする。`git add .` と `git add -A` は使わない。
 - コミットメッセージは変更内容が分かるものにする。
-- force push、reset、rebase、clean、checkoutによる変更破棄などの破壊的操作は禁止する。
+- `git reset --hard`、`git clean -fd`、`git commit --amend`、force push、rebase、checkoutによる変更破棄などの破壊的なGit操作は禁止する。
 - pushがnon-fast-forwardで拒否された場合は、force pushせず状況を報告する。
 - 作業後に `git status --short`、`git diff --check`、`git diff --stat`、必要に応じて`git diff`を確認する。
 
