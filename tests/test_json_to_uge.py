@@ -151,6 +151,32 @@ class VersionCompatibilityTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     json_to_huge_asm.build_asm(data, "mixed")
 
+    def test_four_channel_v2_check_asset_has_expected_uge_structure(self):
+        path = ROOT / "assets" / "bgm_v2_asm_compare.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        uge = json_to_uge.build_uge(data)
+
+        self.assertEqual(struct.unpack_from("<i", uge, 0)[0], json_to_uge.SONG_VERSION)
+        patterns, matrices = read_uge_patterns_and_order_matrix(uge)
+        self.assertEqual(matrices, [[0, 0], [1, 0], [2, 0], [3, 0]])
+        self.assertEqual(set(patterns), {0, 1, 2, 3})
+        self.assertEqual(
+            [patterns[index][0]["note"] for index in range(4)],
+            [json_to_uge.parse_note(note, "asset") for note in ("C4", "G3", "C3", "C4")],
+        )
+        self.assertTrue(all(len(pattern) == json_to_uge.PATTERN_ROWS for pattern in patterns.values()))
+        self.assertEqual(read_uge_wave_banks(uge)[0][:16], bytes(range(16)))
+
+        header_size = 4 + (3 * len(json_to_uge.pack_short_string("", "asset")))
+        instrument_size = len(json_to_uge.pack_instrument(json_to_uge.IT_SQUARE, ""))
+        duty_offset = header_size
+        wave_offset = duty_offset + 3 * json_to_uge.INSTRUMENT_COUNT * instrument_size
+        duty_bank = uge[duty_offset:wave_offset]
+        self.assertEqual(read_duty_instrument(duty_bank, 1)["duty"], 2)
+        self.assertEqual(read_duty_instrument(duty_bank, 2)["duty"], 1)
+        self.assertEqual(read_wave_instrument(uge[header_size:], 1)["waveform"], 0)
+        self.assertEqual(read_uge_noise_instrument(uge, 1)["name"], "noise 15bit")
+
 
 class Version2ChannelPatternTests(unittest.TestCase):
     def data(self, order=None, patterns=None):

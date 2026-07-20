@@ -456,7 +456,19 @@
           - [x] 実際の音・画面でloop先と終了状態を記録する
       - [ ] JSON変換ツールのVersion 2総合確認を行う
         - [x] Version 1 JSONの互換動作を確認する
-        - [ ] 4チャンネル使用時のUGEをhUGETrackerで確認する
+        - [x] 4チャンネル使用時のUGEをhUGETrackerで確認する
+          - [x] Codexによる準備・自動確認
+            - [x] 4チャンネルを使用するVersion 2確認用JSONを確認する
+            - [x] 確認用JSONからUGEを生成する
+            - [x] CH1～CH4のOrderMatrix、pattern、Instrument bank、Wave bankを自動確認する
+            - [x] 自動テストを実行する
+            - [x] 人による確認手順と期待結果を文書化する
+          - [x] 人によるhUGETrackerでの確認
+            - [x] 生成UGEをエラーや警告なく開けることを確認する
+            - [x] CH1～CH4のOrderMatrixとpatternを確認する
+            - [x] Pulse、Wave、Noiseの各Instrumentを確認する
+            - [x] 4チャンネルを使用して再生されることを確認する
+            - [x] 保存後も再度開けることを確認する
         - [ ] hUGETracker Export ASMと直接生成ASMを比較する
         - [ ] Version 2構造の変換結果をhUGETracker Export ASMと比較する
         - [ ] note volumeの変換結果をhUGETracker Export ASMと比較する
