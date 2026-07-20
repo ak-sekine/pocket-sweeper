@@ -94,8 +94,8 @@ class SoundTestRomTests(unittest.TestCase):
         input_routine = main[main.index("SoundTest_ReadButtons:") : main.index("SoundTest_InitAudio:")]
         self.assertIn("bit 2, a\n    jr nz, .solo", input_routine)
         self.assertIn("ld b, 0\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
-        self.assertIn("ld b, 1\n    call hUGE_mute_channel", input_routine)
-        self.assertIn("ld b, 2\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 1\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 2\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
         self.assertIn("ld b, 3\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
         self.assertIn("SoundTestScreenCH4Solo", main)
 

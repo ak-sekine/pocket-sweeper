@@ -218,8 +218,10 @@ def generate_channel_mute_main_asm(
     ld c, 0
     call hUGE_mute_channel
     ld b, 1
+    ld c, 0
     call hUGE_mute_channel
     ld b, 2
+    ld c, 0
     call hUGE_mute_channel
 """ if solo_toggle else ""
     all_channels = restore_other_channels + f"""    ld b, {channel}

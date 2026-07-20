@@ -273,6 +273,13 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertIn("ld b, 1\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
         self.assertIn("ld b, 2\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
         self.assertIn("ld b, 3\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
+        self.assertIn(
+            "ld b, 0\n    ld c, 0\n    call hUGE_mute_channel\n"
+            "    ld b, 1\n    ld c, 0\n    call hUGE_mute_channel\n"
+            "    ld b, 2\n    ld c, 0\n    call hUGE_mute_channel\n"
+            "    ld b, 3\n    ld c, 0\n    call hUGE_mute_channel",
+            input_routine,
+        )
         self.assertIn("SoundTestScreenCH4Solo", main)
 
     def test_ch4_toggle_preserves_display_initialization(self) -> None:
