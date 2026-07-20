@@ -58,6 +58,29 @@ class SoundTestRomTests(unittest.TestCase):
             asm = json_to_huge_asm.build_asm(self.load(filename), "song")
             self.assertIn(metadata, asm)
 
+    def test_ch4_audibility_fixture_has_loud_noise_and_nonrest_notes(self) -> None:
+        data = self.load("bgm_v2_ch4_mute_audibility_test.json")
+        noise_instrument = json_to_uge.validate_instruments(data)["noise"][4]
+        self.assertEqual(noise_instrument.initial_volume, 15)
+        noise_patterns = data["patterns"]["noise"]
+        notes = [event["note"] for pattern in noise_patterns.values() for event in pattern]
+        self.assertIn("C4", notes)
+        self.assertIn("G4", notes)
+        self.assertIn("rest", notes)
+        self.assertTrue(any(note != "rest" for note in notes))
+
+        for note in ("C4", "G4"):
+            note_number = json_to_uge.parse_note(note, f"test.{note}")
+            nr43 = json_to_uge.noise_note_to_nr43(note_number, noise_instrument)
+            self.assertNotEqual(nr43, 0)
+            self.assertEqual(nr43 & 0x08, 0)
+
+        asm = json_to_huge_asm.build_asm(data, "ch4_audibility")
+        self.assertIn("ch4_audibility_P6:", asm)
+        self.assertIn("dn C_4,4,$000", asm)
+        self.assertIn("dn G_4,4,$000", asm)
+        self.assertIn("ch4_audibility_itNoiseinst4:\ndb 240", asm)
+
 
 if __name__ == "__main__":
     unittest.main()

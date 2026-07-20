@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "title": "CH4 Noise Audibility Mute Test",
+  "type": "bgm",
+  "tempo": 6,
+  "loop": {"mode": "full"},
+  "wave_tables": [
+    {"name": "bass_triangle", "samples": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]}
+  ],
+  "instruments": [
+    {"id": 1, "name": "audibility_lead", "channel": "pulse1", "duty": 2, "length": 0, "length_enable": false, "initial_volume": 12, "envelope_direction": "down", "envelope_sweep": 0, "sweep_time": 0, "sweep_direction": "down", "sweep_shift": 0},
+    {"id": 2, "name": "audibility_bass", "channel": "wave", "waveform": "bass_triangle", "output_level": "100%", "length": 0, "length_enable": false},
+    {"id": 3, "name": "audibility_support", "channel": "pulse2", "duty": 1, "length": 0, "length_enable": false, "initial_volume": 8, "envelope_direction": "down", "envelope_sweep": 0},
+    {"id": 4, "name": "audibility_noise", "channel": "noise", "width_mode": "15bit", "initial_volume": 15, "envelope_direction": "down", "envelope_sweep": 0, "length": 0, "length_enable": false}
+  ],
+  "order": {
+    "pulse1": ["phrase_a", "phrase_b"],
+    "pulse2": ["phrase_a", "phrase_b"],
+    "wave": ["phrase_a", "phrase_b"],
+    "noise": ["phrase_a", "phrase_b"]
+  },
+  "patterns": {
+    "pulse1": {
+      "phrase_a": [{"note": "C5", "length": 8, "instrument": 1}, {"note": "E5", "length": 8, "instrument": 1}, {"note": "G5", "length": 8, "instrument": 1}, {"note": "E5", "length": 8, "instrument": 1}],
+      "phrase_b": [{"note": "F5", "length": 8, "instrument": 1}, {"note": "A5", "length": 8, "instrument": 1}, {"note": "C6", "length": 8, "instrument": 1}, {"note": "A5", "length": 8, "instrument": 1}]
+    },
+    "pulse2": {
+      "phrase_a": [{"note": "C5", "length": 8, "instrument": 3}, {"note": "G5", "length": 8, "instrument": 3}, {"note": "E5", "length": 8, "instrument": 3}, {"note": "G5", "length": 8, "instrument": 3}],
+      "phrase_b": [{"note": "F5", "length": 8, "instrument": 3}, {"note": "C6", "length": 8, "instrument": 3}, {"note": "A5", "length": 8, "instrument": 3}, {"note": "C6", "length": 8, "instrument": 3}]
+    },
+    "wave": {
+      "phrase_a": [{"note": "C3", "length": 16, "instrument": 2, "volume": 10}, {"note": "F3", "length": 16, "instrument": 2}],
+      "phrase_b": [{"note": "G3", "length": 16, "instrument": 2, "volume": 10}, {"note": "C3", "length": 16, "instrument": 2}]
+    },
+    "noise": {
+      "phrase_a": [{"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}, {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}, {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}, {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}],
+      "phrase_b": [{"note": "G4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}, {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}, {"note": "G4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}, {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}]
+    }
+  }
+}

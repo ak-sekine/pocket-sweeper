@@ -370,14 +370,14 @@ python tools/build_sound_test_rom.py --ch2-mute-toggle obj/bgm_v2_ch1_ch3_skelet
 
 ## CH4ミュート確認用ROM
 
-CH2確認と同じ4チャンネル曲を使い、CH4（Noise）だけを切り替える。
+CH4確認では、CH2確認結果に影響しない専用の4チャンネル曲を使い、CH4（Noise）だけを切り替える。専用JSONはNoise Instrumentの`initial_volume`を15にし、C4/G4とrestを4行ずつ交互に配置して、ミュート前後を聴き分けやすくしている。
 
 ```bash
-python tools/json_to_huge_asm.py assets/bgm_v2_ch1_ch3_skeleton_test.json obj/bgm_v2_ch1_ch3_skeleton_test.asm
-python tools/build_sound_test_rom.py --ch4-mute-toggle obj/bgm_v2_ch1_ch3_skeleton_test.asm build/bgm_v2_ch1_ch3_skeleton_test_ch4_mute.gb
+python tools/json_to_huge_asm.py assets/bgm_v2_ch4_mute_audibility_test.json obj/bgm_v2_ch4_mute_audibility_test.asm
+python tools/build_sound_test_rom.py --ch4-mute-toggle obj/bgm_v2_ch4_mute_audibility_test.asm build/bgm_v2_ch1_ch3_skeleton_test_ch4_mute.gb
 ```
 
-SameBoyで起動し、`ALL CHANNELS` の通常再生を聴いた後、Aで `CH4 MUTED` にする。複数フレーズと最低1回のループ境界を聴き、CH4が消えても主旋律、CH1/CH3による曲の骨格、テンポ、拍、調性、フレーズ進行が維持され、不自然な無音・停止・異常音がないことを確認する。Bで `ALL CHANNELS` に戻し、現在位置から自然に復帰し、ミュート中のNoise noteが遅れて再生されないことを確認する。必要に応じて複数回切り替える。方向キーは状態を変更せず、押し続けても連続切り替えにならない。
+SameBoyで起動し、通常再生でCH4のNoiseリズムが聞こえることを確認してからAで `CH4 MUTED` にする。Noiseリズムだけが消え、CH1～CH3による曲の骨格、テンポ、拍、フレーズ、ループ境界が維持されることを確認する。Bで `ALL CHANNELS` に戻し、CH4が現在位置から自然に復帰し、過去のNoise noteが遅れて鳴らないことを確認する。必要に応じて複数回切り替える。方向キーは状態を変更せず、押し続けても連続切り替えにならない。
 
 * ゲーム本体はRGBDSでビルドする。
 * Pythonは開発支援ツール専用とする。
