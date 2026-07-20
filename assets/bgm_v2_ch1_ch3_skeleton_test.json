@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "title": "CH1 CH2 CH3 BGM Mute Resilience Test",
+  "title": "CH1 CH2 CH3 CH4 BGM Mute Resilience Test",
   "type": "bgm",
   "tempo": 6,
   "loop": {
@@ -51,12 +51,24 @@
       "initial_volume": 8,
       "envelope_direction": "down",
       "envelope_sweep": 0
+    },
+    {
+      "id": 4,
+      "name": "rhythm_noise",
+      "channel": "noise",
+      "width_mode": "15bit",
+      "initial_volume": 10,
+      "envelope_direction": "down",
+      "envelope_sweep": 0,
+      "length": 0,
+      "length_enable": false
     }
   ],
   "order": {
     "pulse1": ["phrase_a", "phrase_b"],
     "pulse2": ["phrase_a", "phrase_b"],
-    "wave": ["phrase_a", "phrase_b"]
+    "wave": ["phrase_a", "phrase_b"],
+    "noise": ["phrase_a", "phrase_b"]
   },
   "patterns": {
     "pulse1": {
@@ -155,6 +167,28 @@
         {"note": "G3", "length": 8, "instrument": 2},
         {"note": "C3", "length": 8, "instrument": 2},
         {"note": "C3", "length": 8, "instrument": 2}
+      ]
+    },
+    "noise": {
+      "phrase_a": [
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}
+      ],
+      "phrase_b": [
+        {"note": "G4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "G4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "G4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "G4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4},
+        {"note": "C4", "length": 4, "instrument": 4}, {"note": "rest", "length": 4, "instrument": 4}
       ]
     }
   }
