@@ -366,7 +366,7 @@ python tools/json_to_huge_asm.py assets/bgm_v2_ch1_ch3_skeleton_test.json obj/bg
 python tools/build_sound_test_rom.py --ch2-mute-toggle obj/bgm_v2_ch1_ch3_skeleton_test.asm build/bgm_v2_ch1_ch3_skeleton_test_ch2_mute.gb
 ```
 
-起動時は `ALL CHANNELS`、Aボタンで `CH2 MUTED`、Bボタンで通常再生へ戻る。各フレームで `hUGE_dosound` を呼ぶため、ミュート中も曲の再生位置は進み、解除時は現在位置から復帰する。SameBoyでは通常再生を聴いた後、AでCH2をミュートし、複数フレーズとループ境界を確認してからBで復帰する。主旋律、CH1とCH3の調性・コード進行、拍・テンポ、フレーズ・ループ境界が維持され、誤った和音・不自然な空白・遅れて鳴るCH2音がないことを合格基準とする。
+起動時は `ALL CHANNELS`、Aボタンで `CH2 MUTED`、Bボタンで通常再生へ戻る。ボタン群だけを選択し、押下エッジを検出するため、方向キーは状態を変更せず、ボタンを押し続けても1回の操作として扱う。各フレームで `hUGE_dosound` を呼ぶため、ミュート中も曲の再生位置は進み、解除時は現在位置から復帰する。SameBoyでは通常再生を聴いた後、AでCH2をミュートし、複数フレーズとループ境界を確認してからBで復帰する。主旋律、CH1とCH3の調性・コード進行、拍・テンポ、フレーズ・ループ境界が維持され、誤った和音・不自然な空白・遅れて鳴るCH2音がないことを合格基準とする。
 
 * ゲーム本体はRGBDSでビルドする。
 * Pythonは開発支援ツール専用とする。

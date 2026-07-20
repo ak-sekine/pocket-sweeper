@@ -194,6 +194,8 @@ SoundTest_Main::
     call SoundTest_InitAudio
     ld hl, {song_label}
     call {init_routine}
+    xor a
+    ld [wSoundTestPreviousButtons], a
     ld hl, SoundTestScreenAll
     call SoundTest_ShowScreen
 .loop:
@@ -202,10 +204,19 @@ SoundTest_Main::
     call SoundTest_ReadButtons
     jr .loop
 SoundTest_ReadButtons:
-    ld a, $20
+    ld a, P1F_GET_BUTTONS
     ldh [rP1], a
     ldh a, [rP1]
     cpl
+    and $0F
+    ld b, a
+    ld a, [wSoundTestPreviousButtons]
+    cpl
+    and b
+    ld c, a
+    ld a, b
+    ld [wSoundTestPreviousButtons], a
+    ld a, c
     bit 0, a
     jr nz, .mute
     bit 1, a
@@ -266,6 +277,8 @@ SoundTestScreenCh2Muted:
     db "CH2 MUTED"
     ds 32 - 9, " "
     ds 32, " "
+SECTION "Sound Test WRAM", WRAM0
+wSoundTestPreviousButtons: ds 1
 '''
 
 
