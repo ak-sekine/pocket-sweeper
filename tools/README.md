@@ -357,6 +357,17 @@ Pillow
 
 # 開発方針
 
+## CH2ミュート確認用ROM
+
+既存の4チャンネル曲を使い、hUGEDriverのチャンネルミュートAPIでCH2（Pulse2）だけを切り替えるROMを生成する。
+
+```bash
+python tools/json_to_huge_asm.py assets/bgm_v2_ch1_ch3_skeleton_test.json obj/bgm_v2_ch1_ch3_skeleton_test.asm
+python tools/build_sound_test_rom.py --ch2-mute-toggle obj/bgm_v2_ch1_ch3_skeleton_test.asm build/bgm_v2_ch1_ch3_skeleton_test_ch2_mute.gb
+```
+
+起動時は `ALL CHANNELS`、Aボタンで `CH2 MUTED`、Bボタンで通常再生へ戻る。各フレームで `hUGE_dosound` を呼ぶため、ミュート中も曲の再生位置は進み、解除時は現在位置から復帰する。SameBoyでは通常再生を聴いた後、AでCH2をミュートし、複数フレーズとループ境界を確認してからBで復帰する。主旋律、CH1とCH3の調性・コード進行、拍・テンポ、フレーズ・ループ境界が維持され、誤った和音・不自然な空白・遅れて鳴るCH2音がないことを合格基準とする。
+
 * ゲーム本体はRGBDSでビルドする。
 * Pythonは開発支援ツール専用とする。
 * Pythonツールは可能な限り再利用できるよう、ゲーム固有処理への依存を避ける。

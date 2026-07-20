@@ -113,9 +113,12 @@ def generate_main_asm(
     song_version: int,
     loop_mode: int | None = None,
     sfx_asm: Path | None = None,
+    ch2_mute_toggle: bool = False,
 ) -> str:
     include_path = input_asm.resolve()
     init_routine = "hUGE_init_v2" if song_version == 2 else "hUGE_init"
+    if ch2_mute_toggle:
+        return generate_ch2_mute_main_asm(include_path, song_label, init_routine)
     if song_version == 2 and loop_mode == 2:
         if sfx_asm is None:
             sfx_asm = OBJ_DIR / "sound_test_sfx.asm"
@@ -174,6 +177,96 @@ SoundTest_WaitVBlank:
     jr c, .waitVBlank
     ret
 """
+
+
+def generate_ch2_mute_main_asm(input_asm: Path, song_label: str, init_routine: str) -> str:
+    return f'''INCLUDE "hardware.inc"
+INCLUDE "{asm_string(input_asm)}"
+SECTION "Sound Test ROM Header", ROM0[$0100]
+EntryPoint::
+    nop
+    jp SoundTest_Main
+    ds $0150 - @, 0
+SECTION "Sound Test Main", ROM0[$0150]
+SoundTest_Main::
+    di
+    ld sp, $DFFF
+    call SoundTest_InitAudio
+    ld hl, {song_label}
+    call {init_routine}
+    ld hl, SoundTestScreenAll
+    call SoundTest_ShowScreen
+.loop:
+    call SoundTest_WaitVBlank
+    call hUGE_dosound
+    call SoundTest_ReadButtons
+    jr .loop
+SoundTest_ReadButtons:
+    ld a, $20
+    ldh [rP1], a
+    ldh a, [rP1]
+    cpl
+    bit 0, a
+    jr nz, .mute
+    bit 1, a
+    ret z
+    ld b, 1
+    ld c, 0
+    call hUGE_mute_channel
+    ld hl, SoundTestScreenAll
+    jp SoundTest_ShowScreen
+.mute:
+    ld b, 1
+    ld c, 1
+    call hUGE_mute_channel
+    ld hl, SoundTestScreenCh2Muted
+    jp SoundTest_ShowScreen
+SoundTest_InitAudio:
+    ld a, %10000000
+    ldh [rAUDENA], a
+    ld a, %01110111
+    ldh [rAUDVOL], a
+    ld a, %11111111
+    ldh [rAUDTERM], a
+    ret
+SoundTest_ShowScreen:
+    push hl
+    xor a
+    ldh [rLCDC], a
+    ld de, $9800
+    ld bc, 32 * 2
+.copy:
+    ld a, [hl+]
+    ld [de], a
+    inc de
+    dec bc
+    ld a, b
+    or c
+    jr nz, .copy
+    ld a, %10010001
+    ldh [rLCDC], a
+    pop hl
+    ret
+SoundTest_WaitVBlank:
+.waitVisible:
+    ldh a, [rLY]
+    cp 144
+    jr nc, .waitVisible
+.waitVBlank:
+    ldh a, [rLY]
+    cp 144
+    jr c, .waitVBlank
+    ret
+SECTION "Sound Test Screen Data", ROM0
+SoundTestScreenAll:
+    db "ALL CHANNELS"
+    ds 32 - 12, " "
+    ds 32, " "
+SoundTestScreenCh2Muted:
+    db "CH2 MUTED"
+    ds 32 - 9, " "
+    ds 32, " "
+'''
 
 
 def generate_none_sfx_main_asm(input_asm: Path, song_label: str, sfx_asm: Path) -> str:
@@ -359,7 +452,7 @@ def run_command(command: list[str]) -> None:
         fail(f"{' '.join(command)} failed with exit code {exc.returncode}")
 
 
-def build_rom(input_asm: Path, output_rom: Path) -> tuple[Path, Path, Path, Path, Path]:
+def build_rom(input_asm: Path, output_rom: Path, ch2_mute_toggle: bool = False) -> tuple[Path, Path, Path, Path, Path]:
     if not input_asm.exists():
         fail(f"{input_asm}: input ASM does not exist")
     if not HUGE_DRIVER.exists():
@@ -382,7 +475,7 @@ def build_rom(input_asm: Path, output_rom: Path) -> tuple[Path, Path, Path, Path
     if song_version == 2 and loop_mode == 2:
         run_command([sys.executable, str(SFX_CONVERTER), str(SFX_ASSET), str(sfx_asm)])
     main_asm.write_text(
-        generate_main_asm(input_asm, song_label, song_version, loop_mode, sfx_asm),
+        generate_main_asm(input_asm, song_label, song_version, loop_mode, sfx_asm, ch2_mute_toggle),
         encoding="utf-8",
         newline="\n",
     )
@@ -406,6 +499,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("input_asm", type=Path, help="Input hUGEDriver song ASM")
     parser.add_argument("output_rom", type=Path, help="Output Game Boy ROM")
+    parser.add_argument("--ch2-mute-toggle", action="store_true")
     return parser.parse_args()
 
 
@@ -415,7 +509,7 @@ def main() -> int:
     try:
         input_asm = args.input_asm.resolve()
         output_rom = args.output_rom.resolve()
-        main_asm, main_obj, driver_obj, map_file, sym_file = build_rom(input_asm, output_rom)
+        main_asm, main_obj, driver_obj, map_file, sym_file = build_rom(input_asm, output_rom, args.ch2_mute_toggle)
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

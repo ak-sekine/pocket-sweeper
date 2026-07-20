@@ -183,6 +183,22 @@ class BuildSoundTestRomTests(unittest.TestCase):
             self.assertIn("call hUGE_init_v2", main)
             self.assertNotIn("call Sound_PlaySfx", main)
 
+    def test_ch2_toggle_uses_driver_mute_without_reinitializing_song(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source, build_sound_test_rom.parse_song_label(source), 2,
+            ch2_mute_toggle=True,
+        )
+        self.assertEqual(main.count("call hUGE_dosound"), 1)
+        self.assertEqual(main.count("call hUGE_init_v2"), 1)
+        self.assertIn("ld b, 1\n    ld c, 1\n    call hUGE_mute_channel", main)
+        self.assertIn("ld b, 1\n    ld c, 0\n    call hUGE_mute_channel", main)
+        self.assertNotIn("ld b, 0", main)
+        self.assertNotIn("ld b, 2", main)
+        self.assertNotIn("ld b, 3", main)
+        self.assertIn('db "ALL CHANNELS"', main)
+        self.assertIn('db "CH2 MUTED"', main)
+
 
 if __name__ == "__main__":
     unittest.main()
