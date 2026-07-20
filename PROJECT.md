@@ -449,6 +449,8 @@
             - [x] 保存後も再度開けることを確認する
         - [x] hUGETracker Export ASMと直接生成ASMを比較する
         - [ ] Version 2構造の変換結果をhUGETracker Export ASMと比較する
+          - [x] Codexによる準備・自動比較
+          - [ ] 人によるhUGETracker Export・比較確認
         - [ ] note volumeの変換結果をhUGETracker Export ASMと比較する
         - [ ] `tools/README.md`をVersion 2の最終対応内容へ更新する
     - [ ] 4チャンネルBGM制作フローを検証する

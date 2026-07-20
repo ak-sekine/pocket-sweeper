@@ -46,3 +46,13 @@
 ```
 
 比較器の単体テストは `tests/test_compare_huge_asm.py` にあり、架空のExport fixtureは追加していない。既存Export ASMを更新する場合は、入力UGE、hUGETrackerバージョン、未加工Exportであること、許容する表記差をこの文書とコミット記録へ追記する。
+
+## 今回の自動確認結果（2026-07-20）
+
+- `.venv/bin/python tools/json_to_uge.py assets/bgm_v2_asm_compare.json obj/bgm_v2_asm_compare_generated.uge` は成功し、68102 bytesを生成した。既存の `assets/bgm_v2_asm_compare.uge` と内容が一致した。
+- `.venv/bin/python tools/json_to_huge_asm.py assets/bgm_v2_asm_compare.json obj/bgm_v2_asm_compare_direct.asm` は成功した。
+- `tools/compare_huge_asm.py` による比較は、意味的な不一致を報告しなかった。pattern番号・ラベルprefix・空routineラベル・UGE由来filler・Wave bankの分割／未使用bank省略は表記差として扱った。
+- `loop_metadata` はhUGETracker標準ExportにないVersion 2独自拡張として分離した。`loop.mode = full`の標準再生構造との一致判定には含めていない。
+- `hUGETracker`の実行、今回のGUI Export操作、今回のバージョン表示はこの環境では確認できなかった。既存記録に記載されたv1.0.11は今回の実行で再確認していない。
+
+人による確認では、記録済みのhUGETracker Export ASMが対象UGEから生成されたものかを確認し、同じバージョンのhUGETrackerで対象UGEを開いてExport ASMを再生成する。そのASMを `obj/bgm_v2_asm_compare_direct.asm` と比較し、descriptor、CH1～CH4のOrderMatrix参照、patternのnote／Instrument／effect／64行補完、Pulse／Wave／Noise Instrument、Wave table packing、独自 `loop_metadata` の区別が本記録と一致することを期待する。確認完了まではWBS親項目を未完了とする。
