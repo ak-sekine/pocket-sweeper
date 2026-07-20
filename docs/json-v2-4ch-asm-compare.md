@@ -68,3 +68,36 @@
 比較結果では、意味的な不一致は報告されなかった。pattern P0～P3、routine 0～15、Pulse／Wave／Noise Instrument、OrderMatrixは要素数が一致し、表記上の差異のみだった。Wave tableはgenerated側16単位、Export側1ブロックという分割上の差異だった。descriptorは標準部分が一致し、generated側の7要素とExport側の6要素の差は、hUGETracker標準Exportに存在しない本プロジェクト独自の`loop_metadata`参照だった。`loop_metadata`は独自拡張として正しく分離された。
 
 人による確認が成功したため、PROJECT.mdの対象WBS親項目と子項目を完了にした。
+
+## note volume比較準備（Codexによる準備・自動比較）
+
+今回の対象データは `assets/bgm_v2_note_volume_compare.json` である。次のコマンドで
+`obj/bgm_v2_note_volume_compare.uge` と
+`obj/bgm_v2_note_volume_compare_direct.asm` を生成した。実際のhUGETracker Export ASMは
+まだ存在せず、架空のExport結果は追加していない。
+
+```bash
+.venv/bin/python tools/json_to_uge.py assets/bgm_v2_note_volume_compare.json obj/bgm_v2_note_volume_compare.uge
+.venv/bin/python tools/json_to_huge_asm.py assets/bgm_v2_note_volume_compare.json obj/bgm_v2_note_volume_compare_direct.asm
+```
+
+各チャンネルのpattern `volume` のrow 0～5は、順に「省略、null、0、1、15、length=2の展開空行」である。
+CH1/CH2/CH3の期待effectは `$000,$000,$C00,$C01,$C0F,$000`、CH4は、Instrument 1の
+envelope direction `up` と sweep `2` により上位nibble `$A`となり、`$000,$000,$CA0,$CA1,$CAF,$000` である。
+UGEのpattern cellを構造体として解析し、note、Instrument、EffectCode、EffectParamsをこの期待値と照合した。
+直接生成ASMの同じrowも同じCxyであることを照合した。省略／nullはeffectなしであり、`volume: 0`の`C00`（CH4は`CA0`）とは異なる。
+
+比較器 `tools/compare_huge_asm.py` はpattern行をそのまま意味比較するため、同じCxyは一致し、`C00`対effectなし、`C01`対`C0F`、CH4の上位nibble差、空行へのCxy追加は再生動作に影響する不一致になることを単体テストで確認した。ラベルprefix、routine label、既存のwave table表記差は従来どおり許容される。
+
+### 人によるhUGETracker Export・比較確認
+
+1. hUGETracker v1.0.11を起動し、`obj/bgm_v2_note_volume_compare.uge` を開く。
+2. 必要なら別名保存し、元のUGEを上書きしない。
+3. `File` → `Export` → RGBDS ASMで、`obj/bgm_v2_note_volume_compare_hugetracker.asm`へ保存する。
+4. 次を実行する。
+
+```bash
+.venv/bin/python tools/compare_huge_asm.py obj/bgm_v2_note_volume_compare_direct.asm obj/bgm_v2_note_volume_compare_hugetracker.asm
+```
+
+pattern `P0`（各CHのvolume pattern）のrow 0～5を確認し、上記Cxy、空行の`$000`、CH4の上位nibble `$A`を照合する。ラベルprefix、pattern番号、routine label、`db`分割などの表記差は許容し、patternのnote／Instrument／effect code／parameterの不一致は再生動作に影響する不一致とする。hUGETracker GUI、実Export、保存後の再読込はこの環境では未確認であり、人の確認完了まで親WBSは未完了とする。

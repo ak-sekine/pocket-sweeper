@@ -452,6 +452,8 @@
           - [x] Codexによる準備・自動比較
           - [x] 人によるhUGETracker Export・比較確認
         - [ ] note volumeの変換結果をhUGETracker Export ASMと比較する
+          - [x] Codexによる準備・自動比較
+          - [ ] 人によるhUGETracker Export・比較確認
         - [ ] `tools/README.md`をVersion 2の最終対応内容へ更新する
     - [ ] 4チャンネルBGM制作フローを検証する
       - [ ] CH1を主旋律、CH3をベースまたは持続音の中心として構成する
