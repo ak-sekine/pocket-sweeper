@@ -273,7 +273,10 @@ SoundTest_ClearBg:
     dec bc
     ld a, b
     or c
-    jr nz, .clear
+    jr z, .done
+    xor a
+    jr .clear
+.done:
     ret
 SoundTest_ShowScreen:
     push hl

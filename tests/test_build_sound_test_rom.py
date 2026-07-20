@@ -224,9 +224,8 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertIn("ldh [rBGP], a", init)
         self.assertIn("ld bc, 32 * 32", clear)
         self.assertIn("ld [hl+], a", clear)
+        self.assertIn("jr z, .done\n    xor a\n    jr .clear", clear)
         self.assertIn("ld bc, 32 * 2", show)
-        self.assertIn('db $41, $4C, $4C, $20, $43, $48, $41, $4E, $4E, $45, $4C, $53', main)
-        self.assertIn('db $43, $48, $32, $20, $4D, $55, $54, $45, $44', main)
         self.assertIn('db $41, $4C, $4C, $20, $43, $48, $41, $4E, $4E, $45, $4C, $53', main)
         self.assertIn('db $43, $48, $32, $20, $4D, $55, $54, $45, $44', main)
 
