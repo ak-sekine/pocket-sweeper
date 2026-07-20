@@ -1,0 +1,87 @@
+{
+  "version": 2,
+  "title": "CH1 CH3 BGM Skeleton Test",
+  "type": "bgm",
+  "tempo": 6,
+  "loop": {
+    "mode": "full"
+  },
+  "wave_tables": [
+    {
+      "name": "bass_triangle",
+      "samples": [
+        0, 1, 2, 3, 4, 5, 6, 7,
+        8, 9, 10, 11, 12, 13, 14, 15,
+        15, 14, 13, 12, 11, 10, 9, 8,
+        7, 6, 5, 4, 3, 2, 1, 0
+      ]
+    }
+  ],
+  "instruments": [
+    {
+      "id": 1,
+      "name": "skeleton_lead",
+      "channel": "pulse1",
+      "duty": 2,
+      "length": 0,
+      "length_enable": false,
+      "initial_volume": 12,
+      "envelope_direction": "down",
+      "envelope_sweep": 0,
+      "sweep_time": 0,
+      "sweep_direction": "down",
+      "sweep_shift": 0
+    },
+    {
+      "id": 2,
+      "name": "skeleton_bass",
+      "channel": "wave",
+      "waveform": "bass_triangle",
+      "output_level": "100%",
+      "length": 0,
+      "length_enable": false
+    }
+  ],
+  "order": {
+    "pulse1": ["phrase_a", "phrase_b"],
+    "wave": ["phrase_a", "phrase_b"]
+  },
+  "patterns": {
+    "pulse1": {
+      "phrase_a": [
+        {"note": "C5", "length": 4, "instrument": 1},
+        {"note": "E5", "length": 4, "instrument": 1},
+        {"note": "G5", "length": 4, "instrument": 1},
+        {"note": "E5", "length": 4, "instrument": 1},
+        {"note": "F5", "length": 4, "instrument": 1},
+        {"note": "A5", "length": 4, "instrument": 1},
+        {"note": "C6", "length": 4, "instrument": 1},
+        {"note": "A5", "length": 4, "instrument": 1}
+      ],
+      "phrase_b": [
+        {"note": "G5", "length": 4, "instrument": 1},
+        {"note": "B5", "length": 4, "instrument": 1},
+        {"note": "D6", "length": 4, "instrument": 1},
+        {"note": "B5", "length": 4, "instrument": 1},
+        {"note": "C6", "length": 4, "instrument": 1},
+        {"note": "G5", "length": 4, "instrument": 1},
+        {"note": "E5", "length": 4, "instrument": 1},
+        {"note": "C5", "length": 4, "instrument": 1}
+      ]
+    },
+    "wave": {
+      "phrase_a": [
+        {"note": "C3", "length": 8, "instrument": 2, "volume": 10},
+        {"note": "C3", "length": 8, "instrument": 2},
+        {"note": "F3", "length": 8, "instrument": 2},
+        {"note": "F3", "length": 8, "instrument": 2}
+      ],
+      "phrase_b": [
+        {"note": "G3", "length": 8, "instrument": 2, "volume": 10},
+        {"note": "G3", "length": 8, "instrument": 2},
+        {"note": "C3", "length": 8, "instrument": 2},
+        {"note": "C3", "length": 8, "instrument": 2}
+      ]
+    }
+  }
+}
