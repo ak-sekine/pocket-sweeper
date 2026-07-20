@@ -471,71 +471,19 @@
       - [x] CH2とCH4を同時にミュートした状態で、CH1とCH3だけでも曲の骨格が維持されることを確認する
         - [x] CodexによるCH2・CH4同時ミュート確認用ROM、自動確認、SameBoy手順を準備する
         - [x] 人によるSameBoy聴感確認を行う
-    - [ ] MIDI素材からGame Boy用楽曲JSONを生成する運用を設計する
-      - [ ] MIDI素材の利用目的を「元曲の情報をできるだけ保持してGame Boy向けへ変換する」と定義する
-      - [ ] MIDIから保持する情報と、Game Boy制約上削減・変換する情報を整理する
-      - [ ] MIDIの全トラック・全チャンネル・テンポ・音色・音量・パン・ドラム情報の取得方法を確認する
-      - [x] MIDIの複数tempoをVersion 2 JSONへ保持せず、単一tempoへ正規化する方針を決める
-      - [ ] MIDIノート、拍、tick、テンポ変更をhUGETrackerの64行patternとticks-per-rowへ変換する方針を決める
-      - [ ] MIDIの複数トラックをGame BoyのCH1 / CH2 / CH3 / CH4へ割り当てる方針を決める
-      - [ ] メロディ、伴奏、ベース、ドラムを自動判定する基準を決める
-      - [ ] Game Boyで表現できない同時発音を削減・分配する方針を決める
-      - [ ] 音域外ノートの移調・オクターブ補正方針を決める
-      - [ ] MIDIチャンネル10のドラムをCH4 / Noiseへ変換する方針を決める
-      - [ ] MIDI由来のtrack、channel、program、velocity等のメタデータをJSONへ保持するか決める
-      - [ ] MIDIチャンネル10のドラム番号を打楽器種別として解析する
-      - [ ] 打楽器種別をNoise InstrumentとNoise noteの組み合わせへ変換する
-      - [ ] MIDIドラム番号とCH4用Instrument / noteの対応表を決める
-      - [ ] MIDI velocityをnote `volume`へ変換する
-      - [ ] 同時刻の複数ドラムをCH4の単音へ削減する優先順位を決める
-      - [ ] 変換結果のInstrument / Noise note割り当てをレポートする
-      - [ ] MIDIのループ情報取得方法を決める
-      - [ ] MIDIのループ位置を単一tempoのrowへ量子化する
-      - [ ] pattern途中のループ位置でpatternを分割する
-      - [ ] Version 2の`loop`へ変換する
-      - [ ] ループ情報がない場合のデフォルトmodeを決める
-      - [ ] 変換結果のループ範囲をレポートする
-      - [ ] 変換結果を人が音符単位で修正しなくても、試聴結果をもとにChatGPTへ自然言語で再調整を依頼できる運用を決める
-    - [ ] MIDIから楽曲定義JSONへ変換するPythonツールを作成する
-      - [ ] 4チャンネル対応JSON仕様とJSON変換ツールの対応完了後に着手する
-      - [ ] ツール名とコマンドライン引数を決める
-      - [ ] MIDI解析ライブラリを選定し、`requirements.txt`へ追加する
-      - [ ] MIDIファイルを読み込み、全トラック・全チャンネルのイベントを取得する
-      - [ ] note on / note offから発音開始位置と長さを復元する
-      - [ ] tempo、time signature、program change、control changeを解析する
-      - [ ] MIDIチャンネル10のドラムノートを解析する
-      - [ ] メロディ、伴奏、ベース、ドラム候補を抽出する
-      - [ ] CH1 / CH2 / CH3 / CH4への自動割り当てを実装する
-      - [ ] 必要に応じてチャンネル割り当てを手動指定できるようにする
-      - [ ] 同時発音数をGame Boyの4チャンネルへ削減・分配する
-      - [ ] noteをC3～B8へ移調・補正する
-      - [ ] MIDI tickをJSONのpattern rowへ量子化する
-      - [ ] MIDIのtempo changeを解析して絶対時刻へ変換する
-      - [ ] 単一tempoを選択する方法を決める
-      - [ ] 単一tempoのrowへnote位置と長さを再量子化する
-      - [ ] 64行を超える曲を複数patternへ分割する
-      - [ ] ループ情報を入力または推定してJSONへ出力する
-      - [ ] 不正・未対応MIDIに対する分かりやすいエラーを実装する
-      - [ ] 量子化誤差を算出して警告または変換レポートへ出力する
-      - [ ] 生成JSONへtempo changeを出力せず、トップレベルのtempoだけを出力する
-      - [ ] 複数tempoを含むMIDIで変換結果を確認する
-      - [ ] 変換結果の要約レポートを出力する
-      - [ ] `tools/README.md` に使い方と制約を追記する
-    - [ ] MIDI変換結果を検証する
-      - [ ] パブリックドメインまたは利用許諾済みのMIDI素材をテストデータとして選ぶ
-      - [ ] MIDIからJSONを生成する
-      - [ ] JSONからhUGEDriver用ASMを生成する
-      - [ ] ASMから確認用ROMを生成する
-      - [ ] SameBoyで再生確認する
-      - [ ] 元MIDIと比較して、主旋律・伴奏・ベース・ドラムがどの程度保持されているか確認する
-      - [ ] チャンネル自動割り当てが不適切な場合の修正方法を確認する
-      - [ ] 自然言語による再調整依頼からJSON再生成までの運用を確認する
-      - [ ] 既存のタイトルBGM・プレイ中BGM・クリアBGM生成フローに影響がないことを確認する
   - [ ] BGM制作
     - [x] 必要なBGM一覧を決定する
       - [x] タイトルBGMを使用する
       - [x] プレイ中BGMを使用する
       - [x] クリアBGMを使用する
+    - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接作成・調整フローを実施する
+      - [ ] 仕様書と用途・雰囲気・長さ・ループ条件を基に初稿JSONを作成する
+      - [ ] JSON仕様とサウンド仕様を自動検証する
+      - [ ] `tools/json_to_huge_asm.py` でhUGEDriver用ASMを生成する
+      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成する
+      - [ ] SameBoyで人が試聴し、結果を自然言語でChatGPTまたはCodexへ伝える
+      - [ ] 試聴結果を反映してJSONを調整し、ASM・確認用ROMを再生成する
+      - [ ] 採用するJSONを正本として確定する
     - [x] タイトルBGMを作成する
       - [x] `assets/bgm_title.json` の初稿を作成する
       - [x] `tools/json_to_huge_asm.py` でASMを生成する
@@ -547,13 +495,14 @@
       - [x] `tools/json_to_huge_asm.py` でASMを生成する
       - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
       - [x] SameBoyで再生確認する
-      - [ ] 必要に応じてJSONを調整する
     - [ ] クリアBGMを作成する
       - [x] `assets/bgm_clear.json` の初稿を作成する
       - [x] `tools/json_to_huge_asm.py` でASMを生成する
       - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
       - [x] SameBoyで再生確認する
-      - [ ] 必要に応じてJSONを調整する
+
+  - [ ] MIDIから楽曲定義JSONへの変換（初版対象外・将来再検討）
+    - [ ] 初版完成後などに、MIDI変換運用・変換ツール・変換結果検証の必要性と範囲を再検討する
   - [ ] 効果音制作
     - [x] 必要な効果音一覧を決定する
     - [x] カーソル移動効果音を作成する
