@@ -105,6 +105,14 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertNotEqual(h_tile, [0] * 16)
         self.assertEqual(h_tile[6:8], [0x7C, 0x7C])
 
+    def test_font_contains_visible_digit_two_glyph(self) -> None:
+        self.assertIn("2", build_sound_test_rom.FONT_5X7)
+        tiles = build_sound_test_rom._font_tile_data()
+        two_tile = tiles[ord("2") * 16 : (ord("2") + 1) * 16]
+        self.assertNotEqual(two_tile, [0] * 16)
+        self.assertEqual(two_tile[0:2], [0x38, 0x38])
+        self.assertEqual(two_tile[12:14], [0x7C, 0x7C])
+
     def test_sfx_mute_direct_apu_update_and_unmute_paths(self) -> None:
         play = routine(self.sound, "Sound_PlaySfx::", "Sound_Update::")
         update = routine(self.sound, "Sound_UpdateSfx:", "Sound_StopSfx:")
@@ -228,6 +236,8 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertIn("ld bc, 32 * 2", show)
         self.assertIn('db $41, $4C, $4C, $20, $43, $48, $41, $4E, $4E, $45, $4C, $53', main)
         self.assertIn('db $43, $48, $32, $20, $4D, $55, $54, $45, $44', main)
+        two_tile = build_sound_test_rom._font_tile_data()[ord("2") * 16 : (ord("2") + 1) * 16]
+        self.assertIn("db " + ", ".join(f"${value:02X}" for value in two_tile), main)
 
 
 if __name__ == "__main__":
