@@ -123,7 +123,7 @@ def generate_main_asm(
     if ch2_mute_toggle:
         return generate_channel_mute_main_asm(include_path, song_label, init_routine, 1, "CH2")
     if ch4_mute_toggle:
-        return generate_channel_mute_main_asm(include_path, song_label, init_routine, 3, "CH4")
+        return generate_channel_mute_main_asm(include_path, song_label, init_routine, 3, "CH4", True)
     if song_version == 2 and loop_mode == 2:
         if sfx_asm is None:
             sfx_asm = OBJ_DIR / "sound_test_sfx.asm"
@@ -185,11 +185,49 @@ SoundTest_WaitVBlank:
 
 
 def generate_channel_mute_main_asm(
-    input_asm: Path, song_label: str, init_routine: str, channel: int, channel_name: str
+    input_asm: Path, song_label: str, init_routine: str, channel: int, channel_name: str,
+    solo_toggle: bool = False,
 ) -> str:
     font_tiles = _db_lines(_font_tile_data())
     all_screen = _db_lines(_screen_data("ALL CHANNELS"))
     muted_screen = _db_lines(_screen_data(f"{channel_name} MUTED"))
+    solo_screen = _db_lines(_screen_data(f"{channel_name} SOLO"))
+    solo_input = """
+    bit 2, a
+    jr nz, .solo
+""" if solo_toggle else ""
+    solo_handler = """
+.solo:
+    ld b, 0
+    ld c, 1
+    call hUGE_mute_channel
+    ld b, 1
+    ld c, 1
+    call hUGE_mute_channel
+    ld b, 2
+    ld c, 1
+    call hUGE_mute_channel
+    ld b, 3
+    ld c, 0
+    call hUGE_mute_channel
+    ld hl, SoundTestScreenCH4Solo
+    jp SoundTest_ShowScreen
+""" if solo_toggle else ""
+    restore_other_channels = """
+    ld b, 0
+    ld c, 0
+    call hUGE_mute_channel
+    ld b, 1
+    call hUGE_mute_channel
+    ld b, 2
+    call hUGE_mute_channel
+""" if solo_toggle else ""
+    all_channels = restore_other_channels + f"""    ld b, {channel}
+    ld c, 0
+    call hUGE_mute_channel
+    ld hl, SoundTestScreenAll
+    jp SoundTest_ShowScreen
+"""
     return f'''INCLUDE "hardware.inc"
 INCLUDE "{asm_string(input_asm)}"
 SECTION "Sound Test ROM Header", ROM0[$0100]
@@ -228,21 +266,17 @@ SoundTest_ReadButtons:
     ld a, b
     ld [wSoundTestPreviousButtons], a
     ld a, c
-    bit 0, a
+{solo_input}    bit 0, a
     jr nz, .mute
     bit 1, a
     ret z
-    ld b, {channel}
-    ld c, 0
-    call hUGE_mute_channel
-    ld hl, SoundTestScreenAll
-    jp SoundTest_ShowScreen
-.mute:
-    ld b, {channel}
+{all_channels}.mute:
+{restore_other_channels}    ld b, {channel}
     ld c, 1
     call hUGE_mute_channel
     ld hl, SoundTestScreen{channel_name}Muted
     jp SoundTest_ShowScreen
+{solo_handler}
 SoundTest_InitAudio:
     ld a, %10000000
     ldh [rAUDENA], a
@@ -320,6 +354,7 @@ SoundTestScreenAll:
 {all_screen}
 SoundTestScreen{channel_name}Muted:
 {muted_screen}
+{f'SoundTestScreen{channel_name}Solo:\n{solo_screen}' if solo_toggle else ''}
 SECTION "Sound Test WRAM", WRAM0
 wSoundTestPreviousButtons: ds 1
 '''

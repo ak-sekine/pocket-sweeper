@@ -81,6 +81,24 @@ class SoundTestRomTests(unittest.TestCase):
         self.assertIn("dn G_4,4,$000", asm)
         self.assertIn("ch4_audibility_itNoiseinst4:\ndb 240", asm)
 
+    def test_ch4_rom_uses_dedicated_fixture_and_solo_controls(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_ch4_mute_audibility_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source, build_sound_test_rom.parse_song_label(source), 2,
+            ch4_mute_toggle=True,
+        )
+        self.assertIn(f'INCLUDE "{source.resolve()}"', main)
+        self.assertNotIn("bgm_v2_ch1_ch3_skeleton_test.asm", main)
+        self.assertEqual(main.count("call hUGE_init_v2"), 1)
+        self.assertEqual(main.count("call hUGE_dosound"), 1)
+        input_routine = main[main.index("SoundTest_ReadButtons:") : main.index("SoundTest_InitAudio:")]
+        self.assertIn("bit 2, a\n    jr nz, .solo", input_routine)
+        self.assertIn("ld b, 0\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 2\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 3\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("SoundTestScreenCH4Solo", main)
+
 
 if __name__ == "__main__":
     unittest.main()

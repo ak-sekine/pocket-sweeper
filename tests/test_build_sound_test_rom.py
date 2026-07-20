@@ -247,7 +247,7 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertIn("db " + ", ".join(f"${value:02X}" for value in two_tile), main)
 
     def test_ch4_toggle_uses_only_driver_channel_four_and_keeps_song_running(self) -> None:
-        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        source = ROOT / "obj" / "bgm_v2_ch4_mute_audibility_test.asm"
         main = build_sound_test_rom.generate_main_asm(
             source, build_sound_test_rom.parse_song_label(source), 2,
             ch4_mute_toggle=True,
@@ -259,15 +259,24 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertNotIn("P1F_GET_DPAD", input_routine)
         self.assertIn("ld b, 3\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
         self.assertIn("ld b, 3\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
-        for channel in (0, 1, 2):
-            self.assertNotIn(f"ld b, {channel}", input_routine)
         self.assertIn('db $41, $4C, $4C, $20, $43, $48, $41, $4E, $4E, $45, $4C, $53', main)
         self.assertIn('db $43, $48, $34, $20, $4D, $55, $54, $45, $44', main)
+        self.assertIn('db $43, $48, $34, $20, $53, $4F, $4C, $4F', main)
+        tiles = build_sound_test_rom._font_tile_data()
+        for char in "SOL":
+            tile = tiles[ord(char) * 16 : (ord(char) + 1) * 16]
+            self.assertNotEqual(tile, [0] * 16)
         self.assertIn("wSoundTestPreviousButtons", main)
         self.assertIn("cpl\n    and b", input_routine)
+        self.assertIn("bit 2, a\n    jr nz, .solo", input_routine)
+        self.assertIn("ld b, 0\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 1\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 2\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 3\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("SoundTestScreenCH4Solo", main)
 
     def test_ch4_toggle_preserves_display_initialization(self) -> None:
-        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        source = ROOT / "obj" / "bgm_v2_ch4_mute_audibility_test.asm"
         main = build_sound_test_rom.generate_main_asm(
             source, build_sound_test_rom.parse_song_label(source), 2,
             ch4_mute_toggle=True,
