@@ -14,6 +14,45 @@ import json_to_uge  # noqa: E402
 import json_to_huge_asm  # noqa: E402
 
 
+class Ch1Ch3SkeletonAssetTests(unittest.TestCase):
+    def test_ch1_ch3_skeleton_patterns_are_complete_and_convertible(self) -> None:
+        path = ROOT / "assets" / "bgm_v2_ch1_ch3_skeleton_test.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(data["version"], 2)
+        self.assertEqual(data["loop"], {"mode": "full"})
+        self.assertEqual(data["order"]["pulse1"], ["phrase_a", "phrase_b"])
+        self.assertEqual(data["order"]["wave"], ["phrase_a", "phrase_b"])
+        self.assertNotIn("pulse2", data["order"])
+        self.assertNotIn("noise", data["order"])
+
+        for channel in ("pulse1", "wave"):
+            self.assertEqual(len(data["order"][channel]), 2)
+            for pattern_name in data["order"][channel]:
+                self.assertIn(pattern_name, data["patterns"][channel])
+                notes = data["patterns"][channel][pattern_name]
+                self.assertEqual(sum(note["length"] for note in notes), 64)
+                self.assertTrue(notes)
+                self.assertTrue(all(note["instrument"] in (1, 2) for note in notes))
+
+        pulse_notes = [
+            note
+            for pattern in data["patterns"]["pulse1"].values()
+            for note in pattern
+        ]
+        wave_notes = [
+            note
+            for pattern in data["patterns"]["wave"].values()
+            for note in pattern
+        ]
+        self.assertTrue(all(note["instrument"] == 1 for note in pulse_notes))
+        self.assertTrue(all(note["instrument"] == 2 for note in wave_notes))
+        self.assertEqual(len(data["wave_tables"][0]["samples"]), 32)
+
+        self.assertTrue(json_to_uge.build_uge(data))
+        self.assertTrue(json_to_huge_asm.build_asm(data, path.stem))
+
+
 class UgePatternCellPackingTests(unittest.TestCase):
     def test_cell_field_order_sizes_and_little_endian_values(self) -> None:
         packed = json_to_uge.pack_cell(
