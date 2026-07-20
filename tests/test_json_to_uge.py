@@ -23,17 +23,18 @@ class Ch1Ch3SkeletonAssetTests(unittest.TestCase):
         self.assertEqual(data["loop"], {"mode": "full"})
         self.assertEqual(data["order"]["pulse1"], ["phrase_a", "phrase_b"])
         self.assertEqual(data["order"]["wave"], ["phrase_a", "phrase_b"])
-        self.assertNotIn("pulse2", data["order"])
         self.assertNotIn("noise", data["order"])
 
-        for channel in ("pulse1", "wave"):
+        self.assertEqual({channel: len(data["order"][channel]) for channel in ("pulse1", "pulse2", "wave")},
+                         {"pulse1": 2, "pulse2": 2, "wave": 2})
+        for channel in ("pulse1", "pulse2", "wave"):
             self.assertEqual(len(data["order"][channel]), 2)
             for pattern_name in data["order"][channel]:
                 self.assertIn(pattern_name, data["patterns"][channel])
                 notes = data["patterns"][channel][pattern_name]
                 self.assertEqual(sum(note["length"] for note in notes), 64)
                 self.assertTrue(notes)
-                self.assertTrue(all(note["instrument"] in (1, 2) for note in notes))
+                self.assertTrue(all(note["instrument"] in (1, 2, 3) for note in notes))
 
         pulse_notes = [
             note
@@ -47,10 +48,19 @@ class Ch1Ch3SkeletonAssetTests(unittest.TestCase):
         ]
         self.assertTrue(all(note["instrument"] == 1 for note in pulse_notes))
         self.assertTrue(all(note["instrument"] == 2 for note in wave_notes))
+        pulse2_notes = [note for pattern in data["patterns"]["pulse2"].values() for note in pattern]
+        self.assertTrue(all(note["instrument"] == 3 for note in pulse2_notes))
+        self.assertEqual({item["channel"] for item in data["instruments"] if item["id"] == 3}, {"pulse2"})
         self.assertEqual(len(data["wave_tables"][0]["samples"]), 32)
 
         self.assertTrue(json_to_uge.build_uge(data))
         self.assertTrue(json_to_huge_asm.build_asm(data, path.stem))
+
+        patterns, matrix = json_to_uge.build_patterns(data, json_to_uge.validate_instruments(data, wave_tables=json_to_uge.validate_wave_tables(data, 2)))
+        self.assertEqual([row[0][0] for row in matrix], ["pulse1", "pulse2", "wave", "noise"])
+        self.assertEqual(matrix[1][0], ("pulse2", "phrase_a"))
+        self.assertTrue(all(key[0] == "pulse2" for key in patterns if key[0] == "pulse2"))
+        self.assertTrue(all(patterns[key] == json_to_uge.blank_pattern() for key in matrix[3]))
 
 
 class UgePatternCellPackingTests(unittest.TestCase):

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "title": "CH1 CH3 BGM Skeleton Test",
+  "title": "CH1 CH2 CH3 BGM Mute Resilience Test",
   "type": "bgm",
   "tempo": 6,
   "loop": {
@@ -40,10 +40,22 @@
       "output_level": "100%",
       "length": 0,
       "length_enable": false
+    },
+    {
+      "id": 3,
+      "name": "support_arpeggio",
+      "channel": "pulse2",
+      "duty": 1,
+      "length": 0,
+      "length_enable": false,
+      "initial_volume": 8,
+      "envelope_direction": "down",
+      "envelope_sweep": 0
     }
   ],
   "order": {
     "pulse1": ["phrase_a", "phrase_b"],
+    "pulse2": ["phrase_a", "phrase_b"],
     "wave": ["phrase_a", "phrase_b"]
   },
   "patterns": {
@@ -83,6 +95,44 @@
         {"note": "G5", "length": 4, "instrument": 1},
         {"note": "E5", "length": 4, "instrument": 1},
         {"note": "C5", "length": 4, "instrument": 1}
+      ]
+    },
+    "pulse2": {
+      "phrase_a": [
+        {"note": "C5", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "E5", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "F5", "length": 4, "instrument": 3},
+        {"note": "C6", "length": 4, "instrument": 3},
+        {"note": "A5", "length": 4, "instrument": 3},
+        {"note": "C6", "length": 4, "instrument": 3},
+        {"note": "C5", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "E5", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "F5", "length": 4, "instrument": 3},
+        {"note": "C6", "length": 4, "instrument": 3},
+        {"note": "A5", "length": 4, "instrument": 3},
+        {"note": "C6", "length": 4, "instrument": 3}
+      ],
+      "phrase_b": [
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "D6", "length": 4, "instrument": 3},
+        {"note": "B5", "length": 4, "instrument": 3},
+        {"note": "D6", "length": 4, "instrument": 3},
+        {"note": "C6", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "E5", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "D6", "length": 4, "instrument": 3},
+        {"note": "B5", "length": 4, "instrument": 3},
+        {"note": "D6", "length": 4, "instrument": 3},
+        {"note": "C6", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3},
+        {"note": "E5", "length": 4, "instrument": 3},
+        {"note": "G5", "length": 4, "instrument": 3}
       ]
     },
     "wave": {
