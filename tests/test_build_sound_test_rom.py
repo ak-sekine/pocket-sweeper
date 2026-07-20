@@ -299,6 +299,24 @@ class BuildSoundTestRomTests(unittest.TestCase):
         four_tile = build_sound_test_rom._font_tile_data()[ord("4") * 16 : (ord("4") + 1) * 16]
         self.assertIn("db " + ", ".join(f"${value:02X}" for value in four_tile), main)
 
+    def test_ch2_ch4_toggle_mutes_only_channels_two_and_four(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source, build_sound_test_rom.parse_song_label(source), 2,
+            ch2_ch4_mute_toggle=True,
+        )
+        input_routine = routine(main, "SoundTest_ReadButtons:", "SoundTest_InitAudio:")
+        self.assertEqual(main.count("call hUGE_init_v2"), 1)
+        self.assertEqual(main.count("call hUGE_dosound"), 1)
+        self.assertIn("ld b, 1\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 3\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 0\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 2\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("SoundTestScreenCH2CH4Muted", main)
+        self.assertIn("SoundTestScreenCH1CH3Solo", main)
+        self.assertNotIn("P1F_GET_DPAD", input_routine)
+        self.assertIn("cpl\n    and b", input_routine)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -99,6 +99,22 @@ class SoundTestRomTests(unittest.TestCase):
         self.assertIn("ld b, 3\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
         self.assertIn("SoundTestScreenCH4Solo", main)
 
+    def test_ch2_ch4_rom_keeps_four_channel_song_and_driver_mute_runtime(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source, build_sound_test_rom.parse_song_label(source), 2,
+            ch2_ch4_mute_toggle=True,
+        )
+        data = self.load("bgm_v2_ch1_ch3_skeleton_test.json")
+        self.assertEqual(set(data["order"]), {"pulse1", "pulse2", "wave", "noise"})
+        self.assertTrue(any(e["note"] != "rest" for e in data["patterns"]["pulse1"]["phrase_a"]))
+        self.assertTrue(any(e["note"] != "rest" for e in data["patterns"]["wave"]["phrase_a"]))
+        self.assertIn(f'INCLUDE "{source.resolve()}"', main)
+        self.assertEqual(main.count("call hUGE_init_v2"), 1)
+        self.assertEqual(main.count("call hUGE_dosound"), 1)
+        self.assertIn("SoundTestScreenCH2CH4Muted", main)
+        self.assertIn("SoundTestScreenCH1CH3Solo", main)
+
 
 if __name__ == "__main__":
     unittest.main()

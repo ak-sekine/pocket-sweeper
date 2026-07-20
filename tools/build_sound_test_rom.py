@@ -117,6 +117,7 @@ def generate_main_asm(
     sfx_asm: Path | None = None,
     ch2_mute_toggle: bool = False,
     ch4_mute_toggle: bool = False,
+    ch2_ch4_mute_toggle: bool = False,
 ) -> str:
     include_path = input_asm.resolve()
     init_routine = "hUGE_init_v2" if song_version == 2 else "hUGE_init"
@@ -124,6 +125,8 @@ def generate_main_asm(
         return generate_channel_mute_main_asm(include_path, song_label, init_routine, 1, "CH2")
     if ch4_mute_toggle:
         return generate_channel_mute_main_asm(include_path, song_label, init_routine, 3, "CH4", True)
+    if ch2_ch4_mute_toggle:
+        return generate_dual_channel_mute_main_asm(include_path, song_label, init_routine)
     if song_version == 2 and loop_mode == 2:
         if sfx_asm is None:
             sfx_asm = OBJ_DIR / "sound_test_sfx.asm"
@@ -362,6 +365,92 @@ wSoundTestPreviousButtons: ds 1
 '''
 
 
+def generate_dual_channel_mute_main_asm(input_asm: Path, song_label: str, init_routine: str) -> str:
+    """Generate the CH2+CH4 runtime mute diagnostic ROM."""
+    base = generate_channel_mute_main_asm(input_asm, song_label, init_routine, 1, "CH2")
+    start = base.index("SoundTest_ReadButtons:")
+    end = base.index("SoundTest_InitAudio:")
+    routine = '''SoundTest_ReadButtons:
+    ld a, P1F_GET_BUTTONS
+    ldh [rP1], a
+    ldh a, [rP1]
+    cpl
+    and $0F
+    ld b, a
+    ld a, [wSoundTestPreviousButtons]
+    cpl
+    and b
+    ld c, a
+    ld a, b
+    ld [wSoundTestPreviousButtons], a
+    ld a, c
+    bit 2, a
+    jr nz, .solo
+    bit 0, a
+    jr nz, .mute
+    bit 1, a
+    ret z
+.all:
+    ld b, 0
+    ld c, 0
+    call hUGE_mute_channel
+    ld b, 1
+    ld c, 0
+    call hUGE_mute_channel
+    ld b, 2
+    ld c, 0
+    call hUGE_mute_channel
+    ld b, 3
+    ld c, 0
+    call hUGE_mute_channel
+    ld hl, SoundTestScreenAll
+    jp SoundTest_ShowScreen
+.mute:
+    ld b, 0
+    ld c, 0
+    call hUGE_mute_channel
+    ld b, 1
+    ld c, 1
+    call hUGE_mute_channel
+    ld b, 2
+    ld c, 0
+    call hUGE_mute_channel
+    ld b, 3
+    ld c, 1
+    call hUGE_mute_channel
+    ld hl, SoundTestScreenCH2CH4Muted
+    jp SoundTest_ShowScreen
+.solo:
+    call .mute_channels
+    ld hl, SoundTestScreenCH1CH3Solo
+    jp SoundTest_ShowScreen
+.mute_channels:
+    ld b, 0
+    ld c, 0
+    call hUGE_mute_channel
+    ld b, 1
+    ld c, 1
+    call hUGE_mute_channel
+    ld b, 2
+    ld c, 0
+    call hUGE_mute_channel
+    ld b, 3
+    ld c, 1
+    call hUGE_mute_channel
+    ret
+'''
+    base = base[:start] + routine + base[end:]
+    screen_start = base.index('SECTION "Sound Test Screen Data", ROM0')
+    wram_start = base.index('SECTION "Sound Test WRAM", WRAM0')
+    screens = ("SECTION \"Sound Test Screen Data\", ROM0\n"
+               "SoundTestFontTiles:\n" + _db_lines(_font_tile_data()) + "\n" +
+               "SoundTestScreenAll:\n" + _db_lines(_screen_data("ALL CHANNELS")) + "\n" +
+               "SoundTestScreenCH2CH4Muted:\n" + _db_lines(_screen_data("CH2 CH4 MUTED")) + "\n" +
+               "SoundTestScreenCH1CH3Solo:\n" + _db_lines(_screen_data("CH1 CH3 SOLO")) + "\n")
+    base = base[:screen_start] + screens + base[wram_start:]
+    return base
+
+
 def generate_none_sfx_main_asm(input_asm: Path, song_label: str, sfx_asm: Path) -> str:
     playing = _db_lines(_screen_data("BGM PLAYING"))
     ready = _db_lines(_screen_data("BGM FINISHED", "A: PLAY SFX", "READY"))
@@ -550,6 +639,7 @@ def build_rom(
     output_rom: Path,
     ch2_mute_toggle: bool = False,
     ch4_mute_toggle: bool = False,
+    ch2_ch4_mute_toggle: bool = False,
 ) -> tuple[Path, Path, Path, Path, Path]:
     if not input_asm.exists():
         fail(f"{input_asm}: input ASM does not exist")
@@ -575,7 +665,7 @@ def build_rom(
     main_asm.write_text(
         generate_main_asm(
             input_asm, song_label, song_version, loop_mode, sfx_asm,
-            ch2_mute_toggle, ch4_mute_toggle,
+            ch2_mute_toggle, ch4_mute_toggle, ch2_ch4_mute_toggle,
         ),
         encoding="utf-8",
         newline="\n",
@@ -602,6 +692,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("output_rom", type=Path, help="Output Game Boy ROM")
     parser.add_argument("--ch2-mute-toggle", action="store_true")
     parser.add_argument("--ch4-mute-toggle", action="store_true")
+    parser.add_argument("--ch2-ch4-mute-toggle", action="store_true")
     return parser.parse_args()
 
 
@@ -612,7 +703,8 @@ def main() -> int:
         input_asm = args.input_asm.resolve()
         output_rom = args.output_rom.resolve()
         main_asm, main_obj, driver_obj, map_file, sym_file = build_rom(
-            input_asm, output_rom, args.ch2_mute_toggle, args.ch4_mute_toggle
+            input_asm, output_rom, args.ch2_mute_toggle, args.ch4_mute_toggle,
+            args.ch2_ch4_mute_toggle
         )
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
