@@ -368,6 +368,17 @@ python tools/build_sound_test_rom.py --ch2-mute-toggle obj/bgm_v2_ch1_ch3_skelet
 
 起動後に `ALL CHANNELS` が表示されることを確認する。Nintendoロゴ画面が残る場合は不具合である。Aボタンで `CH2 MUTED`、Bボタンで `ALL CHANNELS` に戻る。状態表示を確認してから聴感確認を行う。ボタン群だけを選択し、押下エッジを検出するため、方向キーは状態を変更せず、ボタンを押し続けても1回の操作として扱う。各フレームで `hUGE_dosound` を呼ぶため、ミュート中も曲の再生位置は進み、解除時は現在位置から復帰する。SameBoyでは通常再生を聴いた後、AでCH2をミュートし、複数フレーズとループ境界を確認してからBで復帰する。主旋律、CH1とCH3の調性・コード進行、拍・テンポ、フレーズ・ループ境界が維持され、誤った和音・不自然な空白・遅れて鳴るCH2音がないことを合格基準とする。
 
+## CH4ミュート確認用ROM
+
+CH2確認と同じ4チャンネル曲を使い、CH4（Noise）だけを切り替える。
+
+```bash
+python tools/json_to_huge_asm.py assets/bgm_v2_ch1_ch3_skeleton_test.json obj/bgm_v2_ch1_ch3_skeleton_test.asm
+python tools/build_sound_test_rom.py --ch4-mute-toggle obj/bgm_v2_ch1_ch3_skeleton_test.asm build/bgm_v2_ch1_ch3_skeleton_test_ch4_mute.gb
+```
+
+SameBoyで起動し、`ALL CHANNELS` の通常再生を聴いた後、Aで `CH4 MUTED` にする。複数フレーズと最低1回のループ境界を聴き、CH4が消えても主旋律、CH1/CH3による曲の骨格、テンポ、拍、調性、フレーズ進行が維持され、不自然な無音・停止・異常音がないことを確認する。Bで `ALL CHANNELS` に戻し、現在位置から自然に復帰し、ミュート中のNoise noteが遅れて再生されないことを確認する。必要に応じて複数回切り替える。方向キーは状態を変更せず、押し続けても連続切り替えにならない。
+
 * ゲーム本体はRGBDSでビルドする。
 * Pythonは開発支援ツール専用とする。
 * Pythonツールは可能な限り再利用できるよう、ゲーム固有処理への依存を避ける。

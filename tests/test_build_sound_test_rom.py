@@ -239,6 +239,41 @@ class BuildSoundTestRomTests(unittest.TestCase):
         two_tile = build_sound_test_rom._font_tile_data()[ord("2") * 16 : (ord("2") + 1) * 16]
         self.assertIn("db " + ", ".join(f"${value:02X}" for value in two_tile), main)
 
+    def test_ch4_toggle_uses_only_driver_channel_four_and_keeps_song_running(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source, build_sound_test_rom.parse_song_label(source), 2,
+            ch4_mute_toggle=True,
+        )
+        input_routine = routine(main, "SoundTest_ReadButtons:", "SoundTest_InitAudio:")
+        self.assertEqual(main.count("call hUGE_dosound"), 1)
+        self.assertEqual(main.count("call hUGE_init_v2"), 1)
+        self.assertIn("ld a, P1F_GET_BUTTONS\n    ldh [rP1], a", input_routine)
+        self.assertNotIn("P1F_GET_DPAD", input_routine)
+        self.assertIn("ld b, 3\n    ld c, 1\n    call hUGE_mute_channel", input_routine)
+        self.assertIn("ld b, 3\n    ld c, 0\n    call hUGE_mute_channel", input_routine)
+        for channel in (0, 1, 2):
+            self.assertNotIn(f"ld b, {channel}", input_routine)
+        self.assertIn('db $41, $4C, $4C, $20, $43, $48, $41, $4E, $4E, $45, $4C, $53', main)
+        self.assertIn('db $43, $48, $34, $20, $4D, $55, $54, $45, $44', main)
+        self.assertIn("wSoundTestPreviousButtons", main)
+        self.assertIn("cpl\n    and b", input_routine)
+
+    def test_ch4_toggle_preserves_display_initialization(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source, build_sound_test_rom.parse_song_label(source), 2,
+            ch4_mute_toggle=True,
+        )
+        entry = routine(main, "SoundTest_Main::", "SoundTest_ReadButtons:")
+        init = routine(main, "SoundTest_InitDisplay:", "SoundTest_ClearBg:")
+        clear = routine(main, "SoundTest_ClearBg:", "SoundTest_ShowScreen:")
+        self.assertIn("call SoundTest_InitDisplay", entry)
+        self.assertIn("ld de, $8000", init)
+        self.assertIn("ld bc, 91 * 16", init)
+        self.assertIn("ld bc, 32 * 32", clear)
+        self.assertIn("SoundTestScreenCH4Muted", main)
+
 
 if __name__ == "__main__":
     unittest.main()
