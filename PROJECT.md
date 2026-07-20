@@ -476,30 +476,88 @@
       - [x] タイトルBGMを使用する
       - [x] プレイ中BGMを使用する
       - [x] クリアBGMを使用する
-    - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接作成・調整フローを実施する
-      - [ ] 仕様書と用途・雰囲気・長さ・ループ条件を基に初稿JSONを作成する
-      - [ ] JSON仕様とサウンド仕様を自動検証する
-      - [ ] `tools/json_to_huge_asm.py` でhUGEDriver用ASMを生成する
-      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成する
+    - [x] 旧2チャンネル構成でBGM制作フローを試作する
+      - [x] 旧タイトルBGMを試作する
+        - [x] `assets/bgm_title.json` の初稿を作成する
+        - [x] `tools/json_to_huge_asm.py` でASMを生成する
+        - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
+        - [x] SameBoyで再生確認する
+        - [x] 必要に応じてJSONを調整する
+      - [x] 旧プレイ中BGMを試作する
+        - [x] `assets/bgm_game.json` の初稿を作成する
+        - [x] `tools/json_to_huge_asm.py` でASMを生成する
+        - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
+        - [x] SameBoyで再生確認する
+      - [x] 旧クリアBGMを試作する
+        - [x] `assets/bgm_clear.json` の初稿を作成する
+        - [x] `tools/json_to_huge_asm.py` でASMを生成する
+        - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
+        - [x] SameBoyで再生確認する
+    - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接制作運用を確認する
+      - [ ] 仕様書と用途・雰囲気・長さ・ループ条件を作曲条件として整理する
+      - [ ] 作曲条件を基にVersion 2楽曲定義JSONの初稿を作成できることを確認する
+      - [ ] JSON仕様とサウンド仕様に対する自動検証を実行できることを確認する
+      - [ ] `tools/json_to_huge_asm.py` でhUGEDriver用ASMを生成できることを確認する
+      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成できることを確認する
       - [ ] SameBoyで人が試聴し、結果を自然言語でChatGPTまたはCodexへ伝える
-      - [ ] 試聴結果を反映してJSONを調整し、ASM・確認用ROMを再生成する
-      - [ ] 採用するJSONを正本として確定する
-    - [x] タイトルBGMを作成する
-      - [x] `assets/bgm_title.json` の初稿を作成する
-      - [x] `tools/json_to_huge_asm.py` でASMを生成する
-      - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-      - [x] SameBoyで再生確認する
-      - [x] 必要に応じてJSONを調整する
-    - [ ] プレイ中BGMを作成する
-      - [x] `assets/bgm_game.json` の初稿を作成する
-      - [x] `tools/json_to_huge_asm.py` でASMを生成する
-      - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-      - [x] SameBoyで再生確認する
-    - [ ] クリアBGMを作成する
-      - [x] `assets/bgm_clear.json` の初稿を作成する
-      - [x] `tools/json_to_huge_asm.py` でASMを生成する
-      - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-      - [x] SameBoyで再生確認する
+      - [ ] 試聴結果を反映してJSON、ASM、確認用ROMを再生成できることを確認する
+      - [ ] 採用する楽曲定義JSONを正本として確定する運用を確認する
+    - [ ] 初版用タイトルBGMを4チャンネル構成で新規作成する
+      - [ ] タイトル画面に合う用途・雰囲気・長さ・ループ条件を決める
+      - [ ] 旧タイトルBGMを流用せず、新しいVersion 2楽曲定義JSONの初稿を作成する
+      - [ ] CH1を主旋律、CH3をベースまたは曲の土台、CH2を補助旋律または伴奏、CH4をリズムとして構成する
+      - [ ] CH2とCH4が一時的にミュートされてもCH1とCH3で曲の骨格を維持できる構成にする
+      - [ ] JSON仕様とサウンド仕様に対する自動検証を実行する
+      - [ ] `tools/json_to_huge_asm.py` でASMを生成する
+      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成する
+      - [ ] AIによる生成物の構造確認と自動テストを実行する
+      - [ ] 人によるSameBoy試聴を行う
+      - [ ] 試聴結果を基にJSONを調整する
+      - [ ] 調整後のASMと確認用ROMを再生成する
+      - [ ] 人による最終試聴を行う
+      - [ ] `assets/bgm_title.json` を初版採用版として確定する
+    - [ ] 初版用プレイ中BGMを4チャンネル構成で新規作成する
+      - [ ] 通常プレイに合う用途・雰囲気・長さ・ループ条件を決める
+      - [ ] 長時間繰り返しても耳障りになりにくい構成方針を決める
+      - [ ] 旧プレイ中BGMを流用せず、新しいVersion 2楽曲定義JSONの初稿を作成する
+      - [ ] CH1を主旋律、CH3をベースまたは曲の土台、CH2を補助旋律または伴奏、CH4をリズムとして構成する
+      - [ ] CH2とCH4が一時的にミュートされてもCH1とCH3で曲の骨格を維持できる構成にする
+      - [ ] JSON仕様とサウンド仕様に対する自動検証を実行する
+      - [ ] `tools/json_to_huge_asm.py` でASMを生成する
+      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成する
+      - [ ] AIによる生成物の構造確認と自動テストを実行する
+      - [ ] 人によるSameBoy試聴を行う
+      - [ ] 通常プレイを想定してループの自然さと聴き疲れしにくさを確認する
+      - [ ] 試聴結果を基にJSONを調整する
+      - [ ] 調整後のASMと確認用ROMを再生成する
+      - [ ] 人による最終試聴を行う
+      - [ ] `assets/bgm_game.json` を初版採用版として確定する
+    - [ ] 初版用クリアBGMを4チャンネル構成で新規作成する
+      - [ ] クリア時に合う用途・雰囲気・長さ・ループ条件を決める
+      - [ ] BGMとしてループさせるか、非ループのジングルとして終了させるか決める
+      - [ ] 旧クリアBGMを流用せず、新しいVersion 2楽曲定義JSONの初稿を作成する
+      - [ ] CH1を主旋律、CH3をベースまたは曲の土台、CH2を補助旋律または和音補助、CH4をリズムまたはアクセントとして構成する
+      - [ ] CH2とCH4が一時的にミュートされてもCH1とCH3で曲の意図を認識できる構成にする
+      - [ ] JSON仕様とサウンド仕様に対する自動検証を実行する
+      - [ ] `tools/json_to_huge_asm.py` でASMを生成する
+      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成する
+      - [ ] AIによる生成物の構造確認と自動テストを実行する
+      - [ ] 人によるSameBoy試聴を行う
+      - [ ] 曲の終了またはループ動作を確認する
+      - [ ] 試聴結果を基にJSONを調整する
+      - [ ] 調整後のASMと確認用ROMを再生成する
+      - [ ] 人による最終試聴を行う
+      - [ ] `assets/bgm_clear.json` を初版採用版として確定する
+    - [ ] 初版用BGM3曲の統一性を確認する
+      - [ ] タイトル、プレイ中、クリアの音色構成に一貫性があることを確認する
+      - [ ] 各曲の音量バランスに大きな差がないことを確認する
+      - [ ] 各曲でCH1 / CH2 / CH3 / CH4の役割がサウンド仕様に沿っていることを確認する
+      - [ ] 各曲でCH2のみをミュートしても曲が破綻しないことを確認する
+      - [ ] 各曲でCH4のみをミュートしても曲が破綻しないことを確認する
+      - [ ] 各曲でCH2とCH4を同時にミュートしても曲の骨格が維持されることを確認する
+        - [ ] Codexによる各曲のミュート確認用ROM、自動確認、SameBoy手順を準備する
+        - [ ] 人による各曲のSameBoy聴感確認を行う
+      - [ ] 各曲の採用JSON、生成ASM、確認結果を記録する
 
   - [ ] MIDIから楽曲定義JSONへの変換（初版対象外・将来再検討）
     - [ ] 初版完成後などに、MIDI変換運用・変換ツール・変換結果検証の必要性と範囲を再検討する
