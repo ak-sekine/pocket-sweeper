@@ -204,8 +204,31 @@ class BuildSoundTestRomTests(unittest.TestCase):
         self.assertNotIn("ld b, 3", input_routine)
         self.assertIn("wSoundTestPreviousButtons", main)
         self.assertIn("cpl\n    and b", input_routine)
-        self.assertIn('db "ALL CHANNELS"', main)
-        self.assertIn('db "CH2 MUTED"', main)
+
+    def test_ch2_toggle_initializes_display_and_clears_boot_screen(self) -> None:
+        source = ROOT / "obj" / "bgm_v2_ch1_ch3_skeleton_test.asm"
+        main = build_sound_test_rom.generate_main_asm(
+            source, build_sound_test_rom.parse_song_label(source), 2,
+            ch2_mute_toggle=True,
+        )
+        entry = routine(main, "SoundTest_Main::", "SoundTest_ReadButtons:")
+        init = routine(main, "SoundTest_InitDisplay:", "SoundTest_ClearBg:")
+        clear = routine(main, "SoundTest_ClearBg:", "SoundTest_ShowScreen:")
+        show = routine(main, "SoundTest_ShowScreen:", "SoundTest_WaitVBlank:")
+        self.assertIn("call SoundTest_InitDisplay", entry)
+        self.assertIn("ld de, $8000", init)
+        self.assertIn("ld bc, 91 * 16", init)
+        self.assertIn("ldh [rLCDC], a", init)
+        self.assertIn("ldh [rSCX], a", init)
+        self.assertIn("ldh [rSCY], a", init)
+        self.assertIn("ldh [rBGP], a", init)
+        self.assertIn("ld bc, 32 * 32", clear)
+        self.assertIn("ld [hl+], a", clear)
+        self.assertIn("ld bc, 32 * 2", show)
+        self.assertIn('db $41, $4C, $4C, $20, $43, $48, $41, $4E, $4E, $45, $4C, $53', main)
+        self.assertIn('db $43, $48, $32, $20, $4D, $55, $54, $45, $44', main)
+        self.assertIn('db $41, $4C, $4C, $20, $43, $48, $41, $4E, $4E, $45, $4C, $53', main)
+        self.assertIn('db $43, $48, $32, $20, $4D, $55, $54, $45, $44', main)
 
 
 if __name__ == "__main__":

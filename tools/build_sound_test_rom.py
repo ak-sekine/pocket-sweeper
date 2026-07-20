@@ -180,6 +180,9 @@ SoundTest_WaitVBlank:
 
 
 def generate_ch2_mute_main_asm(input_asm: Path, song_label: str, init_routine: str) -> str:
+    font_tiles = _db_lines(_font_tile_data())
+    all_screen = _db_lines(_screen_data("ALL CHANNELS"))
+    muted_screen = _db_lines(_screen_data("CH2 MUTED"))
     return f'''INCLUDE "hardware.inc"
 INCLUDE "{asm_string(input_asm)}"
 SECTION "Sound Test ROM Header", ROM0[$0100]
@@ -192,6 +195,7 @@ SoundTest_Main::
     di
     ld sp, $DFFF
     call SoundTest_InitAudio
+    call SoundTest_InitDisplay
     ld hl, {song_label}
     call {init_routine}
     xor a
@@ -240,6 +244,37 @@ SoundTest_InitAudio:
     ld a, %11111111
     ldh [rAUDTERM], a
     ret
+SoundTest_InitDisplay:
+    xor a
+    ldh [rLCDC], a
+    ldh [rSCX], a
+    ldh [rSCY], a
+    ld a, %11100100
+    ldh [rBGP], a
+    ld hl, SoundTestFontTiles
+    ld de, $8000
+    ld bc, 91 * 16
+.copyTiles:
+    ld a, [hl+]
+    ld [de], a
+    inc de
+    dec bc
+    ld a, b
+    or c
+    jr nz, .copyTiles
+    call SoundTest_ClearBg
+    ret
+SoundTest_ClearBg:
+    xor a
+    ld hl, $9800
+    ld bc, 32 * 32
+.clear:
+    ld [hl+], a
+    dec bc
+    ld a, b
+    or c
+    jr nz, .clear
+    ret
 SoundTest_ShowScreen:
     push hl
     xor a
@@ -269,14 +304,12 @@ SoundTest_WaitVBlank:
     jr c, .waitVBlank
     ret
 SECTION "Sound Test Screen Data", ROM0
+SoundTestFontTiles:
+{font_tiles}
 SoundTestScreenAll:
-    db "ALL CHANNELS"
-    ds 32 - 12, " "
-    ds 32, " "
+{all_screen}
 SoundTestScreenCh2Muted:
-    db "CH2 MUTED"
-    ds 32 - 9, " "
-    ds 32, " "
+{muted_screen}
 SECTION "Sound Test WRAM", WRAM0
 wSoundTestPreviousButtons: ds 1
 '''
