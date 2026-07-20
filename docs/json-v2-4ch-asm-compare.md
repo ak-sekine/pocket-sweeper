@@ -100,4 +100,4 @@ UGEのpattern cellを構造体として解析し、note、Instrument、EffectCod
 .venv/bin/python tools/compare_huge_asm.py obj/bgm_v2_note_volume_compare_direct.asm obj/bgm_v2_note_volume_compare_hugetracker.asm
 ```
 
-pattern `P0`（各CHのvolume pattern）のrow 0～5を確認し、上記Cxy、空行の`$000`、CH4の上位nibble `$A`を照合する。ラベルprefix、pattern番号、routine label、`db`分割などの表記差は許容し、patternのnote／Instrument／effect code／parameterの不一致は再生動作に影響する不一致とする。hUGETracker GUI、実Export、保存後の再読込はこの環境では未確認であり、人の確認完了まで親WBSは未完了とする。
+CH1～CH4それぞれについて、まずExport ASMのOrderMatrixから各チャンネルが参照しているpatternを特定し、そのpatternのrow 0～5で上記Cxy、空行の`$000`、CH4の上位nibble `$A`を確認する。pattern番号やラベル名は固定値とせず、実際のExport結果に従う。ラベルprefix、pattern番号、routine label、`db`分割などの表記差は許容するが、note、Instrument、Effect Code、Effect Parameterの意味的な差異は再生動作に影響する不一致とする。hUGETracker GUI、実Export、保存後の再読込はこの環境では未確認であり、人の確認完了まで親WBSは未完了とする。
