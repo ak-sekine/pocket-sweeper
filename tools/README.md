@@ -144,16 +144,17 @@ assets/test_draft.json
 assets/test_draft.uge
 ```
 
-初版の対応範囲:
+Version 1では、従来形式のJSONを引き続き変換できます。共通の`order`配列でpattern順を指定し、各patternの`channels`内に
+`pulse1`、`pulse2`、`wave`、`noise`のセル列を記述します。noteは`C3`〜`B8`と`rest`、`length`は64行固定patternへ展開されます。
+Version 1ではVersion 2専用のチャンネル別`order` / `patterns`構造、`loop`、Instrument詳細、Noise note、note `volume`などは使用できません。
+effectは`effect: null`、`effect_param: null`のみ対応します。
 
-* `version`, `title`, `type`, `tempo`, `instruments`, `order`, `patterns`, `channels` を読み込む
-* `pulse1`, `pulse2`, `wave`, `noise` の4チャンネルを扱う
-* noteは `C3`〜`B8` と `rest` を扱う
-* `length` は64行固定patternへ行展開する
-* effectは `effect: null`, `effect_param: null` のみ対応する
-* `wave` / `noise` 未使用時は空patternを出力する
-* Instrument IDは1〜15のみ使用できる
-* Pulse Instrumentでは `duty`, `initial_volume`, `envelope_direction`, `envelope_sweep` を任意指定できる
+Version 1の主な対応範囲:
+
+* `version`, `title`, `type`, `tempo`, `instruments`、共通`order`、`patterns.<name>.channels`を読み込む
+* 未使用チャンネルには空patternを出力する
+* Instrument IDは1〜15を使用する
+* Pulse Instrumentの`duty`, `initial_volume`, `envelope_direction`, `envelope_sweep`を任意指定できる
 
 Pulse Instrument詳細:
 
@@ -175,20 +176,30 @@ Pulse Instrument詳細:
 * `envelope_sweep`: 0〜7
 * 未指定項目は従来のデフォルトInstrument相当の値を使う
 
-Version 2ではPulse Instrumentの`length`、`length_enable`、Pulse1専用の
-`sweep_time`、`sweep_direction`、`sweep_shift`も検証し、UGEおよびhUGEDriver用ASMへ出力する。
-Wave Instrumentも検証、Wave table名前解決、UGE、hUGEDriver用ASM出力に対応する。
-Wave tableのUGE・hUGEDriver用ASM出力に対応する。Noise Instrumentの検証、UGE、hUGEDriver用ASM出力にも対応する。
-Version 2のorder / patterns / loop、CH4 Noise note変換、NR43生成、note volumeは未対応である。
-Version 1は引き続き利用できる。
+Version 2では、4チャンネルを独立した構造として扱います。`order`と`patterns`は
+`pulse1`、`pulse2`、`wave`、`noise`ごとに指定します。未使用チャンネルには空pattern参照を補完し、使用チャンネル間のorder数は一致していなければなりません。同じpattern名を異なるチャンネルで使用することもできます。
 
-初版では未対応:
+Version 2の主な対応範囲:
 
-* hUGETracker上での読み込み・保存・ASM Export自動確認
-* 非null effect
-* Wave table編集
-* Routine / Instrument subpattern編集
-* 64行を超えるpattern
+* Pulse Instrument（`duty`、音量envelope、`length`、`length_enable`、CH1専用sweep）
+* Wave InstrumentとWave table
+* Noise Instrument（音量envelope、`length`、`length_enable`、`width_mode`）
+* CH4 / Noise noteの音名からNR43のNoise poly値を生成する処理
+* `loop.mode`の`full`、`range`、`none`
+* `range`の`start_order` / `end_order`境界とorder数に関する制約。SFXでは`none`以外のloopを使用できない
+* note単位の`volume`。省略または`null`はvolume commandなし、`0`は明示的な0、`1`〜`15`は指定値としてCxyへ変換する
+* CH1〜CH4のvolume command出力。CH1 / CH2 / CH3は`C0y`、CH4はNoise Instrumentのenvelope direction / sweepを上位nibbleへ反映した`Cxy`
+* `length`展開で生成される後続の空行とpattern末尾の補完行にはvolume commandや再triggerを出力しない
+* 上記の変換結果をUGEとhUGEDriver用ASMの両方へ出力する
+
+詳細なJSON項目、既定値、境界、CH4のNR43とCxyの規則は[`docs/json-format.md`](../docs/json-format.md)を参照してください。
+
+未対応またはこのツールの対象外:
+
+* 非nullの汎用effect
+* Routine編集、Instrument subpattern編集
+* 64行を超える単一pattern
+* hUGETracker GUIでの読み込み・保存・ASM Exportそのもの
 
 ---
 
@@ -212,25 +223,19 @@ assets/test_draft.json
 obj/test_draft.asm
 ```
 
-初版の対応範囲:
+Version 1 / Version 2のJSON構造に対応し、hUGETracker Export ASMに近いsong descriptor、order、pattern、Instrument、routine、wave構造を出力します。song descriptorのラベル名は出力ASMファイル名から生成します。
 
-* hUGETracker Export ASMに近いsong descriptor、order、pattern、instrument、routine、wave構造を出力する
-* song descriptorのラベル名は出力ASMファイル名から生成する
-* `pulse1`, `pulse2`, `wave`, `noise` の4チャンネルを扱う
-* noteはRGBDS ASM表記の `C_4`, `C#4`, `___` へ変換する
-* `length` は64行固定patternへ行展開する
-* effectは `$000` のみ対応する
-* `wave` / `noise` 未使用時は空patternを出力する
-* duty instrumentsを出力する
-* Pulse Instrument詳細をduty instrumentsへ反映する
+Version 1では従来の共通orderと`patterns.<name>.channels`を読み込み、noteを`C_4`、`C#4`、`___`へ変換し、通常行を`$000` effectで出力します。Version 2では、UGE生成と同じチャンネル別order / pattern、Pulse / Wave / Noise Instrument、Wave table、CH4 Noise noteのNR43生成、`full` / `range` / `none`のloop、note volumeのCxyを出力します。volume省略または`null`はeffectなし、CH1〜CH3の指定volumeは`C0y`、CH4はNoise Instrumentのenvelope情報を含む`Cxy`です。length展開後の空行にはCxyや再triggerを出力しません。
 
-初版では未対応:
+Version 2の対応内容はUGE生成と共通です。詳細は[`docs/json-format.md`](../docs/json-format.md)を参照してください。
 
-* hUGETracker Export ASMとの完全一致確認
-* 非null effect
-* CH4 Noise note変換と実質的なNoise再生
-* Routine / Instrument subpattern編集
-* サウンド再生確認用テストROM生成
+未対応またはこのツールの対象外:
+
+* 非nullの汎用effect
+* Routine編集、Instrument subpattern編集
+* 64行を超える単一pattern
+* hUGETracker Export ASMとの完全一致を自動保証すること
+* サウンド再生確認用テストROMの生成（専用ツール[`build_sound_test_rom.py`](build_sound_test_rom.py)を使用する）
 
 ---
 
