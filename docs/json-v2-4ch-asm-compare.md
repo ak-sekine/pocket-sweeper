@@ -55,4 +55,16 @@
 - `loop_metadata` はhUGETracker標準ExportにないVersion 2独自拡張として分離した。`loop.mode = full`の標準再生構造との一致判定には含めていない。
 - `hUGETracker`の実行、今回のGUI Export操作、今回のバージョン表示はこの環境では確認できなかった。既存記録に記載されたv1.0.11は今回の実行で再確認していない。
 
-人による確認では、記録済みのhUGETracker Export ASMが対象UGEから生成されたものかを確認し、同じバージョンのhUGETrackerで対象UGEを開いてExport ASMを再生成する。そのASMを `obj/bgm_v2_asm_compare_direct.asm` と比較し、descriptor、CH1～CH4のOrderMatrix参照、patternのnote／Instrument／effect／64行補完、Pulse／Wave／Noise Instrument、Wave table packing、独自 `loop_metadata` の区別が本記録と一致することを期待する。確認完了まではWBS親項目を未完了とする。
+## 人によるhUGETracker Export・比較確認
+
+人によるhUGETracker Exportと比較確認が完了した。実行コマンドは次のとおり。
+
+```bash
+.venv/bin/python tools/compare_huge_asm.py \
+  obj/bgm_v2_asm_compare_direct.asm \
+  obj/bgm_v2_asm_compare_hugetracker.asm
+```
+
+比較結果では、意味的な不一致は報告されなかった。pattern P0～P3、routine 0～15、Pulse／Wave／Noise Instrument、OrderMatrixは要素数が一致し、表記上の差異のみだった。Wave tableはgenerated側16単位、Export側1ブロックという分割上の差異だった。descriptorは標準部分が一致し、generated側の7要素とExport側の6要素の差は、hUGETracker標準Exportに存在しない本プロジェクト独自の`loop_metadata`参照だった。`loop_metadata`は独自拡張として正しく分離された。
+
+人による確認が成功したため、PROJECT.mdの対象WBS親項目と子項目を完了にした。
