@@ -501,7 +501,7 @@
         - [x] 調性・コード進行、フレーズ構成、orderごとのpattern計画を決める
         - [x] CH1～CH4の具体的な役割、音域、発音方針、ミュート耐性を決める
         - [x] Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeを決める
-      - [ ] 作曲条件を基に運用確認用Version 2楽曲定義JSONの初稿を作成する
+      - [x] 作曲条件を基に運用確認用Version 2楽曲定義JSONの初稿を作成する
       - [ ] 運用確認用Version 2 JSONの初稿をJSON仕様・サウンド仕様に対して自動検証する
       - [ ] 運用確認用Version 2 JSONからhUGEDriver用ASMを生成する
       - [ ] 運用確認用ASMから確認用ROMを生成する
