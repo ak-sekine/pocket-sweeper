@@ -255,7 +255,7 @@ order / patterns:
 基本情報:
   title: Version 2 BGM Workflow Check
   用途: AIが自然言語の作曲条件からVersion 2楽曲定義JSONを直接作成し、JSON→ASM→確認用ROM→SameBoy試聴→自然言語フィードバック→再生成の制作フローを確認するための運用確認用BGM。ゲーム本編の画面・状態では再生せず、サウンドテストROMまたは同等の確認環境で再生する。
-  目指す雰囲気: 明るく軽快で、音の重なりと構造を聞き取りやすい、短時間の検証に集中できるゲームボーイ向けの雰囲気。避けたい印象は、音数が過密で各チャンネルの有無を聞き分けにくいこと、過度に暗い・攻撃的で試聴時の差分確認を妨げること、変化が乏しく境界や復帰を把握しにくいこととする。具体的なInstrumentは後続WBSで決める。
+  目指す雰囲気: 明るく軽快で、音の重なりと構造を聞き取りやすい、短時間の検証に集中できるゲームボーイ向けの雰囲気。避けたい印象は、音数が過密で各チャンネルの有無を聞き分けにくいこと、過度に暗い・攻撃的で試聴時の差分確認を妨げること、変化が乏しく境界や復帰を把握しにくいこととする。
   想定する長さ:
     聴感上の目安: 20～40秒程度。1回の短い試聴で曲の構造を把握でき、ミュート・復帰・境界の確認を複数回行える長さとする。
     構造上の目安: 共通6 order（1 order = 64row）。tempo 6、固定更新60Hzを基準にした構造上の長さは約38.4秒で、イントロ後のループ区間は約25.6秒とする。
@@ -269,7 +269,7 @@ order / patterns:
 
 `range` は仕様どおり order 0から再生し、先頭2 orderだけを1回再生した後、半開区間 `[2, 6)` を繰り返す。共通order数6と `end_order: 6` が一致するため、後続orderへ到達しない余剰データもなく、ループ境界をSameBoyで明確に確認できる。約38.4秒の初回再生と約25.6秒の反復区間により、短時間で曲の構造を把握しながらミュート・復帰・境界の確認を複数回行える。
 
-今回決定する曲の構造とpattern計画は次のとおりとする。コード名は作曲上の区分であり、具体的なnote列、音域、Instrument、note length / volumeを指定するものではない。
+今回決定する曲の構造とpattern計画は次のとおりとする。コード名は作曲上の区分であり、具体的なnote列は後続WBSで展開する。音域、Instrument、note length / volumeは本節の確定条件に従う。
 
 ```text
 曲の構造:
@@ -301,7 +301,7 @@ order / patterns:
     pulse2: 補助和声と短い接続補助を担当する。CH1の主旋律や必須のコード進行には依存しない。
     wave: イントロの土台、ループ内のルートまたは重要な和声変化、GからCへの接続を担当する。CH1 + CH3で骨格を保持する。
     noise: イントロ・ループ各区間の短い反復と接続アクセントを担当する。CH4が消えてもCH1・CH3から境界を認識できるようにする。
-    各patternは展開後最大64 rowとし、64 rowをどの音符長で埋めるか、具体的なnote列、音量、Instrumentは未確定とする。異なるorder間でpatternを再利用する計画は採用しない。各orderの境界を独立して調整し、後続のnote設計で64 row以内に収めやすくするためである。
+    各patternは展開後最大64 rowとし、下記のnote length方針で64 row以内に構成する。異なるorder間でpatternを再利用する計画は採用しない。各orderの境界を独立して調整する。
 
 ミュート耐性:
   CH1 + CH3で曲の骨格を保持可能か: 可能と判断する。CH1が主題とorder境界のリズムを担い、CH3がC major内のルート・和声変化と発音位置を担うため、CH2とCH4がなくても主題、調性、コード進行、拍、フレーズ進行、ループ位置を追える。
@@ -310,7 +310,33 @@ order / patterns:
   order 5 → order 2のループ位置: CH1の接続句の再提示とCH3のG (V) → C (I)の解決を同期させるため、CH1 + CH3でも認識できる。
 ```
 
-上記で決定した調性・コード進行、フレーズ構成、pattern計画、チャンネルごとの役割・音域・発音方針・ミュート耐性以外の、CH1～CH4の具体的なnote列、Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeは未確定のままとする。これらは`PROJECT.md`の同じ親WBSにある後続項目で決定し、今回までに決定した条件から推測して補完しない。
+上記に加え、JSON初稿へ機械的・作曲的に展開できる音色、発音長、音量条件を次のとおり確定する。具体的なnote列の全展開は後続WBSで行う。
+
+音色・音量:
+  Instruments:
+    - CH1 / Pulse1: ID 1 `workflow_lead`。channelは`pulse1`、dutyは2、hardware lengthは0、length_enableはfalse、initial_volumeは12、envelope_directionは`down`、envelope_sweepは0。Sweepは使用せず、`sweep_time: 0`、`sweep_direction: down`、`sweep_shift: 0`を明示する。主旋律の輪郭を保つため、Pulse bankで最も明瞭な基準音色とする。
+    - CH2 / Pulse2: ID 2 `workflow_support`。channelは`pulse2`、dutyは1、hardware lengthは0、length_enableはfalse、initial_volumeは7、envelope_directionは`down`、envelope_sweepは0。CH1専用のSweep項目は指定しない。CH1より一段控えめで、短い和音補助・対旋律として聞き分けられる音量にする。
+    - CH3 / Wave: ID 1 `workflow_foundation`。channelは`wave`、waveformは`workflow_triangle`、output_levelは`100%`、hardware lengthは0、length_enableはfalse。低域のルートと和声を明瞭にする基準音色とする。
+    - CH4 / Noise: ID 1 `workflow_low_accent`、ID 2 `workflow_mid_accent`、ID 3 `workflow_high_accent`。すべてchannelは`noise`、hardware lengthは0、length_enableはfalse、envelope_directionは`down`、envelope_sweepは0。ID 1はinitial_volume 8、width_mode `15bit`、ID 2はinitial_volume 6、width_mode `7bit`、ID 3はinitial_volume 4、width_mode `7bit`とする。Noiseの音量は補助に限定し、NR43の`clock_shift`、`divisor_code`、完成済みNR43値は指定しない。
+  Wave tables:
+    - name: `workflow_triangle`。samplesは`[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]`の32個とする。既存の`bass_triangle`と同じ単純な上昇・下降波形を新曲固有名で定義し、CH3の低域を角の立ちすぎない明るいベースとして聞き取りやすくする。既存資産の波形形状とWave tableテストの32値・0～15制約に適合する。
+  Noise Instrument + note対応:
+    - ID 1 `workflow_low_accent` + `C3`: 1拍目およびコード変更の低域的な拍頭アクセント。
+    - ID 2 `workflow_mid_accent` + `C5`: 4拍目または各4/4区間の区切りアクセント。
+    - ID 3 `workflow_high_accent` + `C7`: 2拍目・4拍目の裏または短い補助アクセント。細かい反復では連続使用せず、CH1/CH3の発音間へ置く。
+    これらのnoteはすべてNoise pitch indexとして扱い、`kick`、`snare`、`hat`等はJSON note値に使用しない。上記対応はこの曲固有の作曲条件であり、一般仕様の固定対応表ではない。必要に応じて`D3`～`B8`の範囲内で同じ役割の隣接Noise noteへ置換してよいが、初稿では上記3組を基準とする。
+  note length:
+    - CH1は主に4 row、フレーズ終端または強調する持続音だけ8 row、短い経過・装飾は2 rowとする。
+    - CH2は主に4 row、和音の区切りを示す補助音は8 rowまでとし、常時連続させない。
+    - CH3は主に8 row（4/4の半区間）でルートまたは和声音を置き、区間終端や持続する土台は16 rowまでとする。
+    - CH4は主に2 rowの発音と2 row以上のrestを組み合わせ、拍頭だけ4 rowまでとする。1拍または短周期で完結する反復に限定する。
+    - 各patternの合計は展開後64 row以内にする。末尾の不足行は変換ツールの空行補完に任せ、空行へInstrumentやvolumeを再適用しない。
+  note volume:
+    - 基本は省略し、Instrumentの音量を使用する。CH1のorder開始音・フレーズ終端の発音だけ`volume: 12`、CH2の区切り音だけ`volume: 7`、CH3のorder開始・コード変更音だけ`volume: 10`を指定する。
+    - CH4はID 1の拍頭を`volume: 8`、ID 2を`volume: 6`、ID 3を`volume: 4`とし、通常はnote volumeを省略する。追加の音量変化が必要な場合も上限は8とする。
+    - `volume: 0`は今回使用しない。省略はvolume commandなし、Instrumentの`initial_volume`とは別物であり、CH4のrestにはvolumeキーを付けない。length展開後の空行へvolumeを再適用しない。
+  音域・音量バランス: CH1のinitial_volume 12を最大の旋律基準、CH3のWave output_level 100%を低域の基準、CH2の7を厚み付け、CH4の8/6/4を短い補助として配置する。CH1は`C5`～`G6`、CH2は`C4`～`E5`、CH3は`C3`～`C4`を基本範囲とし、音域と音量の両方で分離する。
+  ミュート耐性: CH2を外してもCH1の主旋律とCH3の低域ルート／和声が残るため、厚みだけが減る。CH4を外してもCH1の4 row主体の主題リズムとCH3の8 row主体の拍頭・和声区間からtempo、拍、境界を追える。CH2 + CH4を同時に外してもCH1 + CH3で主旋律、C major、コード進行、フレーズ進行、ループ解決を保持する。CH2は短い和声音、CH4は独立した2 row反復なので、途中復帰しても保留音や長いフィルの続きに依存せず、他チャンネルを覆わない。
 
 #### 今回決定するチャンネル設計条件
 
@@ -319,16 +345,16 @@ order / patterns:
 - CH1 / Pulse1: `C5`～`G6`を主な使用音域とする。主旋律を最も聞き取りやすい高めの中音域へ置き、主題・応答・接続句をこの範囲を中心に構成する。必要な旋律上の跳躍で一時的に範囲端を使うことは許容するが、CH3の土台と常時重なる低音域へ主旋律を移さない。
 - CH2 / Pulse2: `C4`～`E5`を主な使用音域とする。CH1よりおおむね1オクターブ低い補助位置を基本とし、CH1の主音域と長時間ユニゾンにしない。和音補助でCH1と同じ音名を使う場合も、短い重ねまたは隣接音に限定し、主旋律の輪郭を埋めない。
 - CH3 / Wave: `C3`～`C4`を主な使用音域とする。各コードのルートを中心に、必要な5度・経過音もこの低域内で扱う。CH1/CH2の旋律帯と分離したベース／持続音として、C majorと`C`、`F`、`G`、`Am`の進行を支える。
-- CH4 / Noise: 音高音域は定義しない。低域的に聞こえるNoiseは拍頭・大きな区切りの基礎アクセント、高域的に聞こえるNoiseは細かい拍・裏拍の補助アクセントに割り当てる方針とする。具体的なNoise Instrumentとnoteの対応は後続WBSで決める。
+- CH4 / Noise: 音高音域は定義しない。低域的に聞こえるNoiseは拍頭・大きな区切りの基礎アクセント、中域的なNoiseは4拍目や和声区間の区切り、高域的に聞こえるNoiseは細かい拍・裏拍の補助アクセントに割り当てる。
 
-この配置により、CH1は主旋律、CH3は低域の調性・和声・拍の土台として分離し、CH2はその間を補う。CH1とCH2が過度に重なり続けず、CH2をミュートしてもCH1とCH3が残るため、各チャンネルの有無を運用確認で判別しやすい。音域はGame Boyの4チャンネルを同時に鳴らしたときの聴感上の分離を目的とするもので、Instrumentの音量、duty、waveform、envelopeなどは決定しない。
+この配置により、CH1は主旋律、CH3は低域の調性・和声・拍の土台として分離し、CH2はその間を補う。CH1とCH2が過度に重なり続けず、CH2をミュートしてもCH1とCH3が残るため、各チャンネルの有無を運用確認で判別しやすい。音域と確定したInstrumentの音量、duty、waveform、envelopeを組み合わせ、4チャンネルを同時に鳴らしても聞き分けられるようにする。
 
 発音方針は次のとおりとする。
 
 - CH1は、主旋律の輪郭がCH1単独で追えるよう、主題の重要音とフレーズの始端・終端を原則としてCH1自身に置く。長い休符だけで重要フレーズをCH2へ受け渡さず、拍を感じられる短音と適度な休符を組み合わせる。order境界とループ境界では、主旋律の再提示または明確な接続をCH1で示す。
 - CH2は、短い和音補助、対旋律、アルペジオ、装飾を区切って発音する。常時鳴らし続けず、主旋律の合間やコードが変わる箇所に隙間を設ける。必須のルート、コード進行、主旋律の続き、order境界の唯一の標識はCH2に置かない。
 - CH3は、コード変更と拍頭を認識できるルート音または持続音を基本とし、各order内の二つの和声区間とフレーズ境界を発音位置で支える。低域の発音を完全に途切れさせてCH4だけへ拍を委ねず、必要な箇所では短い区切りも使う。CH3単独を旋律化しすぎず、CH1との役割分担を保つ。
-- CH4は、1拍または短い周期で完結する単純な反復を中心とし、拍頭・裏拍・区切りの補助に限定する。各反復は途中から聞こえても意味が成立するようにし、曲開始、order境界、ループ境界をCH4だけのフィルや長いパターンに依存させない。具体的なnote列、発音長、音量は後続WBSで決める。
+- CH4は、1拍または短い周期で完結する単純な反復を中心とし、拍頭・裏拍・区切りの補助に限定する。各反復は途中から聞こえても意味が成立するようにし、曲開始、order境界、ループ境界をCH4だけのフィルや長いパターンに依存させない。具体的なnote列の全展開は後続WBSで行う。
 
 ミュートと復帰に関するJSON初稿の制約は次のとおりとする。
 
