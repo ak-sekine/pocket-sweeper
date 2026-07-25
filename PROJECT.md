@@ -495,7 +495,7 @@
         - [x] SameBoyで再生確認する
     - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接制作運用を確認する（運用確認用BGM）
       - [x] Version 2 BGMの作曲条件テンプレートと固定制約を整理する
-      - [ ] 運用確認用Version 2 BGMの作曲条件を決める
+      - [x] 運用確認用Version 2 BGMの作曲条件を決める
         - [x] `title`、用途、雰囲気、想定する長さを決める
         - [x] `tempo`、`loop`、共通order数、イントロの有無を決める
         - [x] 調性・コード進行、フレーズ構成、orderごとのpattern計画を決める
