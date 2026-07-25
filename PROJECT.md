@@ -504,7 +504,7 @@
       - [x] 作曲条件を基に運用確認用Version 2楽曲定義JSONの初稿を作成する
       - [x] 運用確認用Version 2 JSONの初稿をJSON仕様・サウンド仕様に対して自動検証する
       - [x] 運用確認用Version 2 JSONからhUGEDriver用ASMを生成する
-      - [ ] 運用確認用ASMから確認用ROMを生成する
+      - [x] 運用確認用ASMから確認用ROMを生成する
       - [ ] 運用確認用ROMをSameBoyで人が試聴し、結果を自然言語でChatGPTまたはCodexへ伝える
       - [ ] 試聴結果を反映して運用確認用JSONの修正内容を決める
       - [ ] 修正した運用確認用JSONからASMと確認用ROMを再生成する
