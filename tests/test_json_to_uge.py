@@ -68,6 +68,8 @@ class WorkflowCheckAssetTests(unittest.TestCase):
         data = self.data
         ranges = {"pulse1": ("C5", "G6"), "pulse2": ("C4", "E5"), "wave": ("C3", "C4")}
         expected_noise = {1: "C3", 2: "C5", 3: "C7"}
+        allowed_lengths = {"pulse1": {2, 4, 8}, "pulse2": {4, 8}, "wave": {8, 16}}
+        expected_volume = {"pulse1": 12, "pulse2": 7, "wave": 10, "noise": {1: 8, 2: 6, 3: 4}}
         for channel, patterns in data["patterns"].items():
             for pattern in patterns.values():
                 for note in pattern:
@@ -75,20 +77,34 @@ class WorkflowCheckAssetTests(unittest.TestCase):
                     self.assertGreater(note["length"], 0)
                     self.assertIsNone(note.get("effect"))
                     self.assertIsNone(note.get("effect_param"))
+                    if "volume" in note:
+                        self.assertNotEqual(note["volume"], 0)
                     if note["note"] == "rest":
+                        if channel == "noise":
+                            self.assertGreaterEqual(note["length"], 2)
+                        else:
+                            self.assertIn(note["length"], allowed_lengths[channel])
                         if channel == "noise":
                             self.assertNotIn("volume", note)
                         continue
+                    if channel == "noise":
+                        self.assertIn(note["length"], {2, 4})
+                    else:
+                        self.assertIn(note["length"], allowed_lengths[channel])
                     self.assertNotIn(note["note"], {"kick", "snare", "hat"})
                     if "volume" in note:
-                        self.assertIn(note["volume"], range(1, 16))
+                        expected = expected_volume[channel]
+                        if channel == "noise":
+                            expected = expected[note["instrument"]]
+                        self.assertEqual(note["volume"], expected)
+                        if channel == "noise":
+                            self.assertLessEqual(note["volume"], 8)
                     if channel in ranges:
                         value = json_to_uge.parse_note(note["note"], "workflow")
                         self.assertGreaterEqual(value, json_to_uge.parse_note(ranges[channel][0], "workflow"))
                         self.assertLessEqual(value, json_to_uge.parse_note(ranges[channel][1], "workflow"))
                     else:
                         self.assertEqual(note["note"], expected_noise[note["instrument"]])
-                    self.assertNotEqual(note.get("volume"), 0)
 
 
 class Ch1Ch3SkeletonAssetTests(unittest.TestCase):
