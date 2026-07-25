@@ -494,7 +494,7 @@
         - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
         - [x] SameBoyで再生確認する
     - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接制作運用を確認する
-      - [ ] 仕様書と用途・雰囲気・長さ・ループ条件を作曲条件として整理する
+      - [x] 仕様書と用途・雰囲気・長さ・ループ条件を作曲条件として整理する
       - [ ] 作曲条件を基にVersion 2楽曲定義JSONの初稿を作成できることを確認する
       - [ ] JSON仕様とサウンド仕様に対する自動検証を実行できることを確認する
       - [ ] `tools/json_to_huge_asm.py` でhUGEDriver用ASMを生成できることを確認する

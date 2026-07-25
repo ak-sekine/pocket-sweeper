@@ -129,6 +129,124 @@ SameBoy v1.0.3で、`build/bgm_v2_ch1_ch3_skeleton_test_ch2_ch4_mute.gb` を確�
 
 本方針はCH2 / Pulse2およびCH4 / Noiseが効果音に使用される場合を対象とする。現行実装ではPulse1効果音がCH1を、Noise効果音がCH4を使用し、Pulse2効果音は未対応である。したがって、CH1を効果音へ割り当てた場合にもCH1 / CH3の骨格を保証する方針ではなく、CH1使用効果音は主旋律への影響が大きい重要な演出に限定する既存方針を維持する。CH2効果音の実装と、CH1を含む各ミュート状態の実機・エミュレータ検証は後続WBSで扱う。
 
+### Version 2 BGM制作の作曲条件
+
+ChatGPTまたはCodexがVersion 2楽曲定義JSONの初稿を直接作成する前に、曲ごとの作曲条件を本節のテンプレートで整理する。作曲条件は自然言語による制作指示であり、JSONへ `purpose`、`mood`、`duration` などの新しい項目を追加するものではない。JSONの構造と値の正本は[楽曲定義JSON仕様](json-format.md)とし、本節では作曲時に先に決める内容と既存仕様への適合条件だけを扱う。
+
+タイトルBGM、プレイ中BGM、クリアBGMそれぞれの具体的な用途、雰囲気、長さ、tempo、ループ方式、イントロの有無は、各曲の後続WBSで決定する。本節では値を先回りして決めない。条件が決まっていない項目は推測で補完せず、`未確定`、未確定の理由、決定するWBSを記載する。後述の旧2チャンネル試作と既存の `assets/bgm_title.json`、`assets/bgm_game.json`、`assets/bgm_clear.json` にある具体値も、新しい4チャンネル曲の作曲条件として自動的に流用しない。
+
+#### 作曲前に固定しておくJSON制約
+
+- 出力対象は `version = 2`、`type = "bgm"` の楽曲定義JSONとする。曲名はトップレベルの `title` に記載する。
+- `tempo` は必須の正整数で、曲全体と4チャンネルに共通する単一値とする。order、pattern、row、noteごとのtempoや曲中tempo変更は指定しない。値が大きいほど、固定更新頻度では1rowの再生が遅くなる。
+- `order` と `patterns` は `pulse1`、`pulse2`、`wave`、`noise` のチャンネル別オブジェクトとする。Version 1の共通orderや `patterns.<pattern名>.channels` と混在させない。
+- 使用する全チャンネルのorder数を一致させる。各order位置は全チャンネル共通の64row区間として扱う。新しい4チャンネルBGMではCH1～CH4それぞれのorderとpatternの計画を作曲条件へ記載する。
+- 各patternはnoteの `length` を展開した結果で最大64rowとする。64row未満は変換ツールが空行で補完し、64rowを超えるフレーズは複数patternへ分割する。
+- `loop` は必須とし、曲ごとに次のいずれかを選ぶ。
+  - `{"mode": "full"}`: 全order範囲を繰り返す。`start_order` と `end_order` は指定しない。
+  - `{"mode": "range", "start_order": S, "end_order": N}`: order 0から再生し、`S` より前を1回だけのイントロ、半開区間 `[S, N)` をループとする。`N` は全使用チャンネル共通のorder数と同じ値にし、`0 <= S < N` とする。境界はorder単位とし、pattern途中やrow単位のループは使用しない。
+  - `{"mode": "none"}`: 全orderを1回だけ再生し、最終orderの最終row処理後に自然終了する。`start_order` と `end_order` は指定しない。
+- 1回だけ再生するイントロが必要な場合は `loop.mode = "range"` を使用し、イントロのorder数とループ開始orderを明記する。`full` では先頭部分も毎回ループし、`none` では曲全体が1回再生になるため、非ループ区間としてのイントロを別指定しない。
+- noteの `note` は `C3`～`B8`または`rest`、`length`は1以上のrow数、`instrument`は1～15とする。`effect` と `effect_param` は現行変換で非nullに対応していないため、効果を使わず省略するか `null` とする。
+- Instrumentは使用チャンネル、役割、音色意図とJSON値を対応させる。同じbank内でInstrument IDを重複させない。CH1 / CH2は同じDuty bank、CH3はWave bank、CH4はNoise bankを使用する。
+  - Pulse Instrumentは `duty`、hardware側の `length` / `length_enable`、`initial_volume`、`envelope_direction`、`envelope_sweep` を選ぶ。`sweep_time`、`sweep_direction`、`sweep_shift` はCH1だけで使用でき、CH2では指定しない。
+  - Wave Instrumentは参照する `waveform` を必ず決め、`output_level`、hardware側の `length` / `length_enable` を選ぶ。参照先は `wave_tables` に名前付きで定義し、各Wave tableは0～15の値を32サンプル、最大16個までとする。
+  - Noise Instrumentはhardware側の `length` / `length_enable`、`initial_volume`、`envelope_direction`、`envelope_sweep`、`width_mode`を選ぶ。`clock_shift`、`divisor_code`、完成済みNR43値は指定しない。
+- CH4のnoteも `C3`～`B8`の音名で記載するが、旋律上の正確な音程ではなくNoise pitch indexとして扱う。`kick`、`snare`、`hat`などをnote値にせず、作曲条件側で「どのNoise Instrumentと音名の組み合わせをどのリズム役に使うか」を記載する。固定の打楽器対応を推測しない。
+- note単位の `volume` は必要な発音だけ0～15で指定できる。省略はvolume commandなし、`volume: 0`は明示的な音量0であり、同じ意味ではない。`length`展開後の空行へvolumeやInstrumentを再適用しない。CH4の `note: "rest"` では、`null`を含めて `volume` キー自体を指定しない。
+- note側の `length` はpatternのrow数、Instrument側の `length` はGame Boyハードウェアのsound lengthであり、別の項目として決める。
+
+項目の全許容値、デフォルト値、未使用チャンネルの省略規則、Wave tableの命名規則、変換時の詳細は[楽曲定義JSON仕様](json-format.md)を参照する。具体的なVersion 2の4チャンネル構造は[4チャンネルBGM JSONサンプル](json_examples/bgm_4ch_sample.json)、CH1 / CH3の骨格とミュート耐性を確認した既存資産は `assets/bgm_v2_ch1_ch3_skeleton_test.json` を参照する。これらは構造例・確認用データであり、新曲のフレーズや具体値を流用する指定ではない。
+
+#### チャンネル別に記載する作曲条件
+
+- CH1 / Pulse1:
+  - 曲を識別する重要な主旋律を担当させ、主旋律を原則としてCH1だけでも追えるようにする。
+  - 曲固有の重要フレーズ、主な音域、リズムの持たせ方、使用するPulse Instrumentを記載する。
+  - CH2との掛け合いを使う場合も、CH2の消失でCH1のフレーズが不自然に途切れない構成を記載する。
+- CH3 / Wave:
+  - ベース、持続音、ルート音、重要なコード構成音など曲の土台を担当させ、CH1とCH3だけで曲の骨格を認識できるようにする。
+  - 調性またはコード進行、拍やフレーズ境界を支える発音、主な音域、使用するWave InstrumentとWave tableを記載する。
+  - 必須のベースや和声情報をCH2だけへ置かず、CH1と音域・役割が重なりすぎない構成を記載する。
+- CH2 / Pulse2:
+  - 補助旋律、和音補助、対旋律、アルペジオ、装飾、短いリズム補強のうち、曲に必要な役割を記載する。
+  - 一時的に消えても曲が成立する短い補助フレーズを中心とし、主旋律、必須のコード進行、必須のベースラインをCH2だけへ配置しない。
+  - ミュート途中で欠落しても不自然になりにくく、現在の再生位置から復帰してもCH1 / CH3と和音が衝突しにくい構成を記載する。
+- CH4 / Noise:
+  - リズム補強を担当させ、使用するNoise Instrument、Noise note、発音周期、アクセント位置を記載する。
+  - CH4だけに拍、tempo、曲の開始、フレーズ境界、ループ境界の認識を依存させない。
+  - 1拍または短い周期で完結する反復を中心とし、途中復帰してもリズム衝突が起きにくい構成を記載する。
+
+#### 作曲条件テンプレート
+
+次のテンプレートを埋めた内容を、そのままVersion 2楽曲定義JSON初稿作成の入力にする。`未確定`が残る場合はJSONを推測で作成せず、後続WBSで決定する。
+
+```text
+Version 2 BGM作曲条件
+
+基本情報:
+  title: <JSONのtitle>
+  用途: <再生する画面・状態、開始契機、終了または切替契機>
+  目指す雰囲気: <形容、避けたい印象、必要なら参考となる音楽的特徴>
+  想定する長さ:
+    聴感上の目安: <秒、短いジングル、継続再生向け等。未確定可>
+    構造上の目安: <共通order数、1order = 64row>
+  tempo: <曲全体で共通の正整数。未確定可>
+  loop:
+    mode: <full | range | none。未確定可>
+    start_order: <rangeの場合のみ。0始まり>
+    end_order: <rangeの場合のみ。全使用チャンネル共通order数Nと同じ値>
+  イントロ: <なし | rangeの先頭S orderを1回だけ再生。未確定可>
+
+曲の構造:
+  調性・コード進行: <CH1 + CH3で認識できる内容>
+  拍子・リズム: <CH4がなくてもCH1 + CH3から拍を追える内容>
+  フレーズ構成: <orderごとの役割とpattern分割。各patternは展開後最大64row>
+  ループ接続または終止: <境界前後の和声・旋律・リズム。noneでは自然終了位置>
+
+チャンネル:
+  CH1 / Pulse1:
+    固定役割: 主旋律と曲を識別する重要フレーズ
+    曲固有の内容: <フレーズ、音域、リズム、Instrument>
+  CH2 / Pulse2:
+    固定役割: 消失可能な補助旋律・和音補助・対旋律・アルペジオ・装飾
+    曲固有の内容: <短い補助フレーズ、Instrument、復帰時の接続>
+  CH3 / Wave:
+    固定役割: ベース・持続音・ルート音等の曲の土台
+    曲固有の内容: <ベース/和声、発音タイミング、Instrument、Wave table>
+  CH4 / Noise:
+    固定役割: 消失可能なリズム補強
+    曲固有の内容: <Noise Instrument + noteの組み合わせ、周期、アクセント>
+
+音色・音量:
+  Instruments: <ID、channel、用途、使用するVersion 2 Instrument項目>
+  Wave tables: <name、32サンプルの方針。CH3使用時>
+  note volume: <必要な発音と0～15の値。不要なら省略>
+  音域・音量バランス: <CH1とCH3の分離、CH2/CH4消失時も残る情報>
+
+order / patterns:
+  共通order数: <N>
+  pulse1 order: <pattern名をN個>
+  pulse2 order: <pattern名をN個>
+  wave order: <pattern名をN個>
+  noise order: <pattern名をN個>
+  pattern計画: <各チャンネル・各patternの役割と展開後row数>
+
+ミュート耐性:
+  CH2のみミュート: <主旋律・調性・コード進行が維持される理由>
+  CH4のみミュート: <tempo・拍・フレーズ境界を見失いにくい理由>
+  CH2 + CH4同時ミュート: <CH1 + CH3で骨格を認識できる理由>
+  復帰時: <CH2の和音、CH4の周期が現在位置から復帰しても衝突しにくい理由>
+
+その他の制約:
+  JSON固定値: version = 2、type = "bgm"
+  effect: <使用しない。省略またはnull>
+  未確定事項: <項目、理由、決定する後続WBS>
+  避ける構成: <曲固有に避けるフレーズ、音域、音色、反復等>
+```
+
+ミュート耐性は作曲後の試聴だけに委ねず、初稿作成前の条件として記述する。最低限、CH1だけでも主旋律を追えること、CH1 + CH3で主旋律・調性またはコード進行・拍・フレーズ進行・ループ位置からなる骨格を認識できること、必須の音楽情報をCH2 / CH4だけへ配置しないこと、CH4がなくてもtempoや拍を見失いにくいこと、CH2 / CH4の復帰時に不自然な和音・リズム衝突を起こしにくいことを明示する。
+
 効果音実装方式の比較:
 
 | 方式 | 実装難易度 | 保守性 | CPU/RAM/ROM | BGM干渉 | 効果音品質 | hUGETracker/JSONフロー | 評価 |
@@ -297,23 +415,23 @@ Noise Instrument詳細からAPUレジスタへの変換方針:
 - CH2 / Pulse2効果音を扱えるように、`tools/json_to_sfx_asm.py`、SFX ASMデータ形式、`Sound_PlaySfx` / `Sound_UpdateSfx` の対応範囲を見直す。
 - クリア時にBGMを停止するか、クリアジングルをBGM扱いで再生するか、短い効果音扱いにするかはクリアBGM制作時に決める。
 
-### 初版BGM仕様
+### 旧2チャンネル構成のBGM試作仕様
 
-初版で使用するBGMは以下の3曲とする。
+Version 1 JSONとPulse1 / Pulse2を使った旧制作フローでは、以下の3曲を試作した。この表の用途・方針は旧試作時の具体値であり、後続WBSで新規作成する初版用4チャンネルBGMの最終作曲条件ではない。
 
 | BGM | 正本JSON | 用途 | 方針 |
 | --- | --- | --- | --- |
 | タイトルBGM | `assets/bgm_title.json` | タイトル画面 | 明るく短い2パターンのループとし、ゲーム開始前の期待感を出す。 |
 | プレイ中BGM | `assets/bgm_game.json` | 通常プレイ中 | 長時間聴いても邪魔になりにくい、落ち着いた2パターンのループとする。 |
-| クリアBGM | `assets/bgm_clear.json` | クリア時 | 短い達成感のあるフレーズとし、初版ではBGMデータとして作成する。 |
+| クリアBGM | `assets/bgm_clear.json` | クリア時 | 短い達成感のあるフレーズとし、旧試作ではBGMデータとして作成する。 |
 
 - BGMの正本はJSONとし、`assets/` 直下へ配置する。
-- 初版ではPulse1 / Pulse2を使用し、Wave / Noiseは空patternとする。
+- 旧試作ではPulse1 / Pulse2を使用し、Wave / Noiseは空patternとする。
 - 効果音との競合を抑えるため、Pulse2は伴奏中心とし、一時的にミュートされても曲の輪郭が失われにくい構成にする。
 - `tools/json_to_huge_asm.py` は `SECTION "...", ROMX` を出力するが、ROM ONLY構成でも `rgblink` が32KiB内のbanked sectionとして配置できるため、カートリッジタイプ変更は不要とする。
 - 各JSONは `tools/json_to_huge_asm.py` でASMへ変換し、`tools/build_sound_test_rom.py` で確認用ROMを生成する。
 - SameBoyでの再生確認後、問題があればJSONを修正して再生成する。
-- クリアBGMをループさせるか、一度だけ再生して停止させるかは本体組み込み時に決める。
+- 旧試作時には、クリアBGMをループさせるか、一度だけ再生して停止させるかを未確定としていた。新しい4チャンネル版の判断はクリアBGM制作の後続WBSで行う。
 
 ### BGM・効果音制作フロー
 
