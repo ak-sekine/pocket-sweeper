@@ -24,7 +24,7 @@ class WorkflowCheckAssetTests(unittest.TestCase):
         data = self.data
         self.assertEqual(
             {key: data[key] for key in ("version", "type", "title", "tempo")},
-            {"version": 2, "type": "bgm", "title": "Version 2 BGM Workflow Check", "tempo": 6},
+            {"version": 2, "type": "bgm", "title": "Version 2 BGM Workflow Check", "tempo": 5},
         )
         self.assertEqual(data["loop"], {"mode": "range", "start_order": 2, "end_order": 6})
         expected_orders = {
@@ -53,9 +53,9 @@ class WorkflowCheckAssetTests(unittest.TestCase):
             ("pulse1", 1): {"name": "workflow_lead", "duty": 2, "length": 0, "length_enable": False, "initial_volume": 12, "envelope_direction": "down", "envelope_sweep": 0, "sweep_time": 0, "sweep_direction": "down", "sweep_shift": 0},
             ("pulse2", 2): {"name": "workflow_support", "duty": 1, "length": 0, "length_enable": False, "initial_volume": 7, "envelope_direction": "down", "envelope_sweep": 0},
             ("wave", 1): {"name": "workflow_foundation", "waveform": "workflow_triangle", "output_level": "100%", "length": 0, "length_enable": False},
-            ("noise", 1): {"name": "workflow_low_accent", "length": 0, "length_enable": False, "initial_volume": 8, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "15bit"},
-            ("noise", 2): {"name": "workflow_mid_accent", "length": 0, "length_enable": False, "initial_volume": 6, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "7bit"},
-            ("noise", 3): {"name": "workflow_high_accent", "length": 0, "length_enable": False, "initial_volume": 4, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "7bit"},
+            ("noise", 1): {"name": "workflow_low_accent", "length": 0, "length_enable": False, "initial_volume": 5, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "15bit"},
+            ("noise", 2): {"name": "workflow_mid_accent", "length": 0, "length_enable": False, "initial_volume": 4, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "7bit"},
+            ("noise", 3): {"name": "workflow_high_accent", "length": 0, "length_enable": False, "initial_volume": 3, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "7bit"},
         }
         for (channel, instrument_id), fields in expected.items():
             actual = by_channel[channel][instrument_id]
@@ -69,7 +69,7 @@ class WorkflowCheckAssetTests(unittest.TestCase):
         ranges = {"pulse1": ("C5", "G6"), "pulse2": ("C4", "E5"), "wave": ("C3", "C4")}
         expected_noise = {1: "C3", 2: "C5", 3: "C7"}
         allowed_lengths = {"pulse1": {2, 4, 8}, "pulse2": {4, 8}, "wave": {8, 16}}
-        expected_volume = {"pulse1": 12, "pulse2": 7, "wave": 10, "noise": {1: 8, 2: 6, 3: 4}}
+        expected_volume = {"pulse1": 12, "pulse2": 7, "wave": 10, "noise": {1: 5, 2: 4, 3: 3}}
         for channel, patterns in data["patterns"].items():
             for pattern in patterns.values():
                 for note in pattern:
@@ -105,6 +105,28 @@ class WorkflowCheckAssetTests(unittest.TestCase):
                         self.assertLessEqual(value, json_to_uge.parse_note(ranges[channel][1], "workflow"))
                     else:
                         self.assertEqual(note["note"], expected_noise[note["instrument"]])
+
+        for name in ("intro_cadence", "intro_turn", "loop_theme_a", "loop_build"):
+            cells = data["patterns"]["pulse1"][name]
+            self.assertEqual([c["note"] for c in cells[::2]], [c["note"] for c in data["patterns"]["pulse1"][name] if c["note"] != "rest"])
+            self.assertTrue(all(c["length"] == 2 for c in cells[::2]))
+            self.assertTrue(all(c["note"] == "rest" and c["length"] == 2 for c in cells[1::2]))
+        self.assertTrue(all(c["length"] == 2 for c in data["patterns"]["pulse1"]["loop_theme_b"][:16]))
+        self.assertTrue(all(c["length"] == 4 for c in data["patterns"]["pulse1"]["loop_theme_b"][16:]))
+        self.assertEqual([c["note"] for c in data["patterns"]["pulse1"]["loop_build"][-8::2]], ["G5", "B5", "D6", "G6"])
+        self.assertEqual(data["patterns"]["pulse1"]["loop_link"][-1]["length"], 4)
+        self.assertNotEqual(data["patterns"]["pulse1"]["loop_link"][-1]["note"], "rest")
+        self.assertEqual([c["note"] for c in data["patterns"]["pulse2"]["loop_support_a"]], ['C4','E4','G4','rest','F4','C5','A4','rest','C4','G4','E4','rest','F4','C5','A4','rest'])
+        self.assertEqual([c["note"] for c in data["patterns"]["pulse2"]["loop_support_b"]], ['G4','B4','D5','rest','A4','E5','C5','rest','G4','B4','D5','rest','A4','E5','C5','rest'])
+        self.assertEqual([c["note"] for c in data["patterns"]["wave"]["loop_foundation_c"]], ['F3','F3','A3','C4','G3','G3','B3','C4'])
+        expected_noise = {'intro_rhythm_a':[(0,1,'C3'),(48,2,'C5')], 'intro_rhythm_b':[(0,1,'C3'),(48,2,'C5')], 'loop_rhythm_a':[(0,1,'C3'),(48,2,'C5')], 'loop_rhythm_b':[(0,1,'C3'),(32,3,'C7')], 'loop_rhythm_c':[(0,1,'C3')], 'loop_link_rhythm':[(0,1,'C3'),(48,2,'C5')]}
+        for name, expected_hits in expected_noise.items():
+            cells=data['patterns']['noise'][name]; row=0; hits=[]
+            for c in cells:
+                if c['note'] != 'rest': hits.append((row,c['instrument'],c['note']))
+                self.assertNotIn('volume', c) if c['note']=='rest' else None
+                row += c['length']
+            self.assertEqual(hits, expected_hits)
 
 
 class Ch1Ch3SkeletonAssetTests(unittest.TestCase):
