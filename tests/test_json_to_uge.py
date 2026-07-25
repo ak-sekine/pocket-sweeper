@@ -14,6 +14,83 @@ import json_to_uge  # noqa: E402
 import json_to_huge_asm  # noqa: E402
 
 
+class WorkflowCheckAssetTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = ROOT / "assets" / "bgm_v2_workflow_check.json"
+        cls.data = json.loads(path.read_text(encoding="utf-8"))
+
+    def test_workflow_check_metadata_orders_and_patterns_match_sound_spec(self):
+        data = self.data
+        self.assertEqual(
+            {key: data[key] for key in ("version", "type", "title", "tempo")},
+            {"version": 2, "type": "bgm", "title": "Version 2 BGM Workflow Check", "tempo": 6},
+        )
+        self.assertEqual(data["loop"], {"mode": "range", "start_order": 2, "end_order": 6})
+        expected_orders = {
+            "pulse1": ["intro_cadence", "intro_turn", "loop_theme_a", "loop_theme_b", "loop_build", "loop_link"],
+            "pulse2": ["intro_harmony_a", "intro_harmony_b", "loop_support_a", "loop_support_b", "loop_support_c", "loop_link_support"],
+            "wave": ["intro_root_a", "intro_root_b", "loop_foundation_a", "loop_foundation_b", "loop_foundation_c", "loop_link_foundation"],
+            "noise": ["intro_rhythm_a", "intro_rhythm_b", "loop_rhythm_a", "loop_rhythm_b", "loop_rhythm_c", "loop_link_rhythm"],
+        }
+        self.assertEqual(data["order"], expected_orders)
+        self.assertEqual(set(data["patterns"]), set(json_to_uge.CHANNELS))
+        for channel, order in expected_orders.items():
+            self.assertEqual(len(order), 6)
+            self.assertEqual(set(order), set(data["patterns"][channel]))
+            for pattern_name in order:
+                self.assertEqual(sum(note["length"] for note in data["patterns"][channel][pattern_name]), 64)
+
+        # The existing validator remains the authority for general Version 2 validity.
+        self.assertTrue(json_to_uge.build_uge(data))
+
+    def test_workflow_check_instruments_and_wave_table_match_fixed_values(self):
+        data = self.data
+        by_channel = {channel: {} for channel in json_to_uge.CHANNELS}
+        for instrument in data["instruments"]:
+            by_channel[instrument["channel"]][instrument["id"]] = instrument
+        expected = {
+            ("pulse1", 1): {"name": "workflow_lead", "duty": 2, "length": 0, "length_enable": False, "initial_volume": 12, "envelope_direction": "down", "envelope_sweep": 0, "sweep_time": 0, "sweep_direction": "down", "sweep_shift": 0},
+            ("pulse2", 2): {"name": "workflow_support", "duty": 1, "length": 0, "length_enable": False, "initial_volume": 7, "envelope_direction": "down", "envelope_sweep": 0},
+            ("wave", 1): {"name": "workflow_foundation", "waveform": "workflow_triangle", "output_level": "100%", "length": 0, "length_enable": False},
+            ("noise", 1): {"name": "workflow_low_accent", "length": 0, "length_enable": False, "initial_volume": 8, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "15bit"},
+            ("noise", 2): {"name": "workflow_mid_accent", "length": 0, "length_enable": False, "initial_volume": 6, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "7bit"},
+            ("noise", 3): {"name": "workflow_high_accent", "length": 0, "length_enable": False, "initial_volume": 4, "envelope_direction": "down", "envelope_sweep": 0, "width_mode": "7bit"},
+        }
+        for (channel, instrument_id), fields in expected.items():
+            actual = by_channel[channel][instrument_id]
+            self.assertEqual({key: actual.get(key) for key in fields}, fields)
+        self.assertEqual(data["wave_tables"], [{"name": "workflow_triangle", "samples": [*range(16), *range(15, -1, -1)]}])
+        self.assertTrue(json_to_uge.validate_wave_tables(data, 2))
+        self.assertTrue(json_to_uge.validate_instruments(data, wave_tables=json_to_uge.validate_wave_tables(data, 2)))
+
+    def test_workflow_check_note_ranges_lengths_volumes_and_noise_mapping(self):
+        data = self.data
+        ranges = {"pulse1": ("C5", "G6"), "pulse2": ("C4", "E5"), "wave": ("C3", "C4")}
+        expected_noise = {1: "C3", 2: "C5", 3: "C7"}
+        for channel, patterns in data["patterns"].items():
+            for pattern in patterns.values():
+                for note in pattern:
+                    self.assertIsInstance(note["length"], int)
+                    self.assertGreater(note["length"], 0)
+                    self.assertIsNone(note.get("effect"))
+                    self.assertIsNone(note.get("effect_param"))
+                    if note["note"] == "rest":
+                        if channel == "noise":
+                            self.assertNotIn("volume", note)
+                        continue
+                    self.assertNotIn(note["note"], {"kick", "snare", "hat"})
+                    if "volume" in note:
+                        self.assertIn(note["volume"], range(1, 16))
+                    if channel in ranges:
+                        value = json_to_uge.parse_note(note["note"], "workflow")
+                        self.assertGreaterEqual(value, json_to_uge.parse_note(ranges[channel][0], "workflow"))
+                        self.assertLessEqual(value, json_to_uge.parse_note(ranges[channel][1], "workflow"))
+                    else:
+                        self.assertEqual(note["note"], expected_noise[note["instrument"]])
+                    self.assertNotEqual(note.get("volume"), 0)
+
+
 class Ch1Ch3SkeletonAssetTests(unittest.TestCase):
     def test_ch1_ch3_skeleton_patterns_are_complete_and_convertible(self) -> None:
         path = ROOT / "assets" / "bgm_v2_ch1_ch3_skeleton_test.json"
