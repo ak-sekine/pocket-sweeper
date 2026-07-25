@@ -310,7 +310,7 @@ order / patterns:
   order 5 → order 2のループ位置: CH1の接続句の再提示とCH3のG (V) → C (I)の解決を同期させるため、CH1 + CH3でも認識できる。
 ```
 
-上記以外の調性・コード進行、フレーズ構成、CH1～CH4の具体的な音列、Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeは未確定のままとする。これらは`PROJECT.md`の同じ親WBSにある各後続項目で決定し、今回の雰囲気や長さから推測して補完しない。
+上記で決定した調性・コード進行、フレーズ構成、pattern計画以外のCH1～CH4の具体的なnote列、音域、詳細な発音方針、Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeは未確定のままとする。これらは`PROJECT.md`の同じ親WBSにある各後続項目で決定し、今回決定した構造や雰囲気から推測して補完しない。
 
 ミュート耐性は作曲後の試聴だけに委ねず、初稿作成前の条件として記述する。最低限、CH1だけでも主旋律を追えること、CH1 + CH3で主旋律・調性またはコード進行・拍・フレーズ進行・ループ位置からなる骨格を認識できること、必須の音楽情報をCH2 / CH4だけへ配置しないこと、CH4がなくてもtempoや拍を見失いにくいこと、CH2 / CH4の復帰時に不自然な和音・リズム衝突を起こしにくいことを明示する。
 
