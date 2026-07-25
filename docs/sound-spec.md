@@ -377,6 +377,67 @@ order / patterns:
 
 これは運用確認用BGMの初回試聴結果の記録であり、この節ではJSON・ASM・ROMの修正内容を決定しない。修正内容の決定は、後続WBS「試聴結果を反映して運用確認用JSONの修正内容を決める」で扱う。
 
+#### 運用確認用BGMの試聴結果を受けた次回修正内容
+
+初回試聴で確認された「軽快ではない」「全体的に単調」「CH4 / Noiseがうるさい」の3点について、現行JSONの構造とVersion 2仕様を照合し、次回のJSON修正内容を次のとおり決定する。ここに記載する値は次回修正の目標であり、未修正の `assets/bgm_v2_workflow_check.json` の現在値を表すものではない。
+
+##### 1. 軽快さ
+
+現行の `tempo: 6` はVersion 2の `TicksPerRow` であり、値を大きくすると1rowが遅くなる。したがって軽快さの改善では、値を小さくする。次回は全チャンネル共通の `tempo` を **6 → 5** に変更する。曲中・order別・note別tempoは仕様にないため追加しない。
+
+tempoだけでなく、現行CH1が全orderで16音×4row、休符なしで連続していることも、音の粒が重く聞こえる原因候補と判断した。次回は次のようにCH1を短く発音して空間を作る。
+
+- `pulse1` の `intro_cadence`、`intro_turn`、`loop_theme_a`、`loop_theme_b`、`loop_build`、`loop_link` は、既存のnote順と音域（`C5`～`G6`）を維持する。
+- 各patternの16個の発音を原則 **length 4 → length 2** とし、各発音の直後に **length 2 の `rest`** を置く。各patternは発音16個と休符16個で64rowにする。フレーズ終端だけを長くする案は今回採用せず、まず全patternで同じrow密度にしてtempo変更の効果と切り分ける。
+- これによりCH1の主旋律の音列、C majorの調性、order 5からorder 2への接続句は維持しつつ、休符とアタック間隔を明確にする。CH1の音域を下げたり、主旋律をCH2へ移したりしない。
+- CH2は現在も4row主体で休符があるため、軽快さの主変更対象にはせず、後述の単調さ対策で伴奏の反復を変える。CH3の8row主体の土台と、CH4の短い発音という役割も維持する。
+- イントロ2 orderと `loop: {"mode":"range","start_order":2,"end_order":6}` は維持する。tempo 5への変更後の構造上の再生時間は、固定更新60Hzの定義に従い、後続WBSで生成ROMの聴感を確認して記録する。
+
+##### 2. 単調さ
+
+現行では、CH1は音列こそorderごとに異なるが、6 patternすべてが同じ16個×4rowのリズムである。CH4は6 patternが完全同一であり、CH2とCH3も同じ発音型をコードだけ置き換えている。このため、C major、4/4拍子、6 order、イントロ後range loop、コード進行 `C → F → G → Am → F → G` は維持したまま、各orderのリズムと補助内容に差を付ける。
+
+次回の対象と変更は次のとおりとする。
+
+| 対象 | 次回JSONでの変更 | 維持するもの |
+| --- | --- | --- |
+| CH1 / `loop_theme_a`（order 2） | 上記の2row発音＋2row休符で主題Aを提示する。既存note列は維持する。 | C→Fの主題A、CH1単独で追える主旋律 |
+| CH1 / `loop_theme_b`（order 3） | 既存note列をそのまま反復せず、16音のうち前半8音は2row発音＋2row休符、後半8音は4row発音とし、後半は休符を置かず応答句として密度を上げる。合計64rowになるよう前半8音の後に2row休符を8個置く。 | G→Amの応答、`C5`～`G6`、CH1の主旋律性 |
+| CH1 / `loop_build`（order 4） | 1～8番音は2row発音＋2row休符、9～16番音は2row発音＋2row休符のままにし、既存のF→G上行・反復を維持する。ただし9番音以降の2回目のG系まとまりは、既存列の先頭音を繰り返さず、最後の4音を `G5, B5, D6, G6` にする。 | F→Gの展開とorder 5への接続、音域 |
+| CH1 / `loop_link`（order 5） | 既存note列と2row発音＋2row休符を維持し、最後の `G5` は最後の2row休符を置かずlength 4にする（pattern合計は64rowのまま）。 | C確認→G終止、order 2のCへの解決、ループ境界 |
+| CH2 / `loop_support_a`（order 2） | 既存の4音＋restのまとまりを維持し、2つ目の和声区間（F）だけ `F4,A4,C5,rest` から `F4,C5,A4,rest` へ順序を変える。 | 補助役、CH1不在でも必須情報を担わないこと |
+| CH2 / `loop_support_b`（order 3） | G区間を `G4,B4,D5,rest`、Am区間を `A4,E5,C5,rest` とし、現行の後半の機械的な同型反復をやめる。 | G→Amの和声、主旋律との音域分離 |
+| CH2 / `loop_support_c`（order 4） | 8row単位の4音＋restを維持しつつ、前半F区間を `F4,C5,A4,rest`、後半G区間を `G4,D5,B4,rest` にする。 | F→G、CH2をミュートしてもCH1+CH3で骨格が残ること |
+| CH3 / `loop_foundation_c`（order 4） | 8rowの同音反復をやめ、前半4音を `F3,F3,A3,C4`、後半4音を `G3,G3,B3,C4` とする。rootを失わない範囲の短い上行で展開感を出す。 | CH3の低域、F→G、CH1+CH3の調性・拍・境界 |
+| CH4 / 全loop pattern | patternごとの差は下記のNoise方針で作る。CH4だけでorder境界を示すフィルは追加しない。 | order数6、range loop、CH1+CH3による境界認識 |
+
+上表のlength変更はすべてnoteのpattern row長であり、Instrumentのhardware `length` とは変更しない。すべてのpatternの展開後行数は64row以内とし、note列と休符を明示して64rowに収める。C major、4/4、6 order、先頭2 orderのイントロ、order 1→2およびorder 5→2のG→C解決は変更しない。
+
+##### 3. CH4 / Noiseの音量と密度
+
+現行CH4は、`workflow_low_accent`（initial_volume 8 / 15bit）をC3、`workflow_mid_accent`（6 / 7bit）をC5、`workflow_high_accent`（4 / 7bit）をC7に割り当て、全6patternでC3を拍頭、C7を2回、C5を1回、計8発音（各2row、restは2～6row）を同一位置で繰り返している。発音回数・高域アクセントの反復・ID 1の音量が、補助以上に前面へ出た原因候補である。
+
+Noiseのwidth_modeやnote値を先に変えると音色・pitch indexの差と音量差を切り分けにくいため、次回はまず次を変更する。
+
+- Instrumentの `initial_volume` は **8 → 5**、**6 → 4**、**4 → 3**（ID 1/2/3）へ下げる。`envelope_direction: down`、`envelope_sweep: 0`、hardware `length: 0` / `length_enable: false`、width_mode（ID 1は15bit、ID 2/3は7bit）は維持する。
+- 発音note側のvolumeは **8 → 5**、**6 → 4**、**4 → 3**（ID 1/2/3）へ下げる。CH4の通常noteのvolume上限8という仕様内であり、restにはvolumeキーを付けない。
+- `loop_rhythm_a`（order 2）はID 1のC3を1拍目に1回、ID 2のC5を4拍目に1回だけ鳴らし、それぞれlength 2、間はrestとする。ID 3は使わない。
+- `loop_rhythm_b`（order 3）はID 1のC3を1拍目に1回、ID 3のC7を3拍目の補助に1回だけ鳴らす。各length 2、他はrestとする。
+- `loop_rhythm_c`（order 4）はID 1のC3を1拍目に1回だけ鳴らし、残りはrestとする。
+- `loop_link_rhythm`（order 5）はID 1のC3を1拍目に1回、ID 2のC5を4拍目に1回だけ鳴らす。ループ直前のフィルや連続C7は追加しない。
+- `intro_rhythm_a` / `intro_rhythm_b` は、イントロの拍をCH1+CH3で確認できるため、各patternをID 1のC3を1拍目に1回、ID 2のC5を4拍目に1回だけとする。イントロだけ別のNoise密度にはしない。
+
+発音を各pattern 2回以下にすることでCH4を補助へ戻し、Noiseの音色（width_mode）を変更せずに音量と発音頻度の効果を確認できるようにする。CH4をミュートしても、CH1の2row発音と休符、CH3の8rowの発音位置、C/F/G/Amの進行で拍・フレーズ境界・ループ解決を認識できる構成を維持する。CH4復帰時は単発の通常アクセントから再開し、消音中のフィルの続きや再同期を要求しない。
+
+##### 後続WBSでの確認ポイントと未確定事項
+
+後続WBS「修正した運用確認用JSONからASMと確認用ROMを再生成する」では、上記の値をJSONへ実装し、次をSameBoyで確認する。
+
+- tempo 5とCH1の2row発音＋2row休符で、軽快さが改善し、主旋律が途切れて聞こえないこと。
+- order 0～5のCH1/CH2/CH3の差、order境界、order 5→2のG→C解決が、通常再生とCH4ミュートの双方で聞き取れること。
+- CH4単独、CH2+CH4ミュート時にもCH1+CH3の骨格が成立し、復帰時に不協和・過大なNoise・不自然な再同期がないこと。
+- Noiseのvolume低下と発音回数削減で「うるさい」が解消すること。width_mode変更、Noise noteの隣接値への変更、さらなるtempoやnote列変更は、上記実装後の人による試聴結果がないため **未確定** とし、今回決めない。
+
 効果音実装方式の比較:
 
 | 方式 | 実装難易度 | 保守性 | CPU/RAM/ROM | BGM干渉 | 効果音品質 | hUGETracker/JSONフロー | 評価 |
