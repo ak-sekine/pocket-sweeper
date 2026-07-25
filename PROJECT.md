@@ -497,7 +497,7 @@
       - [x] Version 2 BGMの作曲条件テンプレートと固定制約を整理する
       - [ ] 運用確認用Version 2 BGMの作曲条件を決める
         - [x] `title`、用途、雰囲気、想定する長さを決める
-        - [ ] `tempo`、`loop`、共通order数、イントロの有無を決める
+        - [x] `tempo`、`loop`、共通order数、イントロの有無を決める
         - [ ] 調性・コード進行、フレーズ構成、orderごとのpattern計画を決める
         - [ ] CH1～CH4の具体的な役割、音域、発音方針、ミュート耐性を決める
         - [ ] Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeを決める
