@@ -493,15 +493,22 @@
         - [x] `tools/json_to_huge_asm.py` でASMを生成する
         - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
         - [x] SameBoyで再生確認する
-    - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接制作運用を確認する
-      - [x] 仕様書と用途・雰囲気・長さ・ループ条件を作曲条件として整理する
-      - [ ] 作曲条件を基にVersion 2楽曲定義JSONの初稿を作成できることを確認する
-      - [ ] JSON仕様とサウンド仕様に対する自動検証を実行できることを確認する
-      - [ ] `tools/json_to_huge_asm.py` でhUGEDriver用ASMを生成できることを確認する
-      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成できることを確認する
-      - [ ] SameBoyで人が試聴し、結果を自然言語でChatGPTまたはCodexへ伝える
-      - [ ] 試聴結果を反映してJSON、ASM、確認用ROMを再生成できることを確認する
-      - [ ] 採用する楽曲定義JSONを正本として確定する運用を確認する
+    - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接制作運用を確認する（運用確認用BGM）
+      - [x] Version 2 BGMの作曲条件テンプレートと固定制約を整理する
+      - [ ] 運用確認用Version 2 BGMの作曲条件を決める
+        - [ ] `title`、用途、雰囲気、想定する長さを決める
+        - [ ] `tempo`、`loop`、共通order数、イントロの有無を決める
+        - [ ] 調性・コード進行、フレーズ構成、orderごとのpattern計画を決める
+        - [ ] CH1～CH4の具体的な役割、音域、発音方針、ミュート耐性を決める
+        - [ ] Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeを決める
+      - [ ] 作曲条件を基に運用確認用Version 2楽曲定義JSONの初稿を作成する
+      - [ ] 運用確認用Version 2 JSONの初稿をJSON仕様・サウンド仕様に対して自動検証する
+      - [ ] 運用確認用Version 2 JSONからhUGEDriver用ASMを生成する
+      - [ ] 運用確認用ASMから確認用ROMを生成する
+      - [ ] 運用確認用ROMをSameBoyで人が試聴し、結果を自然言語でChatGPTまたはCodexへ伝える
+      - [ ] 試聴結果を反映して運用確認用JSONの修正内容を決める
+      - [ ] 修正した運用確認用JSONからASMと確認用ROMを再生成する
+      - [ ] 運用確認用JSONを本番採用JSONと分離した正本として確定する運用を確認する
     - [ ] 初版用タイトルBGMを4チャンネル構成で新規作成する
       - [ ] タイトル画面に合う用途・雰囲気・長さ・ループ条件を決める
       - [ ] 旧タイトルBGMを流用せず、新しいVersion 2楽曲定義JSONの初稿を作成する
