@@ -498,7 +498,7 @@
       - [ ] 運用確認用Version 2 BGMの作曲条件を決める
         - [x] `title`、用途、雰囲気、想定する長さを決める
         - [x] `tempo`、`loop`、共通order数、イントロの有無を決める
-        - [ ] 調性・コード進行、フレーズ構成、orderごとのpattern計画を決める
+        - [x] 調性・コード進行、フレーズ構成、orderごとのpattern計画を決める
         - [ ] CH1～CH4の具体的な役割、音域、発音方針、ミュート耐性を決める
         - [ ] Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeを決める
       - [ ] 作曲条件を基に運用確認用Version 2楽曲定義JSONの初稿を作成する

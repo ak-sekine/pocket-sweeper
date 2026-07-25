@@ -255,7 +255,7 @@ order / patterns:
 基本情報:
   title: Version 2 BGM Workflow Check
   用途: AIが自然言語の作曲条件からVersion 2楽曲定義JSONを直接作成し、JSON→ASM→確認用ROM→SameBoy試聴→自然言語フィードバック→再生成の制作フローを確認するための運用確認用BGM。ゲーム本編の画面・状態では再生せず、サウンドテストROMまたは同等の確認環境で再生する。
-  目指す雰囲気: 明るく軽快で、音の重なりと構造を聞き取りやすい、短時間の検証に集中できるゲームボーイ向けの雰囲気。避けたい印象は、音数が過密で各チャンネルの有無を聞き分けにくいこと、過度に暗い・攻撃的で試聴時の差分確認を妨げること、変化が乏しく境界や復帰を把握しにくいこととする。具体的なメロディ、コード進行、Instrument、各チャンネルのフレーズは後続WBSで決める。
+  目指す雰囲気: 明るく軽快で、音の重なりと構造を聞き取りやすい、短時間の検証に集中できるゲームボーイ向けの雰囲気。避けたい印象は、音数が過密で各チャンネルの有無を聞き分けにくいこと、過度に暗い・攻撃的で試聴時の差分確認を妨げること、変化が乏しく境界や復帰を把握しにくいこととする。具体的なInstrumentは後続WBSで決める。
   想定する長さ:
     聴感上の目安: 20～40秒程度。1回の短い試聴で曲の構造を把握でき、ミュート・復帰・境界の確認を複数回行える長さとする。
     構造上の目安: 共通6 order（1 order = 64row）。tempo 6、固定更新60Hzを基準にした構造上の長さは約38.4秒で、イントロ後のループ区間は約25.6秒とする。
@@ -268,6 +268,47 @@ order / patterns:
 ```
 
 `range` は仕様どおり order 0から再生し、先頭2 orderだけを1回再生した後、半開区間 `[2, 6)` を繰り返す。共通order数6と `end_order: 6` が一致するため、後続orderへ到達しない余剰データもなく、ループ境界をSameBoyで明確に確認できる。約38.4秒の初回再生と約25.6秒の反復区間により、短時間で曲の構造を把握しながらミュート・復帰・境界の確認を複数回行える。
+
+今回決定する曲の構造とpattern計画は次のとおりとする。コード名は作曲上の区分であり、具体的なnote列、音域、Instrument、note length / volumeを指定するものではない。
+
+```text
+曲の構造:
+  調性・コード進行: C major、4/4拍子。各orderは大きな2区間で和声を示す。
+    order 0（イントロ導入）: C (I) → G/B (V6)。C majorを提示し、次orderへ進む。
+    order 1（イントロ展開）: Am (vi) → G (V)。Gで区切り、order 2のC (I)への開始を明確にする。
+    order 2（ループ主題A）: C (I) → F (IV)。主題の開始と明るい展開を示す。
+    order 3（ループ主題B）: G (V) → Am (vi)。主題Aに対する応答とする。
+    order 4（ループ変化）: F (IV) → G (V)。終止へ向けて緊張を高める。
+    order 5（ループ接続）: C (I) → G (V)。Gを末尾の接続和音として置き、order 2のCへ戻す。
+  拍子・リズム: 4/4。CH1の主題リズムとCH3の発音位置で拍と2区間の境界を示す。CH4は短い反復の補強とし、拍や境界の唯一の手掛かりにはしない。
+  フレーズ構成:
+    order 0: イントロ導入。C majorと基本モチーフを提示する。
+    order 1: イントロ展開。AmからGへ進む終止前区間とする。
+    order 2: ループ主題A。CからFへ進むループ冒頭の主題提示とする。
+    order 3: ループ主題B。GからAmへ進む旋律・和声上の応答とする。
+    order 4: ループ変化。FからGへ進み、接続へ向けて展開する。
+    order 5: ループ接続。Cを確認した後Gで止め、order 2のCへ戻す接続句とする。
+  ループ接続または終止: order 1 → 2はG (V)からC (I)へ解決し、イントロ終了とループ開始を認識できるようにする。order 5 → 2もG (V)からC (I)へ解決する。CH1とCH3にも境界のアクセントまたは発音位置を持たせ、CH4だけに依存しない。
+
+order / patterns:
+  共通order数: 6（各orderは4チャンネル共通の64 row区間）
+  pulse1 order: [intro_cadence, intro_turn, loop_theme_a, loop_theme_b, loop_build, loop_link]
+  pulse2 order: [intro_harmony_a, intro_harmony_b, loop_support_a, loop_support_b, loop_support_c, loop_link_support]
+  wave order: [intro_root_a, intro_root_b, loop_foundation_a, loop_foundation_b, loop_foundation_c, loop_link_foundation]
+  noise order: [intro_rhythm_a, intro_rhythm_b, loop_rhythm_a, loop_rhythm_b, loop_rhythm_c, loop_link_rhythm]
+  pattern計画:
+    pulse1: イントロ調性提示・終端、ループ主題A/B、展開、接続を担当する。主旋律はCH1単独で追える構成とする。
+    pulse2: 補助和声と短い接続補助を担当する。CH1の主旋律や必須のコード進行には依存しない。
+    wave: イントロの土台、ループ内のルートまたは重要な和声変化、GからCへの接続を担当する。CH1 + CH3で骨格を保持する。
+    noise: イントロ・ループ各区間の短い反復と接続アクセントを担当する。CH4が消えてもCH1・CH3から境界を認識できるようにする。
+    各patternは展開後最大64 rowとし、64 rowをどの音符長で埋めるか、具体的なnote列、音量、Instrumentは未確定とする。異なるorder間でpatternを再利用する計画は採用しない。各orderの境界を独立して調整し、後続のnote設計で64 row以内に収めやすくするためである。
+
+ミュート耐性:
+  CH1 + CH3で曲の骨格を保持可能か: 可能と判断する。CH1が主題とorder境界のリズムを担い、CH3がC major内のルート・和声変化と発音位置を担うため、CH2とCH4がなくても主題、調性、コード進行、拍、フレーズ進行、ループ位置を追える。
+  必須のコード進行をCH2だけに依存していないか: 依存しない。C、F、G、Amの進行とG (V)からC (I)への解決はCH1 + CH3で成立させる。
+  拍・フレーズ境界をCH4だけに依存していないか: 依存しない。CH1の主題リズムとCH3の発音位置、orderごとの和声変化で示す。
+  order 5 → order 2のループ位置: CH1の接続句の再提示とCH3のG (V) → C (I)の解決を同期させるため、CH1 + CH3でも認識できる。
+```
 
 上記以外の調性・コード進行、フレーズ構成、CH1～CH4の具体的な音列、Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeは未確定のままとする。これらは`PROJECT.md`の同じ親WBSにある各後続項目で決定し、今回の雰囲気や長さから推測して補完しない。
 
