@@ -251,6 +251,63 @@ MIDIで決めないもの: duty、Instrument番号、Wave table、Noise pitch/wi
 
 明るさ修正後の完成MIDI `assets/pulse_chase.mid` を人が再試聴し、現在のMIDIをJSON化対象として承認した。以後はこのMIDIと楽曲設計メモをGame Boy 4ch変換の基準とする。MIDI音色とGame Boy音源の差は、この段階で承認を妨げるものとは扱わず、後続WBSでVersion 2 JSON、ASM、確認用ROMを生成した後、SameBoy上でMIDI原曲とGB版を比較試聴して確認する。GB化の結果に問題があれば、後続WBS「MIDI承認後のGB編曲・JSON変換結果に問題があれば、その範囲を調整する」でGB編曲・JSON変換側を調整する。
 
+#### Pulse ChaseのGame Boy 4ch変換方針
+
+次のWBS「Codexで採用MIDIに近いVersion 2楽曲定義JSONを作成する」では、承認済みの `assets/pulse_chase.mid` と本節を入力の正本とする。JSONのキー、note、Instrument、pattern、order、loopのスキーマは [`docs/json-format.md`](json-format.md) に従い、本節ではMIDIの音楽構造を4chへ写像する判断だけを定める。
+
+##### チャンネル対応と保持優先順位
+
+| MIDIパート | Version 2チャンネル | 変換時に最優先で保持するもの |
+| --- | --- | --- |
+| `melody` | `pulse1` / CH1 | 主題、発音位置、休符、3区間のフレーズ輪郭 |
+| `support` | `pulse2` / CH2 | 弱拍の短い応答と和声音。ミュート可能な補助として扱う |
+| `bass` | `wave` / CH3 | `G - D - Em - C`、root / 5度 / octave、拍、24→1小節の帰結 |
+| `rhythm` | `noise` / CH4 | kick / snare / hi-hat相当の役割とaccent位置。MIDI音程・GM音色は保持しない |
+
+CH1 + CH3だけでG major系の調性、コード進行、拍、主題提示・応答・ターンアラウンドを認識できるようにする。CH2とCH4は必須情報を追加せず、途中ミュート・復帰で保留音や長いフィルを発生させない。MIDIの3区間、24小節、4/4、136 BPM由来のtempo感、休符、note length、24小節目から1小節目へのループ帰結は原則保持する。MIDIのGM音色、drum note番号、細かいvelocityはGame Boy向け表現へ置換する。
+
+##### CH1 / Pulse1
+
+melodyの音名と発音位置は原則保持し、Game Boyの共通音名範囲に収める。現行MIDIの主旋律はおおむね `E5`～`G6` 相当で範囲内にあるため、まず同じoctaveで変換する。範囲外が将来発生した場合だけ、12半音単位で上下へ移し、G majorの主音・3度・5度と3区間の輪郭を壊さない最小移動を選ぶ。勝手な半音移調や主旋律のsupport移管は行わない。
+
+MIDIのPPQ上の時刻を後述のrowグリッドへ量子化し、noteの発音位置とrestを先に確定する。durationは最近傍の整数rowへ丸め、1row未満は1row、連続する同音の再発音はMIDI上で別発音なら別noteとして残す。主題のrestは埋めず、pattern境界でnoteをまたがせない。velocityは3段階へ集約し、CH1では弱=`volume: 9`、標準=`12`、強=`13`を候補値としてnoteへ反映する。音量の最終聴感はSameBoy試聴で調整する。
+
+Pulse1は1 Instrumentを基本とする。既存のVersion 2運用例に合わせ、初期候補は duty 2、`initial_volume: 12`、envelope down、`envelope_sweep: 0`、sweep不使用（`sweep_time/direction/shift`は無効値相当）とする。dutyの最終選択はMIDIの音色コピーではなく主旋律の明瞭さを基準にし、JSON作成時に候補値を検証する。CH1単独の主題が聞き取りにくい場合だけ、同じ旋律を増やさずInstrument値を調整する。
+
+##### CH2 / Pulse2
+
+supportのnote位置、短いduration、弱拍配置は保持するが、CH1と同じ音名・octaveが長く重なる場合は1 octave下げ、隣接音域へ移す。supportのnoteを追加して和声を補完したり、melodyをコピーしたりしない。restはそのまま保持し、CH2を全区間ミュートしてもCH1 + CH3の構造が変わらないことをJSON検証・試聴の条件とする。
+
+Pulse2は1 Instrumentを基本とし、初期候補は duty 1、`initial_volume: 7`、envelope down、`envelope_sweep: 0`とする。CH1より低い音量・異なるdutyで補助性を明確にする。CH2のnote volumeは弱=`5`、標準=`7`、強=`8`へ集約し、必須和声をCH2の音量で補わない。音域衝突の解決でMIDIの主題輪郭が失われる場合はCH2を短くするか省略し、主旋律をCH2へ移さない。
+
+##### CH3 / Wave
+
+bassの発音位置と短いdurationを保持し、root / 5度 / octaveの関係を保つ。MIDIのbassは `G2`、`D2`、`E2`、`C2`を中心とするため、Waveの低域で同じ音名を第一候補とする。実装上の音域制約で必要な場合は12半音単位で移し、CH1と重ならない低域・G majorのroot関係を優先する。24小節目の `D - F# - A - G` は専用bass列として保持し、最後のGをループ先頭のGと重ねず、note lengthも境界を越えない。
+
+Waveは1 Instrument、1 Wave tableを基本とする。既存のVersion 2運用例にあるtriangle系の設計を初期候補とし、`output_level: "100%"`を低域の基準にする。Wave tableの32 sample値は既存のtriangle系資産を調査してからJSON作成時に選定し、今回の方針では具体値を新設しない。bassのnote volumeは弱=`8`、標準=`10`、強=`11`へ集約する。CH1 + CH3でコード進行と拍が分からない場合だけ、Wave音量・octave・waveformを後続のGB編曲調整WBSで見直す。
+
+##### CH4 / Noise
+
+rhythmのMIDI noteは音程として変換しない。現行MIDIのGM番号36をkick相当、38をsnare相当、42をhi-hat相当として役割だけ分類する。この分類は生成MIDIの固定配置と既存Version 2 Noise運用例（低域C3、 中域C5、高域C7、および15bit/7bitの使い分け）に基づく。kickはNoise Instrument 1 / note `C3` / 15bit、snareはInstrument 2 / `C5` / 7bit、hi-hatはInstrument 3 / `C7` / 7bitを初期候補とする。これらはMIDI音色の再現ではなく、Noiseのaccent位置をGame Boyの異なる短い質感へ割り当てるための方針である。
+
+Noise Instrumentは3種類、すべて `envelope_direction: "down"`、`envelope_sweep: 0`、length無効を初期候補とする。initial volumeはkick 6、snare 5、hi-hat 4を上限の候補とし、Noiseのnote `volume`は原則省略してInstrument音量へ任せる。MIDIの同時kick/snare/hatをそのまま重ねず、拍頭kick、2・4拍のsnare、裏拍hi-hatのうち、hi-hatは一定間引きして高域accentを過密にしない。CH4をミュートしてもCH1 + CH3で拍が追えること、通常再生でNoise単独が主役にならないことを確認する。最終のNoise note、width_mode、音量、間引き頻度はSameBoy試聴で調整し、問題があれば後続のGB編曲・JSON変換調整WBSで変更する。
+
+##### MIDI時間、row、pattern、order、tempo、loop
+
+MIDIの136 BPMをJSONの `tempo` にそのまま `136` として出力しない。Version 2の `tempo` はBPMではなくSong Version 6のTicksPerRowであり、既存実装では固定更新60Hzで1rowの時間が `tempo / 60` 秒となる。Pulse Chaseでは、既存の運用確認用BGMで使用している `tempo: 6` を採用候補の初期値とする。これは1row=0.1秒、MIDIの8分音符（136 BPMで約0.2206秒）を2row=0.2秒へ量子化する最も近い整数グリッドであり、4/4の1小節を16row、4小節を64rowにできるためである。MIDI原曲の約42.35秒に対し、24小節・6 orderは約38.4秒となる差は、整数row制約による量子化差として記録する。tempoの最終値を6以外へ変更する場合は、JSON化前に再計算と理由を記録する。
+
+- 1拍=4row、1小節=16row、8分音符=2rowを基本とする。
+- MIDI tick位置は絶対時刻をPPQ=480からこのグリッドへ変換し、発音位置は最近傍rowへ丸める。同じrowへ複数noteが来た場合は4chの同時発音上限を守り、CH1/CH3を優先し、CH2/CH4を短縮または省略する。
+- note durationは最近傍整数rowへ丸め、最小1row、restも同じ量子化規則で空行へ展開する。各パートのnote列はpattern途中で分割し、noteを次orderへ持ち越さない。
+- 64row patternには4小節を入れる。24小節は6 orderとし、`order.pulse1`、`order.pulse2`、`order.wave`、`order.noise`の4配列を同じ6要素で揃える。各チャンネルで主題提示・応答・ターンアラウンドの4小節境界を壊さないよう、pattern名はチャンネル別に `section0_a` 等の意味が分かる名前を付ける。
+- イントロなしで24小節全体をループするため、Version 2 JSONは `loop: {"mode": "full"}` とする。`range`やrow途中のloop、effectによるloopは使用しない。
+
+##### velocityとInstrument値の扱い、および未確定範囲
+
+MIDI velocityは線形に0～127から0～15へ変換しない。元MIDIは弱・標準・強程度の差を意図しているため、CH1/CH2/CH3は共通の3段階（弱9、標準12、強13。ただしCH2は5/7/8、CH3は8/10/11へ役割別に縮小）へ写像し、CH4はNoise Instrumentの役割別initial volumeを優先する。MIDIのGM Program、drum音色名、細かなvelocity差は捨て、Game Boyのduty、Pulse Instrument、Wave table、Wave Instrument、Noise Instrument、Noise pitch、width_mode、envelopeへ置換する。
+
+今回の方針で初期候補まで決めたのは、Pulse1/2のInstrument各1種、WaveのInstrument 1種・Wave table 1種、Noiseの役割別3種、duty、initial volume、envelope、Wave output level、Noiseの役割分類である。Wave tableの具体的32 sample値、JSONの最終Instrument番号、Noiseの最終note/width_mode/音量、各noteの最終volume、tempo 6のSameBoy上の速度・音量バランスは、次のJSON作成と生成後の自動検証・SameBoy試聴で確定または調整する。Game Boy化後だけに問題がある場合は、承認済みMIDIを変更せず、後続のGB編曲・JSON変換結果調整WBSで対応する。
+
 #### Pulse ChaseをCodexで再生成する条件
 
 次の条件を使えば、MIDIイベントを1ノート単位で固定せず、同じ設計思想と主要構造を持つ試作DをCodexで再生成できる。
