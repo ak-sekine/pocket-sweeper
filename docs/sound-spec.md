@@ -186,6 +186,91 @@ MIDIで決めないもの: duty、Instrument番号、Wave table、Noise pitch/wi
 
 未確定事項は推測で埋めず、理由と「採用したMIDI案を必要な長さ・ループ構成へ仕上げる」または「採用MIDIと楽曲設計メモからGame Boy 4chへの変換方針を決める」で決定する。このWBSではMIDIファイルを作成せず、候補の採用、最終ループ、具体的な4ch変換方針も決定しない。
 
+#### MIDI候補間の差の作り方
+
+同じ比較セット内では、候補間のMIDI音色を原則として統一する。候補ごとにマリンバ、フルート、Brassなどの音色を変えて個性を作る方法は採用しない。比較用の標準音色は、`melody`を単純なSquare系Lead、`support`をmelodyと同じまたは同系統のSquare系、`bass`を単純なSynth Bass系、`rhythm`を簡素なDrum Kitとする。これはGame Boy音源の完全再現や特定のGM Program番号の固定を目的とせず、必要なら音色カテゴリだけを制作条件に記載する。
+
+候補の主要な差は、Game Boyへ変換しても残る次の音楽構造から作る。
+
+- melody、chord progression / harmony、bass line
+- note duration、rest、rhythm、phrase structure
+- accent、note density、発音タイミング
+- tempo、調性、modal color
+
+目的は「MIDI音色をGame Boy音源へ置換しても残る音楽的差だけを比較する」ことである。MIDI候補は一般的なMIDI曲を後からGame Boy向けに縮小するための完成品ではなく、Game Boy 4chで成立する曲をMIDIで先に比較試聴するための中間表現とする。
+
+従来の役割分離、すなわち `melody` → 将来のCH1 / Pulse1、`bass` → CH3 / Wave、`support` → CH2 / Pulse2、`rhythm` → CH4 / Noise、を維持する。候補設計では、melody単独でも候補固有の主題と前進感を認識でき、melody + bassだけでも候補固有の調性・コード・フレーズ進行が残ることを目標とする。supportまたはrhythmを削除しても候補同士が同じ曲のように聞こえる状態へ戻らないよう、候補差を補助パートや音色だけに置かない。
+
+#### 候補比較の試聴記録
+
+最初の候補群は構造差が小さく、人による試聴で「全部同じ曲に聞こえる」と評価された。次の候補群はMIDI音色を大きく変えたため違いは明確になったが、マリンバ、フルート、Brassなどの差はGame Boy移行後に失われる懸念が生じた。そのため最終候補群では全候補のMIDI音色を統一し、melody、和声、bass line、note duration、rest、rhythm、phrase structure、発音密度、accent、発音タイミングなど、Game Boy移行後にも残る音楽構造だけで差を作った。この方式では候補差を十分に感じられ、人による試聴では候補D「Pulse Chase」が最も良いと判断された。
+
+#### 採用候補D「Pulse Chase」の試作設計
+
+以下は人による比較試聴で最も良いと判断された、運用確認用BGMの8小節試作Dを再生成するための設計情報である。最終完成曲の長さ、イントロ、ループ構成、最終tempoを固定する仕様ではなく、後続WBSで採用案を仕上げる前の候補設計である。
+
+- 仮タイトルは `Pulse Chase`、用途は運用確認用BGMとする。
+- 拍子は4/4、試作長は8小節、tempoは136 BPM、調性感はE minor系とする。
+- 基本和声はEm、D、C、Bm系を中心にする。8分音符主体とし、4候補の中では前進感を強くする。
+- 「速いから軽快」とはせず、note placement、発音密度、rest、accent、発音タイミングによって推進力を作る。
+
+`melody`は将来のCH1 / Pulse1を想定し、E minor系の短い8分音符モチーフを使う。上下運動を繰り返し、1小節を8分音符で埋め尽くさず適度なrestを残す。2～4音程度の短いセルを変形しながら展開し、同じモチーフを完全コピーで延々と繰り返さない。E5 / G5 / B5などE minorを認識しやすい構成音を基準に、D、C、Bm系の小節では対応する構成音へ展開する。おおよその音域はE5～D6付近とし、melody単独で主題と前進感を認識できるようにする。主旋律をsupportへ預けない。
+
+`bass`は将来のCH3 / Waveを想定し、Em / D / C / B系のrootを中心にする。1小節1音の長音だけにせず、1小節内で2～3回程度発音して前進感を補強する。おおよその音域はB2～E2周辺を中心とする低音域とし、rhythmをミュートしても拍・tempo感を完全に失わないようにする。melody + bassだけで調性、コード進行、フレーズ進行を認識できることを条件とする。
+
+`support`は将来のCH2 / Pulse2を想定し、短い単音だけをmelodyの隙間や弱拍へ置く。和声音・コード構成音を中心にし、melodyをコピーしない。supportを完全にミュートしても曲として成立し、必須のコード進行をsupportだけに依存させない。
+
+`rhythm`は将来のCH4 / Noiseを想定する。MIDIでは全候補で統一した簡素なDrum Kitを使い、GM DrumそのものをGame Boyで再現することは前提にしない。8分系の細かいaccentを含む単純なリズムで前進感を補強し、kick / snare / hi-hat相当の役割を単純化して使う。rhythmをミュートしてもmelody + bassで拍を認識できるようにし、Noise音そのものを目立たせず楽曲のaccentとして機能させる。既存のVersion 2 JSONで発生した「Noiseが文字どおりノイズとして聞こえる」問題を繰り返さない。
+
+#### Pulse ChaseをCodexで再生成する条件
+
+次の条件を使えば、MIDIイベントを1ノート単位で固定せず、同じ設計思想と主要構造を持つ試作DをCodexで再生成できる。
+
+```text
+仮タイトル: Pulse Chase
+用途: 運用確認用BGM
+拍子: 4/4
+試作長: 8小節
+tempo: 136 BPM（試作Dの再生成条件。最終完成曲の固定値ではない）
+調性感: E minor系
+和声: Em - D - C - Bm系を中心にする
+
+パート: melody / bass / support / rhythm
+
+共通:
+- 各パートは原則単音、全体同時発音は原則4音以下
+- MIDI音色は比較セット内で統一する
+- melodyは単純なSquare系Lead、supportは同系統のSquare系、bassは単純なSynth Bass系、rhythmは簡素なDrum Kit
+- pitch bend / aftertouch / 複雑なCC / sustain pedal / tempo changeは使用しない
+
+melody:
+- 8分音符主体、E5～D6付近
+- E minor系の2～4音セルを上下運動させ、変形して展開する
+- 適度にrestを入れ、1小節を埋め尽くさない
+- E5 / G5 / B5を基準に、D / C / Bm系では対応する構成音へ展開する
+- 単独で主題と前進感が分かり、supportに主旋律を依存しない
+
+bass:
+- Em / D / C / B系root中心、B2～E2周辺
+- 1小節内で2～3回程度発音し、長音だけにしない
+- rhythmがなくても拍・tempo感を補強し、melody+bassで曲の骨格を維持する
+
+support:
+- 短い単音のコード構成音をmelodyの隙間・弱拍へ置く
+- melodyをコピーせず、完全ミュート可能にする
+
+rhythm:
+- 簡素なDrum Kitで8分系accentを含むリズム補強
+- kick / snare / hi-hat相当の役割を単純化する
+- Noise化を想定し、音色そのものへ依存せず、消失しても拍を失わない
+
+避ける:
+- MIDI音色による個性付け
+- supportだけに依存する和声、rhythmだけに依存するtempo感
+- 過度なポリフォニー、音数だけで作る軽快さ
+- 既存失敗曲のnote列・pattern・Instrument・Wave table・Noise pitchの流用
+```
+
 ### Version 2 BGM制作の作曲条件
 
 ChatGPTまたはCodexがVersion 2楽曲定義JSONの初稿を直接作成する前に、曲ごとの作曲条件を本節のテンプレートで整理する。作曲条件は自然言語による制作指示であり、JSONへ `purpose`、`mood`、`duration` などの新しい項目を追加するものではない。JSONの構造と値の正本は[楽曲定義JSON仕様](json-format.md)とし、本節では作曲時に先に決める内容と既存仕様への適合条件だけを扱う。
