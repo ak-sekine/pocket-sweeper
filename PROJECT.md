@@ -265,7 +265,7 @@
       - [x] order / pattern / instrument / routine / wave のASMを出力する
       - [x] wave/noise未使用時の空patternを出力する
       - [x] サンプルJSONからASMを生成する
-        - [x] CH4 note変換結果をhUGETracker Export ASMと比較する
+      - [x] CH4 note変換結果をhUGETracker Export ASMと比較する
       - [x] hUGEDriver ASM生成ツールの使い方を`tools/README.md`に追記する
     - [x] サウンド再生確認用テストROMを生成するPythonツールを作成する
       - [x] `tools/build_sound_test_rom.py` を作成する
