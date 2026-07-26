@@ -533,7 +533,11 @@
         - [x] MIDI由来Version 2 JSONからhUGEDriver用ASMを生成する
         - [x] MIDI由来ASMから確認用ROMを生成する
         - [x] MIDIとJSON / ASMの主要構造対応をAIで自動確認する
-        - [ ] 人がMIDI原曲とSameBoy上のGB版を比較試聴する
+        - [x] 人がMIDI原曲とSameBoy上のGB版を比較試聴する
+          - [x] MIDI原曲とGB版が大きく異なり、CH1主旋律が曲として成立していないことを記録する
+          - [x] tempo 6の速度感は問題ないことを記録する
+          - [x] CH4 Noiseが曲に合わず雑音として聞こえることを記録する
+          - [x] CH2 supportが曲に合わず不協和音として聞こえることを記録する
         - [ ] MIDI承認後のGB編曲・JSON変換結果に問題があれば、その範囲を調整する
       - [ ] 運用確認用JSONを本番採用JSONと分離した正本として確定する運用を確認する
     - [ ] 初版用タイトルBGMを4チャンネル構成で新規作成する
