@@ -308,6 +308,14 @@ MIDI velocityは線形に0～127から0～15へ変換しない。元MIDIは弱�
 
 今回の方針で初期候補まで決めたのは、Pulse1/2のInstrument各1種、WaveのInstrument 1種・Wave table 1種、Noiseの役割別3種、duty、initial volume、envelope、Wave output level、Noiseの役割分類である。Wave tableの具体的32 sample値、JSONの最終Instrument番号、Noiseの最終note/width_mode/音量、各noteの最終volume、tempo 6のSameBoy上の速度・音量バランスは、次のJSON作成と生成後の自動検証・SameBoy試聴で確定または調整する。Game Boy化後だけに問題がある場合は、承認済みMIDIを変更せず、後続のGB編曲・JSON変換結果調整WBSで対応する。
 
+##### 既知の不整合・後続確認事項
+
+承認済みMIDIと初期Version 2 JSONを実データ照合した結果、`G - D - Em - C` のEm区間において、MIDI `support` にG#が含まれていることを確認した。原因は `tools/generate_pulse_chase_midi.py` の `support` 生成式 `(root + 16)` であり、Emのroot Eに対してG#を生成する。具体的にはMIDIにG#3が6回あり、`assets/bgm_pulse_chase.json` もMIDIとの一致を優先して各4小節patternへG#3を保持している。
+
+G#はEmの通常のコード構成音であるE / G / Bには含まれないため、これは「supportは弱拍の短い応答と和声音」とした設計記述との既知の不整合である。ただし、現在のMIDIは人がJSON化対象として承認済みであり、JSONも直前WBSの目的どおりMIDIを忠実に変換した結果である。この段階ではMIDIまたはJSONの誤りと断定して修正せず、`assets/pulse_chase.mid`、`tools/generate_pulse_chase_midi.py`、`assets/bgm_pulse_chase.json` は変更しない。
+
+次のWBS「MIDI由来Version 2 JSONを仕様に対して自動検証する」では、このG#について、(1) MIDIとの対応としては一致していること、(2) G major系のEm区間における和声仕様との対応としては既知の不整合であること、を区別して報告する。この既知の不整合だけを理由に自動検証全体を失敗扱いとして処理不能にしない。SameBoy上でGB版を比較試聴し、聴感上問題がなければ現状を維持できる。聴感上問題がある場合は、後続WBS「MIDI承認後のGB編曲・JSON変換結果に問題があれば、その範囲を調整する」で、まずGB編曲・JSON側のG#からGへの調整などを検討する。MIDI自体を変更する必要があると判断した場合だけ、MIDIの再生成と人による承認を再度行う。
+
 #### Pulse ChaseをCodexで再生成する条件
 
 次の条件を使えば、MIDIイベントを1ノート単位で固定せず、同じ設計思想と主要構造を持つ試作DをCodexで再生成できる。
