@@ -236,7 +236,7 @@
     - [ ] SameBoyで全問題の表示・操作・クリアを確認する
     - [ ] 実機または別エミュレータでも必要に応じて確認する
 - [ ] サウンド
-  - [ ] サウンド基盤
+  - [x] サウンド基盤
     - [x] hUGETrackerのデータ組み込み方法とサウンド更新タイミングを確認する
     - [x] 楽曲定義JSON方式を決める
       - [x] JSONの最小仕様を決める
@@ -310,7 +310,7 @@
       - [x] BGM用Noiseノートの表現方法を決める
       - [x] 拡張後の4チャンネルBGM JSONサンプルを作成する（`docs/json_examples/bgm_4ch_sample.json`）
       - [x] PROJECT.mdのサウンド詳細記述を分野別仕様書へ集約する
-    - [ ] JSON変換ツールを4チャンネル対応JSON仕様へ対応させる
+    - [x] JSON変換ツールを4チャンネル対応JSON仕様へ対応させる
       - [x] Version 2 Pulse Instrument対応
         - [x] Version 2 Pulse Instrumentの検証・内部表現を実装する（CH2の`length` / `length_enable`、CH2のCH1専用Sweep項目禁止、Version 1互換性を含む）
         - [x] Version 2 Pulse InstrumentをUGE出力へ反映する
@@ -507,9 +507,9 @@
       - [x] 初回運用確認用ASMから確認用ROMを生成する
       - [x] 初回運用確認用ROMをSameBoyで人が試聴し、結果を自然言語でChatGPTまたはCodexへ伝える
       - [x] 試聴結果を反映して運用確認用JSONの修正内容を決める
-      - [ ] 修正した運用確認用JSONからASMと確認用ROMを再生成する
+      - [x] 修正した運用確認用JSONからASMと確認用ROMを再生成する
         - [x] 1回目修正後の運用確認用JSONに対するCodexのASM/ROM再生成・自動確認
-        - [ ] 1回目修正後の運用確認用ROMを人がSameBoy確認する
+        - [x] 1回目修正後の運用確認用ROMを人がSameBoy確認する
           - [x] 再試聴を実施し、軽快さ・単調さ・Noiseの期待効果未達を記録する
           - [x] 通常ROMとミュート診断ROMの確認手順を分離して記録する
       - [x] 再試聴結果を基に次回の運用確認用BGM修正方針を決める
