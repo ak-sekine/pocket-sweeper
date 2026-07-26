@@ -1065,6 +1065,9 @@ MIDI段階では人が曲調、軽快さ、単調さ、違和感、メロディ�
 
 - 初版BGMでは、人がhUGETrackerで作曲・編曲・音色調整・tempo・loop・試聴・採用判断を完了し、hUGETrackerネイティブ楽曲データを正本としてGit管理する。BGMの音楽的変更は原則としてこの正本を編集する。
 - hUGETrackerネイティブ楽曲データは `assets/` 直下でGit管理し、ファイル名は原則として用途を小文字snake_caseで表す `bgm_<用途>.uge` とする。本番3曲は `assets/bgm_title.uge`、`assets/bgm_game.uge`、`assets/bgm_clear.uge` を予定する。運用確認用データは `assets/bgm_workflow_check.uge` のように既存BGM用途との対応が分かる名前を用いる。
+- 正本 `.uge` は通常のGit追跡対象とし、`.gitignore` の対象にしない。hUGETrackerで保存した正本ファイルそのものをcommitし、BGMを変更した場合は対応する `.uge` の変更をcommit対象に含める。音楽的変更は正本 `.uge` に対して行い、export ASMだけを変更して正本と不一致にしない。
+- `.uge` は既存資産で `file` が `data` と判定されるバイナリデータであり、通常のテキストdiffで音楽内容をレビューできることを前提にしない。変更内容の音楽的確認は人がhUGETracker / SameBoyで行い、Codexは正本ファイルの存在・変更と生成物との対応など機械的な確認を担当する。Gitでは変更された `.uge` の履歴を管理する。
+- 既存 `.uge` は約68～69KBで通常のGit追跡対象として管理されており、Git LFSは導入されていない。現時点では通常のGit管理で十分と判断し、今回Git LFS、`.gitattributes`、バイナリ差分レビュー機構は追加しない。
 - 初版BGMでは、AIによるメロディ、コード進行、フレーズ、伴奏、リズムの生成と、MIDIからGame Boy 4chへの自動編曲を行わない。SameBoyでの音楽品質・聴感判断は人が行う。
 - 効果音は従来どおりJSONを正本とし、JSONからASMを生成し、必要に応じてAPU直接制御へ変換する。BGMのMIDI先行方式を効果音へ適用しない。
 - 効果音は従来どおりJSONを正本とする。初版BGMは人がhUGETracker上で直接作曲・編曲・音色調整を行い、完成後の機械的な変換・検証をAI / Codexが担当する。
