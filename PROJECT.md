@@ -202,7 +202,7 @@
     - [ ] ROM組み込み用ASMまたはバイナリを生成する
     - [ ] 問題インデックスまたはポインタテーブルを生成する
     - [ ] 不正な問題を検出した場合に分かりやすいエラーを表示する
-    - [ ] `tools/README.md` に使い方を追記する
+    - [ ] 固定パズル問題生成ツールの使い方を`tools/README.md`に追記する
     - [ ] 必要に応じてMakefileへ問題データ生成処理を追加する
   - [ ] 固定パズル問題を作成する
     - [ ] 初版で収録する問題数を決める
@@ -252,21 +252,21 @@
     - [x] 生成した `.uge` をhUGETrackerで読み込み・保存・ASM Exportできることを確認する
     - [x] JSONからugeファイルへ変換するPythonツール作成
       - [x] `tools/json_to_uge.py` を作成する
-      - [x] JSONを読み込む
+      - [x] UGE変換対象JSONを読み込む
       - [x] 入力JSONの基本バリデーションを行う
       - [x] `.uge` ファイルを書き出す
       - [x] サンプルJSONからサンプル `.uge` を生成する
       - [x] hUGETrackerで生成した `.uge` を開けることを確認する
-      - [x] `tools/README.md` に使い方を追記する
+      - [x] UGE変換ツールの使い方を`tools/README.md`に追記する
     - [x] JSONからhUGEDriver用RGBDS ASMを直接生成するPythonツールを作成する
       - [x] `tools/json_to_huge_asm.py` を作成する
-      - [x] JSONを読み込む
+      - [x] hUGEDriver ASM変換対象JSONを読み込む
       - [x] note / length / instrument / effect をASMへ変換する
       - [x] order / pattern / instrument / routine / wave のASMを出力する
       - [x] wave/noise未使用時の空patternを出力する
       - [x] サンプルJSONからASMを生成する
-      - [x] hUGETracker Export ASMと比較する
-      - [x] `tools/README.md` に使い方を追記する
+        - [x] CH4 note変換結果をhUGETracker Export ASMと比較する
+      - [x] hUGEDriver ASM生成ツールの使い方を`tools/README.md`に追記する
     - [x] サウンド再生確認用テストROMを生成するPythonツールを作成する
       - [x] `tools/build_sound_test_rom.py` を作成する
       - [x] 指定したASMをincludeする最小ROM用ASMを生成する
@@ -275,7 +275,7 @@
       - [x] `rgbasm` / `rgblink` / `rgbfix` を呼び出してGB ROMを生成する
       - [x] `obj/` に中間ファイルを出力する
       - [x] 指定した出力先へテストROMを出力する
-      - [x] `tools/README.md` に使い方を追記する
+      - [x] サウンド確認用ROM生成ツールの使い方を`tools/README.md`に追記する
     - [x] JSON修正からテストROM確認までのサウンド制作運用を確認する
       - [x] 実際のBGM・効果音制作を行いながら運用確認を兼ねて実施する
       - [x] JSONを修正する
@@ -341,7 +341,7 @@
         - [x] 同一Noise noteを異なる`width_mode`で再生した結果を確認する
         - [x] noteの`length`展開後の空行で再triggerされないことを確認する
         - [x] 同じnoteの再記述で各位置に再triggerされることを確認する
-        - [x] hUGETracker Export ASMと直接生成ASMを比較する
+        - [x] CH4 note変換のhUGETracker Export ASMと直接生成ASMを比較する
         - [x] SameBoyでNoise BGMを再生確認する
         - [x] Version 1の既存Noise / SFX動作に影響がないことを確認する
       - [x] Version 2 note volumeの出力方式を確定する
@@ -422,9 +422,9 @@
               - [x] SFX終了時に対象チャンネルをunmuteすることを確認する
               - [x] unmute後も終了済みBGMが再開しないことを確認する
               - [x] BGM終了処理がSFX占有チャンネルを破壊しないことを確認する
-              - [x] 確認用ROMを生成する
+              - [x] 非ループBGMのSFX確認用ROMを生成する
               - [x] 自動テストを追加して実行する
-              - [x] 人による確認手順と期待結果を文書化する
+              - [x] 非ループBGMのSFX人手確認手順と期待結果を文書化する
             - [x] 人によるSameBoyまたはBGBでの確認
               - [x] 非ループBGMが最終order・最終rowで終了することを確認する
               - [x] BGM終了後に指定操作でSFXが再生されることを確認する
@@ -435,7 +435,7 @@
       - [x] JSON変換ツールのVersion 2総合確認を行う
         - [x] Version 1 JSONの互換動作を確認する
         - [x] 4チャンネル使用時のUGEをhUGETrackerで確認する
-          - [x] Codexによる準備・自動確認
+          - [x] 4チャンネルUGE確認のCodexによる準備・自動確認
             - [x] 4チャンネルを使用するVersion 2確認用JSONを確認する
             - [x] 確認用JSONからUGEを生成する
             - [x] CH1～CH4のOrderMatrix、pattern、Instrument bank、Wave bankを自動確認する
@@ -447,30 +447,30 @@
             - [x] Pulse、Wave、Noiseの各Instrumentを確認する
             - [x] 4チャンネルを使用して再生されることを確認する
             - [x] 保存後も再度開けることを確認する
-        - [x] hUGETracker Export ASMと直接生成ASMを比較する
+        - [x] Version 2総合確認のhUGETracker Export ASMと直接生成ASMを比較する
         - [x] Version 2構造の変換結果をhUGETracker Export ASMと比較する
           - [x] Codexによる準備・自動比較
-          - [x] 人によるhUGETracker Export・比較確認
+          - [x] Version 2構造の人によるhUGETracker Export・比較確認
         - [x] note volumeの変換結果をhUGETracker Export ASMと比較する
-          - [x] Codexによる準備・自動比較
-          - [x] 人によるhUGETracker Export・比較確認
+          - [x] note volume比較のCodexによる準備・自動比較
+          - [x] note volumeの人によるhUGETracker Export・比較確認
         - [x] `tools/README.md`をVersion 2の最終対応内容へ更新する
     - [x] 4チャンネルBGM制作フローを検証する
       - [x] CH1を主旋律、CH3をベースまたは持続音の中心として構成する
       - [x] CH2を補助旋律または伴奏として構成し、効果音で一時的にミュートされても破綻しないことを確認する
       - [x] CH4をリズムとして構成し、効果音で一時的にミュートされても破綻しないことを確認する
-      - [x] 4チャンネルJSONからASMを生成する
-      - [x] 確認用ROMを生成する
-      - [x] SameBoyで4チャンネル同時再生を確認する
+      - [x] 4チャンネルBGM JSONからASMを生成する
+      - [x] 4チャンネルBGM確認用ROMを生成する
+      - [x] 4チャンネルBGMをSameBoyで同時再生確認する
       - [x] CH2のみをミュートした状態で曲の継続性を確認する
         - [x] CodexによるCH2ミュート確認用ROM、自動確認、SameBoy手順を準備する
-        - [x] 人によるSameBoy聴感確認を行う
+        - [x] CH2ミュート状態を人によるSameBoy聴感確認で確認する
       - [x] CH4のみをミュートした状態で曲の継続性を確認する
         - [x] CodexによるCH4ミュート確認用ROM、自動確認、SameBoy手順を準備する
-        - [x] 人によるSameBoy聴感確認を行う
+        - [x] CH4ミュート状態を人によるSameBoy聴感確認で確認する
       - [x] CH2とCH4を同時にミュートした状態で、CH1とCH3だけでも曲の骨格が維持されることを確認する
         - [x] CodexによるCH2・CH4同時ミュート確認用ROM、自動確認、SameBoy手順を準備する
-        - [x] 人によるSameBoy聴感確認を行う
+        - [x] CH2・CH4同時ミュート状態を人によるSameBoy聴感確認で確認する
   - [ ] BGM制作
     - [x] 必要なBGM一覧を決定する
       - [x] タイトルBGMを使用する
@@ -479,75 +479,75 @@
     - [x] 旧2チャンネル構成でBGM制作フローを試作する
       - [x] 旧タイトルBGMを試作する
         - [x] `assets/bgm_title.json` の初稿を作成する
-        - [x] `tools/json_to_huge_asm.py` でASMを生成する
-        - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-        - [x] SameBoyで再生確認する
+        - [x] 旧タイトルBGM JSONからASMを生成する
+        - [x] 旧タイトルBGM確認用ROMを生成する
+        - [x] 旧タイトルBGMをSameBoyで再生確認する
         - [x] 必要に応じてJSONを調整する
       - [x] 旧プレイ中BGMを試作する
         - [x] `assets/bgm_game.json` の初稿を作成する
-        - [x] `tools/json_to_huge_asm.py` でASMを生成する
-        - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-        - [x] SameBoyで再生確認する
+        - [x] 旧プレイ中BGM JSONからASMを生成する
+        - [x] 旧プレイ中BGM確認用ROMを生成する
+        - [x] 旧プレイ中BGMをSameBoyで再生確認する
       - [x] 旧クリアBGMを試作する
         - [x] `assets/bgm_clear.json` の初稿を作成する
-        - [x] `tools/json_to_huge_asm.py` でASMを生成する
-        - [x] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-        - [x] SameBoyで再生確認する
+        - [x] 旧クリアBGM JSONからASMを生成する
+        - [x] 旧クリアBGM確認用ROMを生成する
+        - [x] 旧クリアBGMをSameBoyで再生確認する
     - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接制作運用を確認する（運用確認用BGM）
       - [x] Version 2 BGMの作曲条件テンプレートと固定制約を整理する
-      - [x] 運用確認用Version 2 BGMの作曲条件を決める
+      - [x] 初回運用確認用Version 2 BGMの作曲条件を決める
         - [x] `title`、用途、雰囲気、想定する長さを決める
         - [x] `tempo`、`loop`、共通order数、イントロの有無を決める
         - [x] 調性・コード進行、フレーズ構成、orderごとのpattern計画を決める
         - [x] CH1～CH4の具体的な役割、音域、発音方針、ミュート耐性を決める
         - [x] Instrument、Wave table、Noise Instrumentとnoteの対応、note length / volumeを決める
-      - [x] 作曲条件を基に運用確認用Version 2楽曲定義JSONの初稿を作成する
-      - [x] 運用確認用Version 2 JSONの初稿をJSON仕様・サウンド仕様に対して自動検証する
-      - [x] 運用確認用Version 2 JSONからhUGEDriver用ASMを生成する
-      - [x] 運用確認用ASMから確認用ROMを生成する
-      - [x] 運用確認用ROMをSameBoyで人が試聴し、結果を自然言語でChatGPTまたはCodexへ伝える
+      - [x] 初回運用確認用Version 2楽曲定義JSONの初稿を作成する
+      - [x] 初回運用確認用Version 2 JSONをJSON仕様・サウンド仕様に対して自動検証する
+      - [x] 初回運用確認用Version 2 JSONからhUGEDriver用ASMを生成する
+      - [x] 初回運用確認用ASMから確認用ROMを生成する
+      - [x] 初回運用確認用ROMをSameBoyで人が試聴し、結果を自然言語でChatGPTまたはCodexへ伝える
       - [x] 試聴結果を反映して運用確認用JSONの修正内容を決める
       - [ ] 修正した運用確認用JSONからASMと確認用ROMを再生成する
-        - [x] CodexによるJSON修正・ASM/ROM再生成・自動確認
-        - [ ] 人によるSameBoy確認
+        - [x] 1回目修正後の運用確認用JSONに対するCodexのASM/ROM再生成・自動確認
+        - [ ] 1回目修正後の運用確認用ROMを人がSameBoy確認する
           - [x] 再試聴を実施し、軽快さ・単調さ・Noiseの期待効果未達を記録する
           - [x] 通常ROMとミュート診断ROMの確認手順を分離して記録する
       - [x] 再試聴結果を基に次回の運用確認用BGM修正方針を決める
         - [x] 軽快さ・単調さ・Noiseの検討論点を整理する
         - [x] 次回修正の具体的なJSON値を決定する
       - [ ] 再修正した運用確認用JSONからASMと確認用ROMを再生成する
-        - [ ] CodexによるJSON修正・ASM/ROM再生成・自動確認
-        - [ ] 人によるSameBoy確認
+        - [ ] 再修正後の運用確認用JSONに対するCodexのASM/ROM再生成・自動確認
+        - [ ] 再修正後の運用確認用ROMを人がSameBoy確認する
       - [ ] 運用確認用JSONを本番採用JSONと分離した正本として確定する運用を確認する
     - [ ] 初版用タイトルBGMを4チャンネル構成で新規作成する
       - [ ] タイトル画面に合う用途・雰囲気・長さ・ループ条件を決める
       - [ ] 旧タイトルBGMを流用せず、新しいVersion 2楽曲定義JSONの初稿を作成する
-      - [ ] CH1を主旋律、CH3をベースまたは曲の土台、CH2を補助旋律または伴奏、CH4をリズムとして構成する
-      - [ ] CH2とCH4が一時的にミュートされてもCH1とCH3で曲の骨格を維持できる構成にする
-      - [ ] JSON仕様とサウンド仕様に対する自動検証を実行する
-      - [ ] `tools/json_to_huge_asm.py` でASMを生成する
-      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-      - [ ] AIによる生成物の構造確認と自動テストを実行する
-      - [ ] 人によるSameBoy試聴を行う
-      - [ ] 試聴結果を基にJSONを調整する
-      - [ ] 調整後のASMと確認用ROMを再生成する
-      - [ ] 人による最終試聴を行う
+      - [ ] タイトルBGMをCH1主旋律・CH3土台・CH2補助・CH4リズムで構成する
+      - [ ] タイトルBGMはCH2とCH4が一時的にミュートされてもCH1とCH3で曲の骨格を維持する
+      - [ ] タイトルBGM JSONをJSON仕様・サウンド仕様に対して自動検証する
+      - [ ] タイトルBGM JSONからhUGEDriver用ASMを生成する
+      - [ ] タイトルBGM確認用ROMを生成する
+      - [ ] タイトルBGM生成物のAI構造確認と自動テストを実行する
+      - [ ] タイトルBGMを人がSameBoy試聴する
+      - [ ] タイトルBGMの試聴結果を基にJSONを調整する
+      - [ ] 調整後のタイトルBGM ASMと確認用ROMを再生成する
+      - [ ] タイトルBGMを人が最終SameBoy試聴する
       - [ ] `assets/bgm_title.json` を初版採用版として確定する
     - [ ] 初版用プレイ中BGMを4チャンネル構成で新規作成する
       - [ ] 通常プレイに合う用途・雰囲気・長さ・ループ条件を決める
       - [ ] 長時間繰り返しても耳障りになりにくい構成方針を決める
       - [ ] 旧プレイ中BGMを流用せず、新しいVersion 2楽曲定義JSONの初稿を作成する
-      - [ ] CH1を主旋律、CH3をベースまたは曲の土台、CH2を補助旋律または伴奏、CH4をリズムとして構成する
-      - [ ] CH2とCH4が一時的にミュートされてもCH1とCH3で曲の骨格を維持できる構成にする
-      - [ ] JSON仕様とサウンド仕様に対する自動検証を実行する
-      - [ ] `tools/json_to_huge_asm.py` でASMを生成する
-      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-      - [ ] AIによる生成物の構造確認と自動テストを実行する
-      - [ ] 人によるSameBoy試聴を行う
+      - [ ] プレイ中BGMをCH1主旋律・CH3土台・CH2補助・CH4リズムで構成する
+      - [ ] プレイ中BGMはCH2とCH4が一時的にミュートされてもCH1とCH3で曲の骨格を維持する
+      - [ ] プレイ中BGM JSONをJSON仕様・サウンド仕様に対して自動検証する
+      - [ ] プレイ中BGM JSONからhUGEDriver用ASMを生成する
+      - [ ] プレイ中BGM確認用ROMを生成する
+      - [ ] プレイ中BGM生成物のAI構造確認と自動テストを実行する
+      - [ ] プレイ中BGMを人がSameBoy試聴する
       - [ ] 通常プレイを想定してループの自然さと聴き疲れしにくさを確認する
-      - [ ] 試聴結果を基にJSONを調整する
-      - [ ] 調整後のASMと確認用ROMを再生成する
-      - [ ] 人による最終試聴を行う
+      - [ ] プレイ中BGMの試聴結果を基にJSONを調整する
+      - [ ] 調整後のプレイ中BGM ASMと確認用ROMを再生成する
+      - [ ] プレイ中BGMを人が最終SameBoy試聴する
       - [ ] `assets/bgm_game.json` を初版採用版として確定する
     - [ ] 初版用クリアBGMを4チャンネル構成で新規作成する
       - [ ] クリア時に合う用途・雰囲気・長さ・ループ条件を決める
@@ -555,15 +555,15 @@
       - [ ] 旧クリアBGMを流用せず、新しいVersion 2楽曲定義JSONの初稿を作成する
       - [ ] CH1を主旋律、CH3をベースまたは曲の土台、CH2を補助旋律または和音補助、CH4をリズムまたはアクセントとして構成する
       - [ ] CH2とCH4が一時的にミュートされてもCH1とCH3で曲の意図を認識できる構成にする
-      - [ ] JSON仕様とサウンド仕様に対する自動検証を実行する
-      - [ ] `tools/json_to_huge_asm.py` でASMを生成する
-      - [ ] `tools/build_sound_test_rom.py` で確認用ROMを生成する
-      - [ ] AIによる生成物の構造確認と自動テストを実行する
-      - [ ] 人によるSameBoy試聴を行う
+      - [ ] クリアBGM JSONをJSON仕様・サウンド仕様に対して自動検証する
+      - [ ] クリアBGM JSONからhUGEDriver用ASMを生成する
+      - [ ] クリアBGM確認用ROMを生成する
+      - [ ] クリアBGM生成物のAI構造確認と自動テストを実行する
+      - [ ] クリアBGMを人がSameBoy試聴する
       - [ ] 曲の終了またはループ動作を確認する
-      - [ ] 試聴結果を基にJSONを調整する
-      - [ ] 調整後のASMと確認用ROMを再生成する
-      - [ ] 人による最終試聴を行う
+      - [ ] クリアBGMの試聴結果を基にJSONを調整する
+      - [ ] 調整後のクリアBGM ASMと確認用ROMを再生成する
+      - [ ] クリアBGMを人が最終SameBoy試聴する
       - [ ] `assets/bgm_clear.json` を初版採用版として確定する
     - [ ] 初版用BGM3曲の統一性を確認する
       - [ ] タイトル、プレイ中、クリアの音色構成に一貫性があることを確認する
@@ -605,7 +605,7 @@
       - [x] priorityをSFX ASMヘッダへ出力する
       - [x] Pulse用APUレジスタ書き込みデータを出力する
       - [x] Noise用APUレジスタ書き込みデータを出力する
-      - [x] `tools/README.md` に使い方を追記する
+      - [x] SFX ASM生成ツールの使い方を`tools/README.md`に追記する
     - [x] 生成したBGM ASMと効果音データを本体ROMへ組み込む
     - [x] サウンド管理処理を実装する
     - [ ] BGM再生開始処理を実装する
