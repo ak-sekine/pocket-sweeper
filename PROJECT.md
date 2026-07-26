@@ -556,8 +556,8 @@
         - [x] hUGETracker正本データ `.uge` を通常のGit追跡対象として管理する
         - [x] 過去に検証済みのhUGETracker RGBDS ASM export手順を初版BGM制作で再利用する
         - [x] hUGETracker export ASMは `obj/bgm_<用途>.asm` に配置し、再生成可能な中間生成物として管理する
-        - [ ] hUGETracker完成曲を確認用ROMへ組み込む手順を確認する
-        - [ ] BGM制作フローからVersion 2 JSONを外す場合の既存ビルドへの影響を確認する
+        - [x] hUGETracker完成曲を `obj/bgm_<用途>.asm` へexportし、RGBASM・リンクして確認用ROMへ組み込む手順を確定する
+        - [x] BGM制作フローからVersion 2 JSONを外す場合の既存ビルドへの影響を確認する（JSON→BGM ASM自動生成をMakefileから外し、手動export ASMを入力にする）
         - [ ] hUGETrackerとSameBoyで再生結果に大きな差がないことを人が確認する
       - [ ] hUGETrackerで短い運用確認用BGMを人が作成する
         - [ ] 人がCH1主旋律を作成し、単独で成立するまで試聴・調整する

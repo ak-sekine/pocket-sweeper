@@ -55,9 +55,6 @@ $(OBJ_DIR)/%.o: $(OBJ_DIR)/%.asm | $(OBJ_DIR)
 $(SFX_ASM): assets/se_cursor.json tools/json_to_sfx_asm.py tools/json_to_uge.py | $(OBJ_DIR)
 	$(PYTHON) tools/json_to_sfx_asm.py $< $@
 
-$(OBJ_DIR)/bgm_%.asm: assets/bgm_%.json tools/json_to_huge_asm.py tools/json_to_uge.py | $(OBJ_DIR)
-	$(PYTHON) tools/json_to_huge_asm.py $< $@
-
 $(BGM_OBJECTS): $(INCLUDE_DIR)/hUGE.inc
 
 $(OBJ_DIR)/graphics.o: $(GRAPHICS) $(OBJ_DIR)/title_tiles.2bpp $(TITLE_MAP) $(INCLUDE_DIR)/graphics.inc $(INCLUDE_DIR)/hardware.inc

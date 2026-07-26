@@ -1080,7 +1080,7 @@ MIDI段階では人が曲調、軽快さ、単調さ、違和感、メロディ�
 - Version 2 BGM JSONは初版BGM制作の正本・必須中間形式としない。既存JSON、変換ツール、テスト資産は検証履歴・将来用途として残し、hUGETracker完成曲をVersion 2 JSONへ戻して同期することも必須にしない。
 - MIDIおよびMIDIからGame Boy 4chへの自動変換は初版BGM制作フローでは使用しない。既存MIDI資産・生成ツールは検証履歴・将来再検討用として残す。
 - SFXは従来どおりJSONを正本とし、現行のJSON→SFX ASM生成フローを変更しない。BGMとSFXでは正本形式が異なる。
-- JSONからhUGEDriver用RGBDS ASMを直接生成する主フローでは `tools/json_to_huge_asm.py` を使う。
+- `tools/json_to_huge_asm.py` によるJSON→hUGEDriver用RGBDS ASM生成は、既存BGMの検証履歴・将来用途として残す。初版BGMの標準ビルドでは、hUGETracker export ASMを入力として使い、JSONからBGM ASMを自動生成しない。
 - ASMからサウンド再生確認用テストROMを生成する主フローでは `tools/build_sound_test_rom.py` を使う。
 - 既存の `tools/json_to_uge.py` は、hUGETracker確認用・互換確認用として残す。
 - `.uge` 生成は主フローではなく補助フローとする。
@@ -1090,6 +1090,7 @@ MIDI段階では人が曲調、軽快さ、単調さ、違和感、メロディ�
 - `.uge` 形式の詳細が不明な部分は、既存のhUGETracker出力ファイルやサンプルを確認しながら実装する。
 - 不明点は推測で確定せず、WBSまたはTODOとして記録する。
 - 初版BGMでは、人がhUGETracker正本を編集・試聴・承認し、完成後にexport ASMを確認し、必要な変換、`tools/build_sound_test_rom.py` 等によるROM生成、ビルド、構造確認、自動テストを行う。最終的な音楽品質確認は人がhUGETracker / SameBoyで行う。
+- Makefileの標準BGMビルドは、存在する `obj/bgm_<用途>.asm` をRGBASMで `obj/bgm_<用途>.o` にし、他のオブジェクトとリンクしてROMを生成する。BGM ASMが存在しない場合は、ROM生成前に人が対応する `.uge` をhUGETrackerで開いて再exportする。`make clean` は `obj/` を削除するため、clean後も同じ再exportが必要になる。
 - SFXでは従来どおりJSON作成・調整、JSON→SFX ASM生成、確認用ROM生成、Game Boyエミュレータ確認のサイクルを維持する。
 - WBS上では、BGMはhUGETracker正本の完成・export ASM・確認・ROM生成まで、SFXはJSON正本の作成・調整・テストROM確認までを扱う。
 - BGMと効果音の同時再生、優先順位、チャンネル割り当ては未確定のため、サウンド実装では最初に再生制御方針を決める。
