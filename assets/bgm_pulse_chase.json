@@ -2761,7 +2761,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2769,8 +2769,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2781,7 +2786,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2789,8 +2794,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2801,7 +2811,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2809,8 +2819,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2821,7 +2836,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2829,8 +2844,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2841,7 +2861,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2849,8 +2869,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2861,7 +2886,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2869,8 +2894,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2881,7 +2911,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2889,8 +2919,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2901,7 +2936,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2909,8 +2944,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         }
       ],
@@ -2923,7 +2963,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2931,8 +2971,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2943,7 +2988,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2951,8 +2996,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2963,7 +3013,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2971,8 +3021,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -2983,7 +3038,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -2991,8 +3046,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3003,7 +3063,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3011,8 +3071,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3023,7 +3088,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3031,8 +3096,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3043,7 +3113,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3051,8 +3121,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3063,7 +3138,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3071,8 +3146,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         }
       ],
@@ -3085,7 +3165,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3093,8 +3173,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3105,7 +3190,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3113,8 +3198,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3125,7 +3215,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3133,8 +3223,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3145,7 +3240,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3153,8 +3248,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3165,7 +3265,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3173,8 +3273,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3185,7 +3290,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3193,8 +3298,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3205,7 +3315,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3213,8 +3323,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3225,7 +3340,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3233,8 +3348,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         }
       ],
@@ -3247,7 +3367,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3255,8 +3375,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3267,7 +3392,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3275,8 +3400,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3287,7 +3417,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3295,8 +3425,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3307,7 +3442,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3315,8 +3450,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3327,7 +3467,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3335,8 +3475,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3347,7 +3492,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3355,8 +3500,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3367,7 +3517,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3375,8 +3525,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3387,7 +3542,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3395,8 +3550,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         }
       ],
@@ -3409,7 +3569,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3417,8 +3577,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3429,7 +3594,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3437,8 +3602,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3449,7 +3619,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3457,8 +3627,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3469,7 +3644,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3477,8 +3652,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3489,7 +3669,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3497,8 +3677,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3509,7 +3694,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3517,8 +3702,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3529,7 +3719,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3537,8 +3727,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3549,7 +3744,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3557,8 +3752,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         }
       ],
@@ -3571,7 +3771,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3579,8 +3779,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3591,7 +3796,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3599,8 +3804,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3611,7 +3821,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3619,8 +3829,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3631,7 +3846,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3639,8 +3854,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3651,7 +3871,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3659,8 +3879,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3671,7 +3896,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3679,8 +3904,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3691,7 +3921,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3699,8 +3929,13 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         },
         {
@@ -3711,7 +3946,7 @@
         {
           "note": "rest",
           "length": 3,
-          "instrument": 2
+          "instrument": 1
         },
         {
           "note": "C5",
@@ -3719,12 +3954,16 @@
           "instrument": 2
         },
         {
+          "note": "C7",
+          "length": 1,
+          "instrument": 3
+        },
+        {
           "note": "rest",
-          "length": 3,
+          "length": 2,
           "instrument": 1
         }
       ]
     }
   }
 }
-

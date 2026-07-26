@@ -290,7 +290,7 @@ Waveは1 Instrument、1 Wave tableを基本とする。既存のVersion 2運用�
 
 rhythmのMIDI noteは音程として変換しない。現行MIDIのGM番号36をkick相当、38をsnare相当、42をhi-hat相当として役割だけ分類する。この分類は生成MIDIの固定配置と既存Version 2 Noise運用例（低域C3、 中域C5、高域C7、および15bit/7bitの使い分け）に基づく。kickはNoise Instrument 1 / note `C3` / 15bit、snareはInstrument 2 / `C5` / 7bit、hi-hatはInstrument 3 / `C7` / 7bitを初期候補とする。これらはMIDI音色の再現ではなく、Noiseのaccent位置をGame Boyの異なる短い質感へ割り当てるための方針である。
 
-Noise Instrumentは3種類、すべて `envelope_direction: "down"`、`envelope_sweep: 0`、length無効を初期候補とする。initial volumeはkick 6、snare 5、hi-hat 4を上限の候補とし、Noiseのnote `volume`は原則省略してInstrument音量へ任せる。MIDIの同時kick/snare/hatをそのまま重ねず、拍頭kick、2・4拍のsnare、裏拍hi-hatのうち、hi-hatは一定間引きして高域accentを過密にしない。CH4をミュートしてもCH1 + CH3で拍が追えること、通常再生でNoise単独が主役にならないことを確認する。最終のNoise note、width_mode、音量、間引き頻度はSameBoy試聴で調整し、問題があれば後続のGB編曲・JSON変換調整WBSで変更する。
+Noise Instrumentは3種類、すべて `envelope_direction: "down"`、`envelope_sweep: 0`、length無効を初期候補とする。initial volumeはkick 6、snare 5、hi-hat 4を上限の候補とし、Noiseのnote `volume`は原則省略してInstrument音量へ任せる。CH4は1rowに1音しか置けないため、同一rowではkick、snare、hi-hatの順に優先し、kick / snareの拍位置を維持する。同時刻のsnare + hi-hatではhi-hatを単純に削除せず、同じ64row pattern内の直後の空きrowへ最大1rowだけ退避する。直後rowが使用済み、またはpattern境界を越える場合だけ削除し、2row以上の移動は行わない。MIDIに存在しないhi-hatイベントは追加せず、3つの8小節区間それぞれに最低1件のhi-hatを保持する。この処理はMIDIのhi-hatをGame Boyの1ch制約へ適応させる時間位置調整であり、hi-hatを全件消去しないための決定的な規則である。CH4をミュートしてもCH1 + CH3で拍が追えること、通常再生でNoise単独が主役にならないことを確認する。最終のNoise note、width_mode、音量、間引き頻度はSameBoy試聴で調整し、問題があれば後続のGB編曲・JSON変換調整WBSで変更する。
 
 ##### MIDI時間、row、pattern、order、tempo、loop
 
