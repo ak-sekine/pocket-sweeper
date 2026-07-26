@@ -526,7 +526,7 @@
         - [x] ChatGPTで短いMIDI候補を複数作成し、楽曲設計メモを作成する
         - [x] 人がMIDI候補を試聴して採用案を決める
         - [x] 採用したMIDI案を必要な長さ・ループ構成へ仕上げる
-        - [ ] 人が完成MIDIを再試聴してJSON化対象として承認する
+        - [x] 人が完成MIDIを再試聴してJSON化対象として承認する
         - [ ] 採用MIDIと楽曲設計メモからGame Boy 4chへの変換方針を決める
         - [ ] Codexで採用MIDIに近いVersion 2楽曲定義JSONを作成する
         - [ ] MIDI由来Version 2 JSONを仕様に対して自動検証する

@@ -247,6 +247,10 @@ MIDIで決めないもの: duty、Instrument番号、Wave table、Noise pitch/wi
 
 この修正版は `tools/generate_pulse_chase_midi.py` から `assets/pulse_chase.mid` を再生成できる。明るくなったという聴感の確認とJSON化対象としての承認は、修正版を人が再試聴するまで未完了とする。
 
+#### Pulse Chase完成MIDIの人による承認
+
+明るさ修正後の完成MIDI `assets/pulse_chase.mid` を人が再試聴し、現在のMIDIをJSON化対象として承認した。以後はこのMIDIと楽曲設計メモをGame Boy 4ch変換の基準とする。MIDI音色とGame Boy音源の差は、この段階で承認を妨げるものとは扱わず、後続WBSでVersion 2 JSON、ASM、確認用ROMを生成した後、SameBoy上でMIDI原曲とGB版を比較試聴して確認する。GB化の結果に問題があれば、後続WBS「MIDI承認後のGB編曲・JSON変換結果に問題があれば、その範囲を調整する」でGB編曲・JSON変換側を調整する。
+
 #### Pulse ChaseをCodexで再生成する条件
 
 次の条件を使えば、MIDIイベントを1ノート単位で固定せず、同じ設計思想と主要構造を持つ試作DをCodexで再生成できる。
