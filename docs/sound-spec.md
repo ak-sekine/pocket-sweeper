@@ -484,13 +484,13 @@ intro_cadence (64row):
 C5/4, rest/2, E5/2, G5/4, rest/4,
 E5/2, rest/2, G5/4, rest/2, B5/2, rest/4,
 G5/4, rest/2, B5/2, D6/4, rest/4,
-B5/4, rest/2, G5/2, rest/2, C6/4
+B5/4, rest/2, G5/2, rest/2, C6/4, rest/2
 
 intro_turn (64row):
 A5/2, rest/2, C6/4, rest/2, E6/2, rest/4,
 C6/4, rest/2, A5/2, E5/4, rest/4,
 G5/4, B5/2, rest/2, D6/4, rest/2, B5/2,
-G5/4, rest/2, D6/2, rest/2, G5/4
+G5/4, rest/2, D6/2, rest/2, G5/4, rest/2
 
 loop_theme_a (64row, C→F):
 C5/4, rest/2, E5/2, G5/4, rest/4,
