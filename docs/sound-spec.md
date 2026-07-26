@@ -823,14 +823,15 @@ MIDI段階では人が曲調、軽快さ、単調さ、違和感、メロディ�
 
 ### BGM・効果音制作フロー
 
-- BGM・効果音制作では、ChatGPTで楽曲定義JSONを作成し、PythonツールでhUGEDriver用データへ変換する運用を採用する。
-- 楽曲の正本はJSONとする。
-- hUGETracker上で最初から手作業で打ち込むのではなく、まずJSONで曲の構造を管理する。
+- BGMでは、ChatGPTがMIDIを試作し、人が試聴・採用・完成承認した後、Codexが採用MIDIと楽曲設計メモをGame Boy 4ch向けへ編曲してVersion 2楽曲定義JSONを作成する。人の完成MIDI承認前にJSON化へ進まない。
+- BGMの最終的な実装上の正本はVersion 2楽曲定義JSONとする。JSONからhUGEDriver用ASMを生成し、ASMから確認用ROMを生成する。SameBoyではMIDI原曲とGB版を比較確認し、GB版だけに問題がある場合は原則としてMIDI作曲へ戻らず、GB編曲・JSON変換部分を調整する。
+- 効果音は従来どおりJSONを正本とし、JSONからASMを生成し、必要に応じてAPU直接制御へ変換する。BGMのMIDI先行方式を効果音へ適用しない。
+- BGM・効果音とも、hUGETracker上で最初から手作業で打ち込むのではなく、定義ファイルで構造を管理する。
 - hUGETracker上で直接微調整することは基本方針としない。
-- 再生確認で問題があった場合は、hUGETracker上で修正するのではなく、JSONを修正して再生成する。
+- BGMのGB版再生確認で問題があった場合は、hUGETracker上で修正するのではなく、GB編曲・JSON変換部分を調整して再生成する。効果音は従来どおりJSONを修正して再生成する。
 - hUGETrackerは主に `.uge` 読み込み確認、仕様調査、必要時の手動確認に使う。
 - hUGETrackerには `.uge` からASMを自動ExportするCLIが確認できないため、通常フローへ組み込まない。
-- 楽曲定義JSONはChatGPTが作成・編集しやすい中間形式として扱い、`assets/` 直下に配置する。
+- BGMのVersion 2楽曲定義JSONは、採用MIDIと楽曲設計メモを基にCodexがGame Boy 4ch向けへ変換して作成し、`assets/` 直下で実装上の正本として扱う。効果音JSONも従来どおり同じ場所で正本として扱う。
 - JSONからhUGEDriver用RGBDS ASMを直接生成する主フローでは `tools/json_to_huge_asm.py` を使う。
 - ASMからサウンド再生確認用テストROMを生成する主フローでは `tools/build_sound_test_rom.py` を使う。
 - 既存の `tools/json_to_uge.py` は、hUGETracker確認用・互換確認用として残す。
@@ -987,11 +988,11 @@ python tools/build_sound_test_rom.py obj/test_draft.asm build/test_sound.gb
 
 想定する制作フロー:
 
-1. ChatGPTで楽曲定義JSONを作成する。
-2. JSONからhUGEDriver用RGBDS ASMを生成する。
-3. 生成したASMからサウンド再生確認用テストROMを生成する。
-4. SameBoyなどのGBエミュレータで再生確認する。
-5. 問題があればJSONを修正して再生成する。
+1. BGMはChatGPTでMIDIを試作し、人が採用・完成承認する。効果音はJSONを作成・確認する。
+2. BGMは採用MIDIからCodexがVersion 2 JSONへ変換し、効果音はJSONを正本として扱う。
+3. JSONからhUGEDriver用RGBDS ASMを生成する。
+4. 生成したASMからサウンド再生確認用テストROMを生成する。
+5. BGMはMIDI原曲とSameBoyなどのGB版を比較確認し、必要ならGB編曲・JSON変換を調整する。効果音は従来どおりJSONを修正して再生成する。
 6. 問題がなければ生成したASMをROMへ組み込む。
 7. `tools/json_to_uge.py` はhUGETracker確認用・互換確認用の補助フローとして使用する。
 
