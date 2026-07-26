@@ -984,10 +984,16 @@ def build_channel_pattern(
 
         first_instrument = 0 if note == NO_NOTE else instrument
         effect_code, effect_param = (0, 0)
+        if version == 2 and note == NO_NOTE:
+            # hUGEDriver's NO_NOTE row does not stop the current channel;
+            # E00 is the existing tick-zero note-cut effect and makes an
+            # explicit JSON rest audible as an actual silence.
+            effect_code, effect_param = 0xE, 0
         if version == 2:
-            effect_code, effect_param = note_volume_effect(
-                event, event_path, note, channel, instrument, instruments
-            )
+            if note != NO_NOTE:
+                effect_code, effect_param = note_volume_effect(
+                    event, event_path, note, channel, instrument, instruments
+                )
         rows.append(Cell(
             note=note,
             instrument=first_instrument,

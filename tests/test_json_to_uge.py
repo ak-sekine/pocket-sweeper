@@ -1024,7 +1024,7 @@ class Ch4NoiseNoteTests(unittest.TestCase):
 
     def test_rest_requires_noise_instrument_and_clears_cell_instrument(self) -> None:
         cells = self.build([{"note": "rest", "length": 2, "instrument": 1}])
-        self.assertEqual(cells[0], json_to_uge.Cell(note=json_to_uge.NO_NOTE, instrument=0))
+        self.assertEqual(cells[0], json_to_uge.Cell(note=json_to_uge.NO_NOTE, instrument=0, effect_code=0xE, effect_param=0))
         self.assertEqual(cells[1], json_to_uge.Cell())
 
         for instrument in (0, 16, "1", True):
@@ -2745,7 +2745,7 @@ class Ch4AsmPatternTests(unittest.TestCase):
         start = lines.index("song_P3:")
         self.assertEqual(lines[start + 1], " dn C_4,1,$CA5")
 
-    def test_rest_and_length_tail_are_empty_note_rows(self) -> None:
+    def test_rest_cuts_note_and_length_tail_remains_empty(self) -> None:
         lines = self.pattern_lines(
             [
                 {"note": "C4", "length": 2, "instrument": 1},
@@ -2755,7 +2755,7 @@ class Ch4AsmPatternTests(unittest.TestCase):
         self.assertEqual(lines[:4], [
             " dn C_4,1,$000",
             " dn ___,0,$000",
-            " dn ___,0,$000",
+            " dn ___,0,$E00",
             " dn ___,0,$000",
         ])
 

@@ -30,7 +30,7 @@ def expanded_json_cells(data: dict, channel: str) -> list[list[tuple[str, int, i
     for pattern_name in ORDER:
         cells = []
         for item in data["patterns"][channel][pattern_name]:
-            effect = 0 if item["note"] == "rest" or "volume" not in item else 0xC00 | item["volume"]
+            effect = 0xE00 if item["note"] == "rest" else (0 if "volume" not in item else 0xC00 | item["volume"])
             instrument = 0 if item["note"] == "rest" else item["instrument"]
             cells.append((note_to_asm(item["note"]), instrument, effect))
             cells.extend(("___", 0, 0) for _ in range(item["length"] - 1))
@@ -73,13 +73,13 @@ class PulseChaseAsmTest(unittest.TestCase):
                 self.assertEqual(len(cells), 64)
                 self.assertEqual(self.patterns[pattern_index + channel_index * 6], cells)
 
-    def test_known_cross_stage_events_and_gsharp_are_preserved(self):
+    def test_gsharp_harmony_issue_is_resolved_in_gb_arrangement(self):
         gsharp = [cell for cell in self.patterns[6].copy() if cell[0] == "G#3"]
         gsharp += [cell for index in range(7, 12) for cell in self.patterns[index] if cell[0] == "G#3"]
-        self.assertEqual(len(gsharp), 6)
-        self.assertEqual(len([cell for index in range(18, 24) for cell in self.patterns[index] if cell[0] == "C_3" and cell[1] == 1]), 48)
-        self.assertEqual(len([cell for index in range(18, 24) for cell in self.patterns[index] if cell[0] == "C_5" and cell[1] == 2]), 48)
-        self.assertEqual(len([cell for index in range(18, 24) for cell in self.patterns[index] if cell[0] == "C_7" and cell[1] == 3]), 48)
+        self.assertEqual(len(gsharp), 0)
+        self.assertEqual(len([cell for index in range(18, 24) for cell in self.patterns[index] if cell[0] == "C_3" and cell[1] == 1]), 24)
+        self.assertEqual(len([cell for index in range(18, 24) for cell in self.patterns[index] if cell[0] == "C_5" and cell[1] == 2]), 24)
+        self.assertEqual(len([cell for index in range(18, 24) for cell in self.patterns[index] if cell[0] == "C_7" and cell[1] == 3]), 3)
 
     def test_instrument_banks_and_wave_table_match_packing(self):
         self.assertIn("bgm_pulse_chase_itSquareinst1:", self.asm)

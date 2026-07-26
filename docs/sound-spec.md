@@ -268,15 +268,15 @@ CH1 + CH3だけでG major系の調性、コード進行、拍、主題提示・�
 
 ##### CH1 / Pulse1
 
-melodyの音名と発音位置は原則保持し、Game Boyの共通音名範囲に収める。現行MIDIの主旋律はおおむね `E5`～`G6` 相当で範囲内にあるため、まず同じoctaveで変換する。範囲外が将来発生した場合だけ、12半音単位で上下へ移し、G majorの主音・3度・5度と3区間の輪郭を壊さない最小移動を選ぶ。勝手な半音移調や主旋律のsupport移管は行わない。
+melodyはMIDI音名の機械的な完全一致より、CH1単独で主題として成立することを優先する。主題・音程輪郭・発音タイミング・実際のrest・フレーズ区切りを保持し、Game Boy上で聞き取りにくい場合は12半音単位のoctave変更、duration調整、発音密度調整を最小限行う。現行MIDIの主旋律はおおむね `E5`～`G6` 相当で範囲内にあるため、まず同じoctaveで変換する。範囲外が将来発生した場合だけ、G majorの主音・3度・5度と3区間の輪郭を壊さない最小移動を選ぶ。主旋律をsupportへ移管したり、MIDIにない別メロディへ作り替えたりしない。
 
-MIDIのPPQ上の時刻を後述のrowグリッドへ量子化し、noteの発音位置とrestを先に確定する。durationは最近傍の整数rowへ丸め、1row未満は1row、連続する同音の再発音はMIDI上で別発音なら別noteとして残す。主題のrestは埋めず、pattern境界でnoteをまたがせない。velocityは3段階へ集約し、CH1では弱=`volume: 9`、標準=`12`、強=`13`を候補値としてnoteへ反映する。音量の最終聴感はSameBoy試聴で調整する。
+MIDIのPPQ上の時刻を後述のrowグリッドへ量子化し、noteの発音位置とrestを先に確定する。durationは最近傍の整数rowへ丸め、1row未満は1row、連続する同音の再発音はMIDI上で別発音なら別noteとして残す。主題のrestは埋めず、pattern境界でnoteをまたがせない。hUGEDriverの`___` / `NO_NOTE`は周波数更新をスキップするだけで発音停止にはならないため、Version 2変換では明示的なrest開始rowに既存のtick-zero note cut `E00`を出力し、GB上でも無音区間になるようにする。velocityは3段階へ集約し、CH1では弱=`volume: 9`、標準=`12`、強=`13`を候補値としてnoteへ反映する。音量の最終聴感はSameBoy試聴で調整する。
 
 Pulse1は1 Instrumentを基本とする。既存のVersion 2運用例に合わせ、初期候補は duty 2、`initial_volume: 12`、envelope down、`envelope_sweep: 0`、sweep不使用（`sweep_time/direction/shift`は無効値相当）とする。dutyの最終選択はMIDIの音色コピーではなく主旋律の明瞭さを基準にし、JSON作成時に候補値を検証する。CH1単独の主題が聞き取りにくい場合だけ、同じ旋律を増やさずInstrument値を調整する。
 
 ##### CH2 / Pulse2
 
-supportのnote位置、短いduration、弱拍配置は保持するが、CH1と同じ音名・octaveが長く重なる場合は1 octave下げ、隣接音域へ移す。supportのnoteを追加して和声を補完したり、melodyをコピーしたりしない。restはそのまま保持し、CH2を全区間ミュートしてもCH1 + CH3の構造が変わらないことをJSON検証・試聴の条件とする。
+supportはCH1 + CH3を邪魔しないことを優先し、MIDIの完全忠実変換を要求しない。G major系のG / D / Em / Cで構成音として扱える音へ限定し、CH1と強く衝突する場合は1 octave下げる、durationを短くする、または省略する。承認済みMIDIのEm区間にあるG#3はGB版ではG3へ置換し、MIDI本体は変更しない。supportのnoteを追加して和声を補完したり、melodyをコピーしたりしない。restは実際の無音区間として出力し、CH2を全区間ミュートしてもCH1 + CH3の構造が変わらないことをJSON検証・試聴の条件とする。
 
 Pulse2は1 Instrumentを基本とし、初期候補は duty 1、`initial_volume: 7`、envelope down、`envelope_sweep: 0`とする。CH1より低い音量・異なるdutyで補助性を明確にする。CH2のnote volumeは弱=`5`、標準=`7`、強=`8`へ集約し、必須和声をCH2の音量で補わない。音域衝突の解決でMIDIの主題輪郭が失われる場合はCH2を短くするか省略し、主旋律をCH2へ移さない。
 
@@ -290,7 +290,7 @@ Waveは1 Instrument、1 Wave tableを基本とする。既存のVersion 2運用�
 
 rhythmのMIDI noteは音程として変換しない。現行MIDIのGM番号36をkick相当、38をsnare相当、42をhi-hat相当として役割だけ分類する。この分類は生成MIDIの固定配置と既存Version 2 Noise運用例（低域C3、 中域C5、高域C7、および15bit/7bitの使い分け）に基づく。kickはNoise Instrument 1 / note `C3` / 15bit、snareはInstrument 2 / `C5` / 7bit、hi-hatはInstrument 3 / `C7` / 7bitを初期候補とする。これらはMIDI音色の再現ではなく、Noiseのaccent位置をGame Boyの異なる短い質感へ割り当てるための方針である。
 
-Noise Instrumentは3種類、すべて `envelope_direction: "down"`、`envelope_sweep: 0`、length無効を初期候補とする。initial volumeはkick 6、snare 5、hi-hat 4を上限の候補とし、Noiseのnote `volume`は原則省略してInstrument音量へ任せる。CH4は1rowに1音しか置けないため、同一rowではkick、snare、hi-hatの順に優先し、kick / snareの拍位置を維持する。同時刻のsnare + hi-hatではhi-hatを単純に削除せず、同じ64row pattern内の直後の空きrowへ最大1rowだけ退避する。直後rowが使用済み、またはpattern境界を越える場合だけ削除し、2row以上の移動は行わない。MIDIに存在しないhi-hatイベントは追加せず、3つの8小節区間それぞれに最低1件のhi-hatを保持する。この処理はMIDIのhi-hatをGame Boyの1ch制約へ適応させる時間位置調整であり、hi-hatを全件消去しないための決定的な規則である。CH4をミュートしてもCH1 + CH3で拍が追えること、通常再生でNoise単独が主役にならないことを確認する。最終のNoise note、width_mode、音量、間引き頻度はSameBoy試聴で調整し、問題があれば後続のGB編曲・JSON変換調整WBSで変更する。
+Noise Instrumentは3種類、すべて `envelope_direction: "down"`、`envelope_sweep: 0`、length無効を初期候補とする。initial volumeはkick 6、snare 5、hi-hat 4を上限の候補とし、Noiseのnote `volume`は原則省略してInstrument音量へ任せる。人手試聴でMIDIリズムの1:1置換が雑音として聞こえたため、GB版CH4は最小限のアクセントへ大幅に間引く。現行Pulse Chaseでは各小節の拍頭kick（24件）、各小節の4拍目snare（24件）、3つの8小節区間に1件ずつのhi-hat（3件）だけを採用する。kickはC3 / Instrument 1 / 15bit、snareはC5 / Instrument 2 / 7bit、hi-hatはC7 / Instrument 3 / 7bitとし、MIDIに存在する元イベントからのみ選ぶ。CH4をミュートしてもCH1 + CH3で拍が追えること、通常再生でNoise単独が主役にならないことを確認する。最終のNoise note、width_mode、音量、間引き頻度はSameBoy試聴で調整し、問題があれば後続のGB編曲・JSON変換調整WBSで変更する。
 
 ##### MIDI時間、row、pattern、order、tempo、loop
 
@@ -310,11 +310,11 @@ MIDI velocityは線形に0～127から0～15へ変換しない。元MIDIは弱�
 
 ##### 既知の不整合・後続確認事項
 
-承認済みMIDIと初期Version 2 JSONを実データ照合した結果、`G - D - Em - C` のEm区間において、MIDI `support` にG#が含まれていることを確認した。原因は `tools/generate_pulse_chase_midi.py` の `support` 生成式 `(root + 16)` であり、Emのroot Eに対してG#を生成する。具体的にはMIDIにG#3が6回あり、`assets/bgm_pulse_chase.json` もMIDIとの一致を優先して各4小節patternへG#3を保持している。
+承認済みMIDIと初期Version 2 JSONを実データ照合した結果、`G - D - Em - C` のEm区間において、MIDI `support` にG#が含まれていることを確認した。原因は `tools/generate_pulse_chase_midi.py` の `support` 生成式 `(root + 16)` であり、Emのroot Eに対してG#を生成する。具体的には承認済みMIDIにG#3が6回ある。人手試聴でGB版CH2が不協和音と評価されたため、承認済みMIDIを変更せず、現行のGB版 `assets/bgm_pulse_chase.json` ではG#3をG3へ置換している。
 
-G#はEmの通常のコード構成音であるE / G / Bには含まれないため、これは「supportは弱拍の短い応答と和声音」とした設計記述との既知の不整合である。ただし、現在のMIDIは人がJSON化対象として承認済みであり、JSONも直前WBSの目的どおりMIDIを忠実に変換した結果である。この段階ではMIDIまたはJSONの誤りと断定して修正せず、`assets/pulse_chase.mid`、`tools/generate_pulse_chase_midi.py`、`assets/bgm_pulse_chase.json` は変更しない。
+G#はEmの通常のコード構成音であるE / G / Bには含まれないため、これはMIDI生成設計と「supportは弱拍の短い応答と和声音」とした設計記述との既知の不整合である。MIDIは人がJSON化対象として承認済みなので変更せず、GB版では試聴結果に基づく編曲調整としてG#3をG3へ置換する。
 
-次のWBS「MIDI由来Version 2 JSONを仕様に対して自動検証する」では、このG#について、(1) MIDIとの対応としては一致していること、(2) G major系のEm区間における和声仕様との対応としては既知の不整合であること、を区別して報告する。この既知の不整合だけを理由に自動検証全体を失敗扱いとして処理不能にしない。SameBoy上でGB版を比較試聴し、聴感上問題がなければ現状を維持できる。聴感上問題がある場合は、後続WBS「MIDI承認後のGB編曲・JSON変換結果に問題があれば、その範囲を調整する」で、まずGB編曲・JSON側のG#からGへの調整などを検討する。MIDI自体を変更する必要があると判断した場合だけ、MIDIの再生成と人による承認を再度行う。
+次の自動検証・構造確認では、このG#について、(1) 承認済みMIDIには6件あること、(2) GB版JSON / ASMではG3へ調整されていること、(3) 和声仕様上の問題をGB版で解消したこと、を区別して確認する。SameBoy上で修正版GB版を比較試聴し、なお問題がある場合は後続WBSで調整する。MIDI自体を変更する必要があると判断した場合だけ、MIDIの再生成と人による承認を再度行う。
 
 #### Pulse ChaseをCodexで再生成する条件
 

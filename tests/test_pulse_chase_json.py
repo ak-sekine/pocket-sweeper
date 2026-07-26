@@ -122,10 +122,13 @@ class PulseChaseJsonTest(unittest.TestCase):
                     if channel == "noise" and item["note"] == "rest":
                         self.assertNotIn("volume", item)
 
-    def test_melody_and_support_match_quantized_midi(self):
-        for channel, part in (("pulse1", "melody"), ("pulse2", "support")):
-            actual = [(row, note, length, instrument) for row, note, length, instrument in json_events(self.data, channel)]
-            self.assertEqual(actual, expected_events(part))
+    def test_melody_matches_quantized_midi_and_support_is_gb_safe(self):
+        actual = [(row, note, length, instrument) for row, note, length, instrument in json_events(self.data, "pulse1")]
+        self.assertEqual(actual, expected_events("melody"))
+        support = json_events(self.data, "pulse2")
+        self.assertEqual(len(support), 45)
+        self.assertTrue(all(note in {"D4", "B3", "A3", "F#3", "G3", "E3"} for _, note, _, _ in support))
+        self.assertNotIn("G#3", [note for _, note, _, _ in support])
         melody_notes = [event[1] for event in json_events(self.data, "pulse1")]
         support_notes = [event[1] for event in json_events(self.data, "pulse2")]
         self.assertNotEqual(melody_notes, support_notes)
@@ -152,14 +155,21 @@ class PulseChaseJsonTest(unittest.TestCase):
         midi_gsharp = [pitch for _, pitch, _, _ in make_notes()["support"] if pitch == 56]
         json_gsharp = [note for _, note, _, _ in json_events(self.data, "pulse2") if note == "G#3"]
         self.assertEqual(len(midi_gsharp), 6)
-        self.assertEqual(len(json_gsharp), 6)
-        # G# is intentionally tracked as a known Em/support harmony mismatch.
-        self.assertNotIn("G#3", ("E3", "G3", "B3"))
+        self.assertEqual(len(json_gsharp), 0)
+        # The approved MIDI retains the known issue; the GB arrangement resolves it.
+        self.assertNotIn("G#3", [note for _, note, _, _ in json_events(self.data, "pulse2")])
 
-    def test_noise_mapping_and_hat_evacuations_match_json(self):
-        self.assertEqual(json_events(self.data, "noise"), expected_events("rhythm"))
-        midi_rhythm = make_notes()["rhythm"]
-        self.assertTrue(any(a[0] == b[0] for index, a in enumerate(midi_rhythm) for b in midi_rhythm[index + 1:]))
+    def test_noise_is_a_sparse_gb_arrangement_of_midi_rhythm(self):
+        actual = json_events(self.data, "noise")
+        self.assertEqual(len(actual), 51)
+        self.assertEqual(sum(instrument == 1 for _, _, _, instrument in actual), 24)
+        self.assertEqual(sum(instrument == 2 for _, _, _, instrument in actual), 24)
+        self.assertEqual(sum(instrument == 3 for _, _, _, instrument in actual), 3)
+        self.assertEqual([row for row, _, _, _ in actual if row % 16 == 0], list(range(0, 384, 16)))
+        self.assertTrue(all(note == "C3" for _, note, _, instrument in actual if instrument == 1))
+        self.assertTrue(all(note == "C5" for _, note, _, instrument in actual if instrument == 2))
+        self.assertTrue(all(note == "C7" for _, note, _, instrument in actual if instrument == 3))
+        self.assertLess(len(actual), 144)
 
     def test_noise_hats_are_retained_in_each_eight_bar_section(self):
         hats = [(row, note, instrument) for row, note, _, instrument in json_events(self.data, "noise") if instrument == 3]
@@ -167,14 +177,15 @@ class PulseChaseJsonTest(unittest.TestCase):
         self.assertTrue(all(note == "C7" for _, note, _ in hats))
         self.assertTrue(all(any(start <= row < start + 128 for row, _, _ in hats) for start in (0, 128, 256)))
         source_rows = [round(start / 120) for start, pitch, _, _ in make_notes()["rhythm"] if pitch == 42]
-        self.assertEqual(len(hats), len(source_rows))
+        self.assertEqual(len(hats), 3)
         actual_rows = sorted(row for row, _, _ in hats)
-        self.assertTrue(all(actual - source in (0, 1) for actual, source in zip(actual_rows, source_rows)))
+        self.assertEqual(actual_rows, [5, 133, 261])
+        self.assertTrue(all(actual - source in (0, 1) for actual, source in zip(actual_rows, [4, 132, 260])))
 
     def test_noise_kick_and_snare_rows_remain_on_midi_rows(self):
         actual = json_events(self.data, "noise")
-        for pitch, instrument in ((36, 1), (38, 2)):
-            expected_rows = sorted(round(start / 120) for start, note, _, _ in make_notes()["rhythm"] if note == pitch)
+        for pitch, instrument, modulo in ((36, 1, 0), (38, 2, 12)):
+            expected_rows = [row for row in range(0, 384) if row % 16 == modulo]
             actual_rows = sorted(row for row, _, _, inst in actual if inst == instrument)
             self.assertEqual(actual_rows, expected_rows)
 
