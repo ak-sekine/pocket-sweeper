@@ -135,7 +135,25 @@ SameBoy v1.0.3で、`build/bgm_v2_ch1_ch3_skeleton_test_ch2_ch4_mute.gb` を確�
 
 再利用対象は、Game Boy向けのBGM解析・ルール表現・生成・確認フローのうち、複数プロジェクトで共通化可能な部分とする。各ゲーム固有の用途、雰囲気、曲長、テンポ等は、共通基盤に対する入力条件または設定として扱える構成を目指す。
 
-本節では再利用範囲と、ルールベースBGM自動生成基盤がMIDIを中間形式として使用しない方針を決定する。具体的な入力形式、解析形式、ルール表現、生成アルゴリズム、ツール構成は後続WBSで決める。既存曲の解析方法、UGE / ASMの解析方式その他の具体的な方式も本節では決めない。
+本節では再利用範囲と、ルールベースBGM自動生成基盤がMIDIを中間形式として使用しない方針を決定する。具体的なルール表現、生成アルゴリズム、ツール構成は後続WBSで決める。既存曲の具体的な解析方法や共通中間表現は、後続WBSで決定する。
+
+#### 既存Game Boy楽曲の解析対象形式
+
+既存Game Boy楽曲は、機械学習用コーパスではなく、実際に使われている設計パターン・技法を抽出するための実例として扱う。解析対象形式は、再生できるかどうかではなく、楽曲の論理構造を機械的に取得できる可能性で選ぶ。
+
+主解析対象は、hUGETrackerのネイティブ楽曲データであるUGE（当面はリポジトリで既存実装が対象としているSong Version 6）とする。リポジトリ内の `assets/*.uge`、`tools/json_to_uge.py`、`docs/json-format.md` の確認から、UGEには曲ディスクリプタ、4チャンネル分のOrderMatrix、pattern cellのnote・Instrument・Volume・EffectCode・EffectParams、Duty/Wave/NoiseのInstrument bank、Wave bank、routine領域など、後続の構造抽出に必要となる保存領域があることを確認した。Patternは固定行のcell列として扱われ、CH1～CH4（Pulse1、Pulse2、Wave、Noise）の対応も保存構造から区別できる。Pythonからはバイナリrecord、pattern数・key、4チャンネルorder、routine等を公式ソースと実ファイルに照合しながら読み取る方法が現実的だが、今回パーサーや共通中間表現は実装しない。
+
+UGEを主対象とする理由は、hUGETrackerで編集・保存される正本に近く、再生用に変換された後の表記ではなく、Instrument、Wave、Noise、pattern cell、effect等の情報をまとめて保持するためである。欠点はバイナリ形式であり、Version 6等のSong Version、FreePascalのrecord表現、hUGETrackerの保存・最適化処理に依存すること、loopの意味をOrderMatrixだけから常に確定できるとは限らないことである。特に本プロジェクトのVersion 2 `loop` metadataは、既存仕様上、生成した曲ディスクリプタの終了メタデータと再生位置を組み合わせて扱う独自の後段情報であり、標準UGEのOrderMatrixだけから推測しない。UGEの各Versionでのloop表現、未使用要素、保存時の最適化差分は未確認事項として後続WBSへ残す。
+
+hUGEDriverのRGBDS ASM exportは補助解析対象とする。リポジトリの `obj/*.asm` と `src/bgm_test.asm` では、song descriptor、4本のorder、patternラベル、`dn <note>,<length>,<effect>` のcell列、Instrument bank、Wave bank、routine、wave table相当のラベルがテキストとして確認できる。したがってPythonでテキストを解析し、CH1～CH4、order、pattern、note、length、effect、Instrument参照を取得する可能性がある。ASM exportは人が差分を確認しやすく、UGEからの変換結果や直接生成結果の検証にも利用できる。一方、未使用bankの省略、pattern統合、ラベル名、表記、最適化、loopを表すeffectや付加情報は、hUGETracker・hUGEDriverのVersionとExport条件に依存する。ASMだけではUGEの全固定record領域や保存時メタデータを復元できるとは限らず、Wave/Noise固有情報やloopの意味も出力内容ごとに確認が必要である。このため、ASMをUGEの代替となる唯一の正本にはせず、変換結果の照合、既存ASMしか入手できない曲の補助解析、実際の再生データに現れる構造の確認に用いる。
+
+UGEとASMの両方で、order、pattern、channel、note、note length、Instrument、effectを取得できる可能性は確認できた。Wave / Noise固有情報は、UGEでは各bank・wave table・Noise Instrumentの保存領域を直接確認できる一方、ASMでは使用されたentryや出力ラベルとして現れる範囲に限られる。loopは、UGEの標準保存構造、ASMのexport表現、本プロジェクト独自のVersion 2 metadataを区別して扱う必要があり、今回その統一方法を決定しない。形式の安定性は、UGEがバイナリrecordとSong Versionに、ASMがexport文法とdriver版に依存するため、どちらも固定仕様として無条件に扱わず、対象ファイルと公式ソースの照合を前提とする。
+
+hUGEDriver公式リポジトリは、hUGETrackerが出力した曲データとsong descriptorをASMまたはCへexportし、song descriptorがdriverの初期化・再生対象を指す構成を説明している。公式hUGETrackerリポジトリは、hUGETrackerをGame Boy用作曲 suiteと位置付け、ソースとsample songsを公開している。これらは、UGEを編集・保存側の主対象、ASMを再生組み込み・補助確認側の対象とする判断の根拠として利用した（[hUGETracker](https://github.com/SuperDisk/hUGETracker)、[hUGEDriver](https://github.com/SuperDisk/hUGEDriver)）。公式ソース上の個別record・Version差分の全範囲、既存の第三者UGE parser/libraryの互換性、各export版のloop表現は今回確認していない。
+
+ROMから実行時APUレジスタ値を記録する方式は、主要な解析対象にはしない。APUレジスタの記録は実際の音量・周波数・波形RAM・Noise設定などの再生結果の補助確認には利用できるが、実行時には元のorder、pattern、motif、設計上のchannel役割、Instrumentやeffectの論理的な境界が失われる可能性があるため、構造抽出の主形式には適さない。ROM/APU記録は、必要になった場合の再生挙動・ハードウェア制約の補助検証へ限定する。
+
+以上により、主解析対象をUGE、補助解析対象をhUGEDriver RGBDS ASMとする。MIDI、オーディオ、ROM/APU実行時記録は、今回の目的である論理構造・設計パターン抽出の主要形式には採用しない。UGE parser、ASM parser、具体的な解析項目・特徴量、motif抽出、共通中間表現、対象曲の選定、ライセンス確認は後続WBSで扱う。Pocket Sweeper初版BGMを人がhUGETrackerで制作し、その正本を管理する方針は変更しない。
 
 ルールベースBGM自動生成基盤では、一般的なMIDI曲を生成してからGame Boy向けへ編曲・変換する方式を採用しない。作曲条件・ルールからの生成段階で、CH1 / Pulse1、CH2 / Pulse2、CH3 / Wave、CH4 / Noiseの4チャンネル構成と、Game Boy音源で実現可能な音域・同時発音・演奏表現の制約を扱う。生成結果はGame Boy向け楽曲データとして保持し、そこからhUGEDriver用ASMを生成し、確認用ROMを生成できる構成とする。
 
