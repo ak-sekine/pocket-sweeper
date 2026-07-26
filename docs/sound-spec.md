@@ -1071,7 +1071,7 @@ MIDI段階では人が曲調、軽快さ、単調さ、違和感、メロディ�
 - 初版BGMでは、AIによるメロディ、コード進行、フレーズ、伴奏、リズムの生成と、MIDIからGame Boy 4chへの自動編曲を行わない。SameBoyでの音楽品質・聴感判断は人が行う。
 - 効果音は従来どおりJSONを正本とし、JSONからASMを生成し、必要に応じてAPU直接制御へ変換する。BGMのMIDI先行方式を効果音へ適用しない。
 - 効果音は従来どおりJSONを正本とする。初版BGMは人がhUGETracker上で直接作曲・編曲・音色調整を行い、完成後の機械的な変換・検証をAI / Codexが担当する。
-- BGMの再生確認で問題があった場合、作曲・編曲・音色・聴感の判断は人がhUGETrackerとSameBoyで行い、AI / Codexは承認済みデータの変換・生成・構造確認だけを行う。
+- BGMの再生確認で問題があった場合、作曲・編曲・初期試聴は人がhUGETrackerで行い、最終的な音楽品質・聴感判断は人がSameBoyで行う。hUGETrackerとSameBoyの再生結果を毎回比較し、一致性や「大きな差がないこと」を独立した完了条件にはしない。AI / Codexは承認済みデータの変換・生成・構造確認だけを行う。
 - hUGETrackerは `.uge` 読み込み確認、作曲・試聴、仕様調査、必要時の手動確認に使う。
 - hUGETrackerからのRGBDS ASM exportは、過去に確認済みの既存手順を初版BGMフローで再利用する。hUGETracker正本 `assets/bgm_<用途>.uge` をhUGETrackerで開き、既存のRGBDS ASM Export機能でhUGEDriver用ASMを生成し、生成したASMを後続の構造確認・ROM生成工程へ渡す。既存資料で確認できるGUI操作は `File` → `Open` によるUGEの読み込み、別名保存、RGBDS ASM Exportの成功までであり、Exportメニューの詳細階層、出力先、配置場所は今回確定しない。
 - hUGETracker Export ASMの利用可能性は、過去のVersion 2総合確認で直接生成ASMとのdescriptor、order、pattern、instrument、routine、wave、loop metadataの比較、note volume比較、Codexによる自動比較、人によるhUGETracker Export・比較確認まで完了している。初版BGMでは互換性の再検証を繰り返さず、確認済みのexport手順を標準手順として再利用する。

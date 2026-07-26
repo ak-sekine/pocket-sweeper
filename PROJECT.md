@@ -550,7 +550,7 @@
         - [x] メロディ・コード進行・フレーズ・伴奏・リズムなどの音楽生成をAIへ依頼しないことを決める
         - [x] 作曲・編曲・音色調整・聴感判断は人がhUGETrackerで行う方針を決める
     - [ ] 人がhUGETrackerでBGMを作曲する運用を確立する
-      - [ ] hUGETracker中心のBGM制作フローを決める
+      - [x] hUGETracker中心のBGM制作フローを決める
         - [x] BGM制作時の正本をhUGETrackerデータとする
         - [x] hUGETracker正本データは `assets/` 直下へ `bgm_<用途>.uge` の形式で保存する
         - [x] hUGETracker正本データ `.uge` を通常のGit追跡対象として管理する
@@ -558,7 +558,6 @@
         - [x] hUGETracker export ASMは `obj/bgm_<用途>.asm` に配置し、再生成可能な中間生成物として管理する
         - [x] hUGETracker完成曲を `obj/bgm_<用途>.asm` へexportし、RGBASM・リンクして確認用ROMへ組み込む手順を確定する
         - [x] BGM制作フローからVersion 2 JSONを外す場合の既存ビルドへの影響を確認する（JSON→BGM ASM自動生成をMakefileから外し、手動export ASMを入力にする）
-        - [ ] hUGETrackerとSameBoyで再生結果に大きな差がないことを人が確認する
       - [ ] hUGETrackerで短い運用確認用BGMを人が作成する
         - [ ] 人がCH1主旋律を作成し、単独で成立するまで試聴・調整する
         - [ ] 人がCH3のベース・土台を追加し、CH1 + CH3で成立するまで試聴・調整する
