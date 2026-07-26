@@ -528,7 +528,7 @@
         - [x] 採用したMIDI案を必要な長さ・ループ構成へ仕上げる
         - [x] 人が完成MIDIを再試聴してJSON化対象として承認する
         - [x] 採用MIDIと楽曲設計メモからGame Boy 4chへの変換方針を決める
-        - [ ] Codexで採用MIDIに近いVersion 2楽曲定義JSONを作成する
+        - [x] Codexで採用MIDIに近いVersion 2楽曲定義JSONを作成する
         - [ ] MIDI由来Version 2 JSONを仕様に対して自動検証する
         - [ ] MIDI由来Version 2 JSONからhUGEDriver用ASMを生成する
         - [ ] MIDI由来ASMから確認用ROMを生成する
