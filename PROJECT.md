@@ -494,6 +494,7 @@
         - [x] 旧クリアBGM確認用ROMを生成する
         - [x] 旧クリアBGMをSameBoyで再生確認する
     - [ ] ChatGPTまたはCodexによるVersion 2楽曲定義JSONの直接制作運用を確認する（運用確認用BGM）
+      - [x] 直接JSON作曲方式では十分な音楽品質を得られない結果を記録する
       - [x] Version 2 BGMの作曲条件テンプレートと固定制約を整理する
       - [x] 初回運用確認用Version 2 BGMの作曲条件を決める
         - [x] `title`、用途、雰囲気、想定する長さを決める
@@ -520,14 +521,20 @@
         - [x] 再修正後の運用確認用ROMを人がSameBoy確認する
           - [x] 軽快さ・単調さ・Noiseの再修正効果未達を記録する
           - [x] 既存曲の部分修正をやめ、曲構成から再設計する方針を決める
-      - [ ] 再試聴結果を基に運用確認用BGMを曲構成から再設計する
-        - [ ] 軽快さ・単調さ・Noiseの問題を再設計条件として整理する
-        - [ ] CH1～CH4の役割とリズム構成を再設計する
-        - [ ] tempo・調性・コード進行・フレーズ・order構成を再設計する
-        - [ ] Instrument・note・length・volume・Noiseリズムの具体値を決める
-      - [ ] 再設計した運用確認用BGMをVersion 2 JSONへ反映する
-      - [ ] 再設計後のJSONからASMと確認用ROMを生成して自動確認する
-      - [ ] 再設計後の確認用ROMを人がSameBoy試聴する
+      - [ ] ChatGPTでMIDIを試作し、採用MIDIをCodexでVersion 2 JSONへ変換する運用を確認する
+        - [ ] ChatGPTで運用確認用BGMのMIDI試作条件を整理する
+        - [ ] ChatGPTで短いMIDI候補を複数作成し、楽曲設計メモを作成する
+        - [ ] 人がMIDI候補を試聴して採用案を決める
+        - [ ] 採用したMIDI案を必要な長さ・ループ構成へ仕上げる
+        - [ ] 人が完成MIDIを再試聴してJSON化対象として承認する
+        - [ ] 採用MIDIと楽曲設計メモからGame Boy 4chへの変換方針を決める
+        - [ ] Codexで採用MIDIに近いVersion 2楽曲定義JSONを作成する
+        - [ ] MIDI由来Version 2 JSONを仕様に対して自動検証する
+        - [ ] MIDI由来Version 2 JSONからhUGEDriver用ASMを生成する
+        - [ ] MIDI由来ASMから確認用ROMを生成する
+        - [ ] MIDIとJSON / ASMの主要構造対応をAIで自動確認する
+        - [ ] 人がMIDI原曲とSameBoy上のGB版を比較試聴する
+        - [ ] MIDI承認後のGB編曲・JSON変換結果に問題があれば、その範囲を調整する
       - [ ] 運用確認用JSONを本番採用JSONと分離した正本として確定する運用を確認する
     - [ ] 初版用タイトルBGMを4チャンネル構成で新規作成する
       - [ ] タイトル画面に合う用途・雰囲気・長さ・ループ条件を決める
