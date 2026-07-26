@@ -554,7 +554,7 @@
         - [x] BGM制作時の正本をhUGETrackerデータとする
         - [x] hUGETracker正本データは `assets/` 直下へ `bgm_<用途>.uge` の形式で保存する
         - [x] hUGETracker正本データ `.uge` を通常のGit追跡対象として管理する
-        - [ ] hUGETrackerからRGBDS ASMをexportする既存手順を確認する
+        - [x] 過去に検証済みのhUGETracker RGBDS ASM export手順を初版BGM制作で再利用する
         - [ ] export ASMの配置場所と生成物としての管理方法を決める
         - [ ] hUGETracker完成曲を確認用ROMへ組み込む手順を確認する
         - [ ] BGM制作フローからVersion 2 JSONを外す場合の既存ビルドへの影響を確認する
