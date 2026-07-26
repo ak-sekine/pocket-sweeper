@@ -549,7 +549,7 @@
         - [x] MIDIからGame Boy 4chへの自動変換を初版BGM制作では採用しないことを決める
         - [x] メロディ・コード進行・フレーズ・伴奏・リズムなどの音楽生成をAIへ依頼しないことを決める
         - [x] 作曲・編曲・音色調整・聴感判断は人がhUGETrackerで行う方針を決める
-    - [ ] 人がhUGETrackerでBGMを作曲する運用を確立する
+    - [x] 人がhUGETrackerでBGMを作曲する運用を確立する
       - [x] hUGETracker中心のBGM制作フローを決める
         - [x] BGM制作時の正本をhUGETrackerデータとする
         - [x] hUGETracker正本データは `assets/` 直下へ `bgm_<用途>.uge` の形式で保存する
