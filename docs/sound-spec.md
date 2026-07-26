@@ -465,6 +465,147 @@ orderごとのnote列を少し変えるだけでなく、聴感上区別でき�
 
 現在の発音回数をそのまま維持するかも含めて再検討する。以前の音量に完全には戻さず、現在の「聞こえない」状態も採用しない方向とし、volumeと発音頻度を別々のパラメータとして調整する。CH4は主役ではなく、消失しても曲が成立する補助リズムとして認識できる程度を目標にする。具体的なvolume値や発音配置は根拠なく確定しない。
 
+#### 次回修正用の確定JSON仕様
+
+前回再試聴結果を受けた検討論点について、次回JSON修正で使用する具体値を確定する。ここに記載する内容は候補ではなく、次WBS「再修正した運用確認用JSONからASMと確認用ROMを再生成する」で実装する正本仕様である。各patternの展開後row数を実計算し、すべて64rowとなることを確認した。
+
+##### 共通条件
+
+- `version = 2`、`tempo = 5`、C major、共通6 order、先頭2 orderのイントロ、`loop = {"mode":"range","start_order":2,"end_order":6}`を維持する。
+- tempoはさらに速くしない。前回は再生速度だけが速くなり軽快さが改善しなかったため、次回はtempoではなくリズム、休符、フレーズ差の効果を切り分けて試聴する。
+- Pulse1 Instrumentと`volume = 12`、Pulse2 Instrumentと`volume = 7`、Wave Instrument・Wave tableと`volume = 10`は維持する。
+
+##### CH1 / Pulse1
+
+一律の2row発音＋2row休符の反復を廃止し、patternごとにアクセント、密度、応答、終止を変える。各patternは次のとおりとする。
+
+```text
+intro_cadence (64row):
+C5/4, rest/2, E5/2, G5/4, rest/4,
+E5/2, rest/2, G5/4, rest/2, B5/2, rest/4,
+G5/4, rest/2, B5/2, D6/4, rest/4,
+B5/4, rest/2, G5/2, rest/2, C6/4
+
+intro_turn (64row):
+A5/2, rest/2, C6/4, rest/2, E6/2, rest/4,
+C6/4, rest/2, A5/2, E5/4, rest/4,
+G5/4, B5/2, rest/2, D6/4, rest/2, B5/2,
+G5/4, rest/2, D6/2, rest/2, G5/4
+
+loop_theme_a (64row, C→F):
+C5/4, rest/2, E5/2, G5/4, rest/4,
+E5/2, rest/2, G5/4, rest/2, C6/2, rest/4,
+F5/4, rest/2, A5/2, C6/4, rest/4,
+A5/2, rest/2, G5/4, rest/2, F5/2, rest/4
+
+loop_theme_b (64row, G→Am):
+G5/4, B5/2, rest/2, D6/4, rest/2, B5/2,
+D6/4, B5/2, rest/2, G5/4, rest/2, D6/2,
+A5/4, rest/2, C6/2, E6/4, rest/4,
+E6/4, C6/2, rest/2, A5/4, rest/2, E5/2
+
+loop_build (64row, F→G):
+F5/2, rest/2, A5/4, rest/2, C6/2, rest/4,
+A5/4, rest/2, F5/2, C6/4, rest/4,
+G5/4, B5/2, rest/2, D6/4, rest/2, B5/2,
+G5/4, B5/2, rest/2, D6/4, rest/2, G6/2
+
+loop_link (64row, loop resolution toward C):
+C6/4, rest/2, G5/2, E5/4, rest/4,
+G5/2, rest/2, B5/4, rest/2, D6/2, rest/4,
+B5/4, rest/2, G5/2, D6/4, rest/4,
+D6/4, rest/2, B5/2, rest/2, G5/6
+```
+
+`intro_turn`の終端はGとし、イントロ後のloop先頭Cへの解決を明確にする。`loop_build`の`G6`は現行JSONですでに使用している音域内であり、新規音域拡張とは扱わない。`loop_link`の最終`G5`はlength 6を維持する。
+
+##### CH2 / Pulse2
+
+常時アルペジオではなくCH1への応答として聞こえる構成にする。既存note列とコード進行を維持し、Pulse2 Instrumentと`volume = 7`は変更しない。
+
+```text
+intro_harmony_a (64row, C→G):
+rest/4, C4/4, rest/4, G4/4, rest/4, E4/4, rest/8,
+rest/4, G4/4, rest/4, B4/4, rest/4, D5/4, rest/8
+
+intro_harmony_b (64row, Am→G):
+rest/4, A4/4, rest/4, C5/4, rest/4, E5/4, rest/8,
+rest/4, G4/4, rest/4, B4/4, rest/4, D5/4, rest/8
+
+loop_support_a (64row):
+rest/4, E4/4, rest/4, G4/4,
+rest/4, G4/4, rest/4, E4/4,
+rest/4, A4/4, rest/4, C5/4,
+rest/4, C5/4, rest/4, A4/4
+
+loop_support_b (64row):
+rest/4, B4/4, rest/4, D5/4,
+rest/4, D5/4, rest/4, B4/4,
+rest/4, C5/4, rest/4, E5/4,
+rest/4, E5/4, rest/4, C5/4
+
+loop_support_c (64row):
+rest/2, A4/2, rest/2, C5/2, rest/4, F4/4,
+rest/2, C5/2, rest/2, A4/2, rest/4, F4/4,
+rest/2, B4/2, rest/2, D5/2, rest/4, G4/4,
+rest/2, D5/2, rest/2, B4/2, rest/4, G4/4
+
+loop_link_support (64row):
+rest/4, E4/4, rest/4, G4/4,
+rest/4, G4/4, rest/4, E4/4,
+rest/4, B4/4, rest/4, D5/4,
+rest/8, D5/4, rest/4
+```
+
+`loop_support_c`は各16row単位を`2+2+2+2+4+4=16` rowとし、4単位で64rowとする。introを含め、CH2はCH1の主旋律を置き換えず、休符を含む短い応答単位として構成する。
+
+##### CH3 / Wave
+
+鳴りっぱなし感を減らすため、8row発音と8row休符を混ぜる。Wave Instrument、Wave table、`volume = 10`、低域の土台という役割を維持する。指定noteは現行JSONの音域・進行内であり、`E3`も既存テストのCH3音域`C3`〜`C4`内である。
+
+```text
+intro_root_a (64row, C→G):
+C3/8, rest/8, C3/8, rest/8,
+G3/8, rest/8, B3/8, rest/8
+
+intro_root_b (64row, Am→G):
+A3/8, rest/8, C4/8, A3/8,
+G3/8, rest/8, G3/8, rest/8
+
+loop_foundation_a (64row, C→F):
+C3/8, rest/8, G3/8, C4/8,
+F3/8, rest/8, C4/8, F3/8
+
+loop_foundation_b (64row, G→Am):
+G3/8, rest/8, B3/8, G3/8,
+A3/8, rest/8, E3/8, A3/8
+
+loop_foundation_c (64row, F→G):
+F3/8, rest/8, A3/8, C4/8,
+G3/8, rest/8, B3/8, G3/8
+
+loop_link_foundation (64row, C→G):
+C3/8, rest/8, G3/8, C4/8,
+G3/8, rest/8, B3/8, G3/8
+```
+
+CH4をミュートしても、CH1＋CH3で拍、コード進行、フレーズ境界、ループ境界が認識できることを次回試聴で評価する。
+
+##### CH4 / Noise
+
+発音回数、発音位置、note、width_modeは変更せず、volumeだけを1段階戻す。通常再生で「聞こえない」と前回の「うるさい」の中間になり、主役ではない補助リズムとして認識できるかを切り分ける。
+
+- Instrument 1 / C3: `initial_volume = 6`、note `volume = 6`
+- Instrument 2 / C5: `initial_volume = 5`、note `volume = 5`
+- Instrument 3 / C7: `initial_volume = 4`、note `volume = 4`
+- width_modeはID1が`15bit`、ID2/3が`7bit`、hardware length関連、`envelope_direction`、`envelope_sweep`は維持する。
+- 発音位置は現行JSONと同一とし、`intro_rhythm_a/b`、`loop_rhythm_a`、`loop_link_rhythm`はrow 0のID1/C3とrow 48のID2/C5、`loop_rhythm_b`はrow 0のID1/C3とrow 32のID3/C7、`loop_rhythm_c`はrow 0のID1/C3を使用する。各patternの発音回数は増やさない。
+- CH4のrestにはvolumeを付けない。
+
+##### 次回SameBoy試聴で評価する項目
+
+次回の試聴では、tempo 5を固定したまま、pattern構成変更によって軽快さが改善したかを評価する。CH1の一律反復が解消され、intro終端Gからloop先頭C、各orderのC/F/G/Am、loop境界が聴感上区別できるか、CH2の応答とCH3の休符を含む骨格がCH4ミュート時にも成立するかを確認する。Noiseは「聞こえない」と「うるさい」の中間で、補助リズムとして認識できるかを評価する。期待結果を満たすまで、JSONの本番採用や正本確定には進まない。
+
 効果音実装方式の比較:
 
 | 方式 | 実装難易度 | 保守性 | CPU/RAM/ROM | BGM干渉 | 効果音品質 | hUGETracker/JSONフロー | 評価 |
