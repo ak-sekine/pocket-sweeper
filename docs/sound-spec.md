@@ -1051,7 +1051,7 @@ Version 1 JSONとPulse1 / Pulse2を使った旧制作フローでは、以下の
 
 #### 初版BGM制作方針の見直し
 
-Pulse ChaseのMIDI原曲とGB版、およびGB編曲修正版を人がSameBoyで比較試聴した結果、修正版でもBGMとして成立しないことが確認された。この検証履歴を受け、初版BGMではAIによる作曲、音楽生成、MIDIからGame Boy 4chへの自動編曲を採用しない。作曲、編曲、音色調整、試聴、採用判断は人がhUGETrackerで行い、AI / Codexは完成後の形式変換、ASM/ROM生成、ビルド、構造確認、自動テスト、Git管理、確認手順の整理だけを担当できる。hUGETrackerデータ、export ASM、Version 2 JSONの正本形式は後続WBSで決定し、今回確定しない。
+Pulse ChaseのMIDI原曲とGB版、およびGB編曲修正版を人がSameBoyで比較試聴した結果、修正版でもBGMとして成立しないことが確認された。この検証履歴を受け、初版BGMではAIによる作曲、音楽生成、MIDIからGame Boy 4chへの自動編曲を採用しない。作曲、編曲、音色調整、試聴、採用判断は人がhUGETrackerで行い、AI / Codexは完成後の形式変換、ASM/ROM生成、ビルド、構造確認、自動テスト、Git管理、確認手順の整理だけを担当できる。BGMの正本形式はhUGETrackerネイティブ楽曲データとする。
 
 これまでの運用確認用BGMでは、ChatGPTまたはCodexがVersion 2楽曲定義JSONを直接作曲し、SameBoy試聴後にJSONを修正する方式を試した。この方式では軽快さ、単調さ、曲とNoiseの一体感を十分に改善できなかったため、今後の運用確認用BGMではCodexを作曲担当にしない。
 
@@ -1064,6 +1064,7 @@ MIDI段階では人が曲調、軽快さ、単調さ、違和感、メロディ�
 ### BGM・効果音制作フロー
 
 - 初版BGMでは、人がhUGETrackerで作曲・編曲・音色調整・tempo・loop・試聴・採用判断を完了し、hUGETrackerネイティブ楽曲データを正本としてGit管理する。BGMの音楽的変更は原則としてこの正本を編集する。
+- hUGETrackerネイティブ楽曲データは `assets/` 直下でGit管理し、ファイル名は原則として用途を小文字snake_caseで表す `bgm_<用途>.uge` とする。本番3曲は `assets/bgm_title.uge`、`assets/bgm_game.uge`、`assets/bgm_clear.uge` を予定する。運用確認用データは `assets/bgm_workflow_check.uge` のように既存BGM用途との対応が分かる名前を用いる。
 - 初版BGMでは、AIによるメロディ、コード進行、フレーズ、伴奏、リズムの生成と、MIDIからGame Boy 4chへの自動編曲を行わない。SameBoyでの音楽品質・聴感判断は人が行う。
 - 効果音は従来どおりJSONを正本とし、JSONからASMを生成し、必要に応じてAPU直接制御へ変換する。BGMのMIDI先行方式を効果音へ適用しない。
 - 効果音は従来どおりJSONを正本とする。初版BGMは人がhUGETracker上で直接作曲・編曲・音色調整を行い、完成後の機械的な変換・検証をAI / Codexが担当する。
