@@ -47,13 +47,20 @@ class PulseChaseMidiTest(unittest.TestCase):
         self.assertNotEqual([(n[0], n[1]) for n in sections[0]], [(n[0], n[1]) for n in sections[2]])
         self.assertLess(sum(n[1] for n in sections[2]) / len(sections[2]), sum(n[1] for n in sections[1]) / len(sections[1]))
         self.assertLess(len(sections[2]), len(sections[0]))
-        self.assertEqual(sections[2][-1][1], 64)
+        self.assertEqual(sections[2][-1][1], 79)  # final G returns toward loop head
 
     def test_bass_has_explicit_loop_return(self):
         bass = make_notes()["bass"]
         final = [n for n in bass if 23 * BAR <= n[0] < BARS * BAR]
-        self.assertEqual([(n[1], n[0] - 23 * BAR) for n in final], [(35, 0), (39, 2 * 240), (43, 4 * 240), (40, 6 * 240)])
+        self.assertEqual([(n[1], n[0] - 23 * BAR) for n in final], [(38, 0), (42, 2 * 240), (45, 4 * 240), (43, 6 * 240)])
         self.assertLessEqual(max(n[0] + n[2] for n in bass), BARS * BAR)
+
+    def test_bright_major_center_is_present_in_melody_and_bass(self):
+        notes = make_notes()
+        melody_pitches = {pitch % 12 for _, pitch, _, _ in notes["melody"]}
+        bass_pitches = {pitch % 12 for _, pitch, _, _ in notes["bass"]}
+        self.assertTrue({7, 11, 2}.issubset(melody_pitches))  # G, B, D
+        self.assertTrue({7, 11, 2}.issubset(bass_pitches))
 
     def test_note_ranges_are_monophonic_and_within_loop(self):
         parts = make_notes()

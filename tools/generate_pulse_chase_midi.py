@@ -47,41 +47,42 @@ def track(name: str, channel: int, program: int, notes: list[tuple[int, int, int
 def make_notes() -> dict[str, list[tuple[int, int, int, int]]]:
     # The three eight-bar sections are deliberately separate: presentation,
     # high response, and the lower/ sparser turnaround into the loop head.
-    # Chords are Em-D-C-Bm per bar.
-    roots = [40, 38, 36, 35]  # E2, D2, C2, B1
+    # Chords are G-D-Em-C per bar, keeping the original forward motion while
+    # moving the tonal center to the brighter relative-major side.
+    roots = [43, 38, 40, 36]  # G2, D2, E2, C2
     melody_sections = [
         # Section 0: theme presentation, four-note cells with regular rests.
         [
-            ([76, 79, 83, 79], [0, 1, 2, 3], 0),
-            ([79, 83, 81, 79], [0, 1, 3, 5], 1),
-            ([83, 81, 79, 76], [0, 2, 3, 5], 0),
-            ([79, 76, 74, 71], [0, 1, 3, 5], 2),
-            ([76, 79, 83, 86], [0, 1, 2, 4], 0),
-            ([86, 83, 81, 79], [0, 2, 3, 5], 1),
-            ([83, 79, 76, 74], [0, 1, 3, 4], 0),
-            ([79, 76, 74, 71], [0, 2, 3, 5], 3),
-        ],
-        # Section 1: answer, brighter register and displaced accents.
-        [
-            ([79, 83, 86, 83], [0, 1, 2, 4], 0),
-            ([83, 86, 88, 86], [0, 2, 3, 5], 1),
-            ([86, 88, 86, 83], [0, 1, 3, 5], 0),
-            ([83, 81, 79, 76], [0, 2, 4, 5], 2),
+            ([79, 83, 86, 83], [0, 1, 2, 3], 0),
+            ([81, 86, 83, 79], [0, 1, 3, 5], 1),
+            ([86, 83, 81, 79], [0, 2, 3, 5], 0),
+            ([83, 79, 78, 74], [0, 1, 3, 5], 2),
             ([79, 83, 86, 88], [0, 1, 2, 4], 0),
             ([88, 86, 83, 81], [0, 2, 3, 5], 1),
             ([86, 83, 81, 79], [0, 1, 3, 4], 0),
-            ([83, 81, 79, 76], [0, 2, 4, 5], 3),
+            ([83, 79, 78, 74], [0, 2, 3, 5], 3),
+        ],
+        # Section 1: answer, brighter register and displaced accents.
+        [
+            ([83, 86, 88, 86], [0, 1, 2, 4], 0),
+            ([86, 88, 91, 88], [0, 2, 3, 5], 1),
+            ([88, 91, 88, 86], [0, 1, 3, 5], 0),
+            ([86, 83, 81, 79], [0, 2, 4, 5], 2),
+            ([83, 86, 88, 91], [0, 1, 2, 4], 0),
+            ([91, 88, 86, 83], [0, 2, 3, 5], 1),
+            ([88, 86, 83, 81], [0, 1, 3, 4], 0),
+            ([86, 83, 81, 79], [0, 2, 4, 5], 3),
         ],
         # Section 2: turnaround, descending cells, three notes and extra rests.
         [
-            ([83, 79, 76], [0, 2, 5], 2),
-            ([81, 76, 74], [0, 2, 6], 2),
-            ([79, 76, 72], [0, 3, 6], 2),
-            ([76, 74, 71], [0, 2, 5], 3),
-            ([79, 76, 72], [0, 2, 5], 2),
-            ([76, 72, 71], [0, 3, 6], 2),
-            ([74, 71, 67], [0, 2, 5], 3),
-            ([71, 67, 64], [0, 3, 6], 3),
+            ([86, 83, 79], [0, 2, 5], 2),
+            ([83, 79, 74], [0, 2, 6], 2),
+            ([81, 78, 74], [0, 3, 6], 2),
+            ([79, 74, 71], [0, 2, 5], 3),
+            ([81, 78, 74], [0, 2, 5], 2),
+            ([79, 74, 71], [0, 3, 6], 2),
+            ([78, 74, 71], [0, 2, 5], 3),
+            ([74, 71, 67, 79], [0, 2, 4, 6], 3),
         ],
     ]
     melody: list[tuple[int, int, int, int]] = []
@@ -97,9 +98,9 @@ def make_notes() -> dict[str, list[tuple[int, int, int, int]]]:
             melody.append((base + position * EIGHTH, pitch, 150 if i != 3 else 220, 88 if variant else 96))
         root = roots[bar % 4]
         if bar == BARS - 1:
-            # Explicit Bm turnaround: B -> D# -> G -> E, all short enough
-            # to resolve before the loop head's Em downbeat.
-            bass_events = [(0, 35), (2, 39), (4, 43), (6, 40)]
+            # Explicit D-to-G turnaround: D -> F# -> A -> G, all short
+            # enough to resolve before the loop head's G-major downbeat.
+            bass_events = [(0, 38), (2, 42), (4, 45), (6, 43)]
         else:
             bass_events = [(0, root), (2, root + 7), (4, root + 12), (6, root + 7)]
         for offset, pitch in bass_events:
