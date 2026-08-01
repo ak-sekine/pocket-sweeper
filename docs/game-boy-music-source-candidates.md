@@ -162,7 +162,7 @@ Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8
 
 ### ローカル保管場所とGit管理
 
-元素材はリポジトリ外のローカル専用ディレクトリ `local/music-source-candidates/` に保存する。このディレクトリは今回 `.gitignore` に追加し、次の構成を使う。
+元素材はリポジトリルート配下のGit追跡対象外ディレクトリ `local/music-source-candidates/` に保存する。このディレクトリは今回 `.gitignore` に追加し、次の構成を使う。
 
 ```text
 local/music-source-candidates/<candidate-id>/original/   # 元ZIP、元UGE、元ASM
