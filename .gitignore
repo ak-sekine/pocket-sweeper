@@ -31,3 +31,9 @@ __pycache__/
 
 Thumbs.db
 Desktop.ini
+
+#------------------------------------------------------------------------------
+# Local music source candidates (never commit original/licensed materials)
+#------------------------------------------------------------------------------
+
+local/music-source-candidates/
