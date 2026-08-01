@@ -569,7 +569,12 @@
           - [x] [人] 取得したZIPを指定されたGit追跡対象外ディレクトリへ配置する
           - [x] [Codex] 取得したZIPのファイル一覧・SHA-256・README・LICENSEを確認する
           - [x] [Codex] UGE・ASMの実ファイル数と曲名の対応を確認する
-          - [ ] [Codex] 曲単位でライセンス適用範囲とA〜D区分を確定する
+          - [x] [Codex] 曲単位でライセンス適用範囲とA〜D区分を確定する
+          - [ ] [人] Yogi（Tronimal）へPack #1の作者自身由来4曲の第三者素材・契約・対象UGEへのCC BY適用・商用利用・改変・元UGE/派生ASM再配布を確認する
+          - [ ] [人] Beatscribe、Coffee Bat、DeerTearsへPack #1の原曲3曲の商用利用・改変・再配布とYogiの派生UGEへの許諾を確認する
+          - [ ] [人] Game Boy Camera OSTおよびTerminator 2 OSTの原曲権利者への確認要否と利用許諾を確認する
+          - [ ] [人] Yogi（Tronimal）へPack #2の10個のUGEへのCC BY 4.0適用、第三者権利、元UGE・派生ASMのGitHub再配布を確認する
+          - [ ] [Codex] 人の権利確認結果を反映して未確定曲のA〜D区分を確定する
           - [ ] [Codex] UGEからSong Version・CH1〜CH4・CH4/Noise・loop構造を確認する
           - [ ] [人] 確認対象曲を試聴して用途・曲調を評価する
           - [ ] [Codex] 人の試聴結果と配布元情報を基に用途・曲調を曲単位で整理する

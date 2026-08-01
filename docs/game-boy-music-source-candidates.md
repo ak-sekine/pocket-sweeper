@@ -103,22 +103,49 @@ UGE内部曲名は、リポジトリ内に既存のUGE読み取りツールが�
 
 対応集計は、確定18曲、暫定0曲、不一致0曲、確認不能0曲である。実ファイルはPack #1 UGE 8件、Pack #2 UGE 10件の計18件、ASM 0件、INC 0件で、空ファイル・同一内容ファイル・ファイル名重複は確認されなかった。配布ページ記載曲数（8曲、10曲）とも一致する。UGE内部曲名の確認、Song Version・CH1〜CH4・CH4/Noise・loop構造、ライセンス適用範囲、試聴は後続WBSで扱う。
 
-### Yogi Game Boy Music Pack #1の曲単位判定
+## 18曲の曲単位ライセンス判定（更新）
 
-配布ページの説明をそのまま分類根拠とし、`inspired by` や `influence` を `remix` と同一視しない。これは法的な最終判断ではなく、実ファイル・原曲権利・許諾を確認するまでの保守的なプロジェクト判定である。
+確認日：2026-08-01。以下は法的保証ではなく、`docs/sound-spec.md` の既存定義に従うPocket Sweeperの保守的な受入判定である。配布ページのAsset license表示はパックに含まれる素材への表示として記録するが、第三者権利の不存在、原曲の許諾、個別UGEへの適用範囲を推測して補完しない。CC BY 4.0自体は商用利用・改変・再配布を許すが、帰属と変更表示が必要で、ライセンサーが持たない第三者権利まで許諾しない（[CC BY 4.0公式](https://creativecommons.org/licenses/by/4.0/)）。
 
-| 曲名 | 配布ページの記述 | 暫定区分 | 判定理由 |
-|---|---|---|---|
-| Hypergolic Blast Off | based on Creepy Organ by Beatscribe | D（第三者権利確認待ち） | 他作者曲を基にしたと明記。原曲権利者・編曲許諾を確認できていない |
-| Blue Ocean Remix | based on Blue Ocean by Coffee Bat | D（第三者権利確認待ち） | Remixかつ他作者名を明記。原曲権利者・編曲許諾を確認できていない |
-| Darkstone Remix | based on Darkstone by DeerTears | D（第三者権利確認待ち） | Remixかつ他作者名を明記。原曲権利者・編曲許諾を確認できていない |
-| Neurotic Robonaut | a port of my own Virtual Boy music | 未判定（A候補） | 作者自身の曲のportと記載。ただし元UGE、再配布、詳細解析結果の条件は未確認 |
-| Hideout | original song from my discontinued Patreon project | 未判定（A候補） | 作者自身のoriginal songと記載。ただしPatreon由来の権利・再配布条件は未確認 |
-| Delight | based on the most popular western chord progression | 未判定 | 他作品・他作者の特定記載はなく、originalとも明記されない |
-| Observing Jupiter | tribute to the Game Boy Camera OST | D（第三者権利確認待ち） | tributeと明記。原曲権利者・許諾を確認できていない |
-| Terminate | influenced by the Terminator 2 OST | 未判定 | influenceとの記載のみ。remix・cover・原曲利用とは断定しないが、権利関係は未確認 |
+Pack #1 READMEの `Tronimal - CC-BY 2025` は正式なライセンス名・版ではなく、年号が著作権表示かも確定できない。配布ページのCC BY 4.0表示でREADMEの版を補完できる可能性はあるが、第三者由来曲へYogiが同じ許諾を付与できる根拠にはしない。Pack #2はREADME/LICENSEがなく、配布ページの表示とZIPの10曲対応は確認できるが、同梱ファイルへの明示、第三者権利不存在、元UGE再配布の作者意図を個別には確認できない。
 
-Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8曲である。個別UGEを取得するまで、どの曲も商用ルール根拠またはGitHub管理可能とは確定しない。
+### 由来・権利・区分
+
+| Pack | 曲名 | UGEファイル | 配布ページライセンス | 同梱ライセンス | 曲の由来 | 第三者権利 | 商用利用 | 改変 | 元UGE公開 | ASM公開 | 一般化結果公開 | 帰属 | A〜D | 根拠・残課題 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| #1 | Hypergolic Blast Off | `free_01_hypergolic_blast_off.uge` | CC BY 4.0 | `Tronimal - CC-BY 2025` | based on Creepy Organ by Beatscribe | 明記あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（原曲権利者確認待ち） | [Pack #1本文](https://yogi-tronimal.itch.io/game-boy-music-pack)・README。Beatscribeの原曲ライセンス/許諾が必要 |
+| #1 | Blue Ocean Remix | `free_02_blue_ocean_remix.uge` | CC BY 4.0 | 同上 | based on Blue Ocean by Coffee Bat | 明記あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（原曲権利者確認待ち） | Pack #1本文・README。Coffee Batの原曲ライセンス/許諾が必要 |
+| #1 | Darkstone Remix | `free_03_darkstone_remix.uge` | CC BY 4.0 | 同上 | based on Darkstone by DeerTears | 明記あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（原曲権利者確認待ち） | Pack #1本文・README。DeerTearsの原曲ライセンス/許諾が必要 |
+| #1 | Neurotic Robonaut | `free_04_neurotic_robonaut.uge` | CC BY 4.0 | 同上 | port of my own Virtual Boy music | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #1本文・README。元作品の第三者素材、契約、今回UGEへの適用確認が必要 |
+| #1 | Hideout | `free_05_hideout.uge` | CC BY 4.0 | 同上 | original song from discontinued Patreon project | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #1本文・README。Patreon/契約上の制約と対象UGEへの適用確認が必要 |
+| #1 | Delight | `free_06_delight.uge` | CC BY 4.0 | 同上 | based on the most popular western chord progression | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #1本文・README。特定曲由来か、作者が対象UGEを許諾できるか未確認 |
+| #1 | Observing Jupiter | `free_07_observing_jupiter.uge` | CC BY 4.0 | 同上 | tribute to the Game Boy Camera OST | 可能性あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（原曲権利者確認待ち） | Pack #1本文・README。旋律/編曲/サンプル利用と許諾が未確認 |
+| #1 | Terminate | `free_08_terminate.uge` | CC BY 4.0 | 同上 | influenced by Terminator 2 OST | 可能性あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #1本文・README。influence以上の表現利用と対象UGEの権利範囲が未確認 |
+| #2 | Decampment | `01_decampment.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | [Pack #2本文](https://yogi-tronimal.itch.io/game-boy-music-pack-2)・ZIP。10個のUGEへの適用、第三者権利不存在、再配布条件を作者確認 |
+| #2 | Only Hope | `02_only_hope.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #2 | Walking Outdoors | `03_walking_outdoors.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #2 | Absent | `04_absent.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #2 | Roam The World | `05_roam_the_world.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #2 | Whirlwind | `06_whirlwind.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #2 | Tech | `07_tech.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #2 | Gone Missing | `08_gone_missing.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #2 | That Morning | `09_that_morning.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #2 | Closing | `10_closing.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+
+「未確認」は禁止の意味ではなく、今回の一次情報だけでは受入条件を確定できないという意味である。ローカル保管・ローカル解析は取得済み素材について作業領域内で実施可能だが、D判定のためPocket Sweeperの公開ルール根拠には使用しない。元UGEと変換ASMの公開は、対象ファイルへの再配布許可を確認できるまで不可（確認済み扱いにしない）。一般化結果は、元曲を再現しないことを別途確認できる場合に限る条件付きであり、自由利用とは断定しない。
+
+### 帰属表示案
+
+許諾確認後に採用する場合の案は、`曲名 — Yogi (Tronimal), Game Boy Music Pack #1/#2, 配布URL, Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/), 改変あり` とする。Pocket Sweeper内ではゲーム内クレジットまたはREADME、GitHubでは専用の既存音源候補文書または将来のクレジット文書に置く。第三者原曲の許諾が確認された場合は、原曲作者・原曲名・原曲URL・原曲ライセンスも追加し、改変表示を各曲単位で分ける。今回は正式なクレジットファイルを作成しない。
+
+### 人確認が必要な項目
+
+- `[人]` Yogi（Tronimal）へPack #1のNeurotic Robonaut、Hideout、Delight、Terminateについて、元作品・Patreon・契約・第三者素材、対象UGEへのCC BY 4.0適用、商用利用、改変、元UGE/派生ASM再配布を確認する。
+- `[人]` Beatscribe、Coffee Bat、DeerTearsへ、Pack #1の3曲の原曲ライセンス、商用利用、改変、再配布およびYogiの派生UGEへの許諾を確認する。
+- `[人]` Game Boy Camera OSTおよびTerminator 2 OSTの原曲権利者へ、該当表現の利用許諾が必要か確認する（作者確認で解決しない場合）。
+- `[人]` Yogi（Tronimal）へPack #2の10個のUGEがAsset licenseの対象であり、個別由来の第三者権利がなく、元UGE・派生ASMをGitHubで再配布できることを確認する。
+
+問い合わせ結果を受けて、後続の `[Codex]` WBSで未確定の商用利用・改変・元UGE/ASM公開・A〜Dを更新する。問い合わせ文の作成・送信、購入・ログイン・規約同意は今回行わない。
 
 ## 利用可能曲数の定義と集計
 
@@ -140,14 +167,14 @@ Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8
 | A（公開・商用利用可）確定 | 0 | 実ファイルと対象範囲の確認後に確定する区分 |
 | B（解析・ローカル限定）確定 | 0 | 解析・変換・非公開保管の条件まで確認できた曲 |
 | C（一般化結果のみ）確定 | 0 | 元を再現しない結果の利用条件まで確認できた曲 |
-| D（採用しない／作者確認待ち） | 4 | Yogi #1のbased on/remix/tribute 4曲 |
-| A〜D未判定 | 25 | Yogi #1の未判定4曲、lillstrumpa vol.1〜3 11曲、Yogi #2 10曲 |
+| D（採用しない／作者確認待ち） | 18 | 今回対象のPack #1/#2全曲。原曲権利者確認待ち4、作者確認待ち14 |
+| A〜D未判定 | 11 | lillstrumpa vol.1〜3の個別曲（今回対象外） |
 | 商用ゲーム向けルール根拠として利用可能 | 0 | 実ファイル・権利条件確認済みの曲 |
 | 元データをGitHub管理可能 | 0 | 元UGE/ASM再配布条件まで確認済みの曲 |
 | ローカル解析のみ可能 | 0 | 非公開解析条件まで確認済みの曲 |
-| 権利確認待ち | 4以上 | Yogi #1のD 4曲。未判定25曲にも確認待ち事項がある |
+| 権利確認待ち | 18 | 今回対象のPack #1/#2全曲 |
 
-集計の検算は `11 + 8 + 10 = 29`、`個別曲名 18 + 曲数のみ 11 = 29`、および `A 0 + B 0 + C 0 + D 4 + 未判定 25 = 29` である。Yogi #1の検算は `D 4 + 未判定（A候補）2 + 未判定 2 = 8`。vol.4/#5の暫定10曲は別母数なので、この計算に加えていない。
+ページ確認母数の検算は `11 + 8 + 10 = 29`。今回対象18曲の判定検算は `A 0 + B 0 + C 0 + D 18 + 未確定 0 = 18`、Pack #1は `原曲権利者確認待ち4 + 作者確認待ち4 = 8`、Pack #2は作者確認待ち10曲である。lillstrumpa 11曲とvol.4/#5の暫定10曲は今回の18曲判定には含めない。
 
 ### 作者別・配布元別・ライセンス別・形式別
 
@@ -169,7 +196,7 @@ Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8
 | calm / gentle / cozy / background | 11以上 | 29 | lillstrumpa vol.1〜3のパック説明。個別曲への割当ではない |
 | playful / happy / warm / cute | 4以上 | 29 | vol.1の4 mood説明、vol.2/#3のパック説明。重複あり |
 | mysterious / slightly tense | 1 | 29 | vol.1の説明にあるmood。個別曲名は未確認 |
-| based on / remix / tribute / influence | 5 | 29 | Yogi #1の曲説明。D 4曲と未判定1曲（Terminate）。法的分類は未確定 |
+| based on / remix / tribute / influence | 5 | 29 | Yogi #1の曲説明。今回の保守的判定ではD 5曲（原曲権利者確認待ち3、原曲権利者確認待ちのtribute 1、作者確認待ち1） |
 | タイトル、メニュー、通常プレイ等の用途 | 0確定 | 29 | 個別曲の用途説明・試聴未確認 |
 | 戦闘、ボス、勝利、ゲームオーバー、短いジングル | 0確定 | 29 | 不足と断定せず、未確認として扱う |
 | 曲調不明 | 29 | 29 | 個別曲単位の試聴・説明確認がないため、上記タグと両立する |
