@@ -565,8 +565,8 @@
           - [x] [Codex] Yogi Game Boy Music Pack #1を曲単位で暫定判定する
           - [x] [Codex] 元素材の取得・保管・Git除外手順を決める
           - [x] [Codex] 人が手動取得する候補と配置先を整理する
-          - [ ] [人] Yogi Game Boy Music Pack #1と#2を公式ページから取得する
-          - [ ] [人] 取得したZIPを指定されたGit追跡対象外ディレクトリへ配置する
+          - [x] [人] Yogi Game Boy Music Pack #1と#2を公式ページから取得する
+          - [x] [人] 取得したZIPを指定されたGit追跡対象外ディレクトリへ配置する
           - [ ] [Codex] 取得したZIPのファイル一覧・SHA-256・README・LICENSEを確認する
           - [ ] [Codex] UGE・ASMの実ファイル数と曲名の対応を確認する
           - [ ] [Codex] 曲単位でライセンス適用範囲とA〜D区分を確定する
