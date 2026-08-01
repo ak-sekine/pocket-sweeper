@@ -221,29 +221,29 @@
 
 既存の`tools/json_to_uge.py`に定義されたSong Version 6の固定構造（45 Instrument record、16 Wave bank、64行Pattern、4本のOrder、Routine record）を根拠に、読み取り専用の`tools/analyze_uge.py`を追加した。Pattern cellのnote、instrument、volume、effect、effect parameterを読み、参照Orderに非空cellがある場合を構造上の「使用」とした。CH4については、Noise用Patternに非空cellがあるか、loop範囲内に非空Patternがあるかを記録した。
 
-明示的なloopは、hUGEDriver公式ソースのB（position jump）effectを検出し、1-basedのeffect parameterを0-basedのorderへ変換した。B effectがない曲は、通常のhUGEDriverのorder循環に基づく「明示Bなし・全order循環」と記録した。これはデータ上の制御構造であり、音楽的に自然なloopであること、実機・エミュレータでの再生結果を意味しない。Song Version 6以外は解析を拒否する。
+明示的なloopは、hUGEDriver公式ソースのB（position jump）effectを検出し、1-basedのeffect parameterを0-basedのorderへ変換した。単一のsource orderとtarget orderを共有し、targetがsource以下で範囲内にある場合だけ`explicit_simple_loop`とし、loop終了orderをB effectの発生元orderとした。複数のsource/target、チャンネル間の矛盾、forward jump、範囲外参照は単純loopへ推測せず、`complex_position_jumps`または`invalid_position_jump`とする。B effectがない曲は、hUGEDriverソースで確認した通常のorder進行・終端後の循環に基づく`implicit_full_order_cycle`と記録した。これはデータ上の制御構造であり、音楽的に自然なloopであること、実機・エミュレータでの再生結果を意味しない。Song Version 6以外は解析を拒否する。
 
 機械可読結果は、`.gitignore`で除外される`build/analysis/uge-structure-a.json`へ出力した。各曲のSHA-256、内部Song Name、Pattern key、チャンネル別Order列、非空Pattern、loop内Pattern、position jumpを含む。D曲のファイルは入力に含めていない。
 
 ### 曲単位概要
 
-Pattern欄は各チャンネルの`unique参照数/非空unique数`、loop欄は`kind start-end`（endはinclusive）である。`implicit_full_order_cycle`は明示B effectなし、`explicit_position_jump`はB effectありを示す。
+Pattern欄は各チャンネルの`unique参照数/非空unique数`、loop欄は`kind start-end`（endはinclusive）である。`explicit_simple_loop`のendは最終orderとは限らず、B effectのsource orderである。`implicit_full_order_cycle`は明示B effectなし、`complex_position_jumps`は単純範囲にできない複数制御経路、`invalid_position_jump`は範囲外またはforward jumpを示す。
 
 | UGEファイル | Song Version | 内部Song Name | CH1/CH2/CH3/CH4 | order数 | Pattern（CH1/CH2/CH3/CH4） | loop | intro order数 | order整合 |
 |---|---:|---|---|---:|---|---|---:|---|
-| `free_04_neurotic_robonaut.uge` | 6 | Neurotic Robonaut GB | 使用/使用/使用/使用 | 38 | 20/14, 20/17, 20/15, 20/11 | explicit 0-37 | 0 | 一致 |
-| `free_05_hideout.uge` | 6 | Hideout | 使用/使用/使用/使用 | 18 | 9/9, 9/7, 9/9, 9/6 | explicit 4-17 | 4 | 一致 |
+| `free_04_neurotic_robonaut.uge` | 6 | Neurotic Robonaut GB | 使用/使用/使用/使用 | 38 | 20/14, 20/17, 20/15, 20/11 | explicit_simple 0-37 | 0 | 一致 |
+| `free_05_hideout.uge` | 6 | Hideout | 使用/使用/使用/使用 | 18 | 9/9, 9/7, 9/9, 9/6 | explicit_simple 4-17 | 4 | 一致 |
 | `free_06_delight.uge` | 6 | Delight | 使用/使用/使用/空 | 16 | 8/7, 8/8, 8/7, 8/0 | implicit 0-15 | 0 | 一致 |
-| `free_08_terminate.uge` | 6 | Terminate | 使用/使用/使用/使用 | 26 | 16/16, 16/12, 16/16, 16/16 | explicit 4-25 | 4 | 一致 |
-| `01_decampment.uge` | 6 | Decampment | 使用/使用/使用/使用 | 20 | 15/14, 15/15, 15/15, 15/8 | explicit 6-19 | 6 | 一致 |
-| `02_only_hope.uge` | 6 | Only Hope | 使用/使用/使用/使用 | 12 | 7/7, 7/7, 7/7, 7/1 | explicit 4-11 | 4 | 一致 |
-| `03_walking_outdoors.uge` | 6 | Walking Outdoors | 使用/使用/使用/使用 | 14 | 8/8, 8/8, 8/8, 8/6 | explicit 2-13 | 2 | 一致 |
+| `free_08_terminate.uge` | 6 | Terminate | 使用/使用/使用/使用 | 26 | 16/16, 16/12, 16/16, 16/16 | explicit_simple 4-25 | 4 | 一致 |
+| `01_decampment.uge` | 6 | Decampment | 使用/使用/使用/使用 | 20 | 15/14, 15/15, 15/15, 15/8 | explicit_simple 6-17（到達不能18-19） | 6 | 一致 |
+| `02_only_hope.uge` | 6 | Only Hope | 使用/使用/使用/使用 | 12 | 7/7, 7/7, 7/7, 7/1 | explicit_simple 4-11 | 4 | 一致 |
+| `03_walking_outdoors.uge` | 6 | Walking Outdoors | 使用/使用/使用/使用 | 14 | 8/8, 8/8, 8/8, 8/6 | explicit_simple 2-13 | 2 | 一致 |
 | `04_absent.uge` | 6 | Absent | 使用/使用/使用/使用 | 12 | 5/5, 5/5, 5/5, 5/3 | implicit 0-11 | 0 | 一致 |
 | `05_roam_the_world.uge` | 6 | Roam The World | 使用/使用/使用/使用 | 8 | 6/6, 6/6, 6/6, 6/4 | implicit 0-7 | 0 | 一致 |
-| `06_whirlwind.uge` | 6 | Whirlwind | 使用/使用/使用/使用 | 24 | 20/19, 20/12, 20/20, 20/17 | explicit 4-23 | 4 | 一致 |
-| `07_tech.uge` | 6 | Tech | 使用/使用/使用/使用 | 14 | 9/9, 9/9, 9/9, 9/8 | explicit 8-13 | 8 | 一致 |
-| `08_gone_missing.uge` | 6 | Gone Missing | 使用/使用/使用/使用 | 12 | 8/8, 8/8, 8/8, 8/5 | explicit 6-11 | 6 | 一致 |
-| `09_that_morning.uge` | 6 | That Morning | 使用/使用/使用/空 | 6 | 6/6, 6/6, 6/6, 6/0 | explicit 4-5 | 4 | 一致 |
+| `06_whirlwind.uge` | 6 | Whirlwind | 使用/使用/使用/使用 | 24 | 20/19, 20/12, 20/20, 20/17 | explicit_simple 4-23 | 4 | 一致 |
+| `07_tech.uge` | 6 | Tech | 使用/使用/使用/使用 | 14 | 9/9, 9/9, 9/9, 9/8 | explicit_simple 8-13 | 8 | 一致 |
+| `08_gone_missing.uge` | 6 | Gone Missing | 使用/使用/使用/使用 | 12 | 8/8, 8/8, 8/8, 8/5 | explicit_simple 6-11 | 6 | 一致 |
+| `09_that_morning.uge` | 6 | That Morning | 使用/使用/使用/空 | 6 | 6/6, 6/6, 6/6, 6/0 | explicit_simple 4-5 | 4 | 一致 |
 | `10_closing.uge` | 6 | Closing | 使用/使用/使用/空 | 12 | 6/6, 6/6, 6/6, 6/0 | implicit 0-11 | 0 | 一致 |
 | `01-Title-Prelude.uge` | 6 | Prelude in C major | 使用/使用/空/空 | 4 | 4/4, 4/2, 4/0, 4/0 | implicit 0-3 | 0 | 一致 |
 | `02-Overworld-Liebestraum.uge` | 6 | Liebestraum No. 3 | 使用/使用/使用/空 | 4 | 4/3, 4/4, 4/4, 4/0 | implicit 0-3 | 0 | 一致 |
@@ -259,7 +259,8 @@ Pattern欄は各チャンネルの`unique参照数/非空unique数`、loop欄は
 - CH4使用曲: Neurotic Robonaut、Hideout、Terminate、Decampment、Only Hope、Walking Outdoors、Absent、Roam The World、Whirlwind、Tech、Gone Missing。
 - CH4未使用曲: Delight、That Morning、Closing、Title-Prelude、Overworld-Liebestraum、Gallery-Pathetique、Underwater-Tristesse、Indoors-Heaven、Dream-Gymnopedie、Ending-Rondo。
 - CH4のloop範囲内に非空Patternがある曲は、CH4使用11曲のうち11曲。CH4の非空Patternがloop外だけにある曲は0曲。
-- 明示B effectによるloopあり: 10曲。明示B effectなしの全order循環: 11曲。loop開始orderは`0, 2, 4, 6, 8`等の構造上の値として記録し、音楽的な自然さは判定していない。
+- `explicit_simple_loop`: 10曲、`implicit_full_order_cycle`: 11曲、`complex_position_jumps`: 0曲、`invalid_position_jump`: 0曲。明示loopの開始orderは`0, 2, 4, 6, 8`等、終了orderはB effectの発生元orderとして記録した。Decampmentではorder 17からorder 6へ戻るため、order 18-19は構造上の到達不能orderとして記録した。
+- 到達不能orderあり: 1曲（Decampment、2 order）。その他の20曲は解析上の到達不能orderなし。到達不能orderが参照するPatternは曲別JSONの`channels.*.unreachable_order_pattern_keys`に保持した。
 - すべての曲で4チャンネルのorder数は一致した。チャンネル別Pattern数や非空Pattern数には差がある。
 - CH4のnote／instrument／effect等の非空cellとPattern再利用を数えたが、ドラム、ハイハット、スネア等の音楽的役割は判定していない。
 

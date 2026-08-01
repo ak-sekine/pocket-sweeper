@@ -56,6 +56,96 @@ def cell_is_non_empty(cell: tuple[int, int, int, int, int]) -> bool:
     return note != NO_NOTE or any((instrument, volume, effect, effect_param))
 
 
+def classify_loop(position_jumps: list[dict[str, int | str]], order_count: int) -> dict[str, Any]:
+    """Classify B-effect control flow without guessing a complex loop range."""
+    targets = sorted({int(jump["target_order"]) for jump in position_jumps})
+    sources = sorted({int(jump["source_order"]) for jump in position_jumps})
+    channels = sorted({str(jump["channel"]) for jump in position_jumps})
+    invalid = [
+        jump
+        for jump in position_jumps
+        if int(jump["raw_target_order"]) > order_count
+        or int(jump["raw_target_order"]) < 0
+        or int(jump["source_order"]) >= order_count
+        or int(jump["source_order"]) < 0
+        or int(jump["target_order"]) > int(jump["source_order"])
+    ]
+    sources_agree = len(sources) <= 1
+    targets_agree = len(targets) <= 1
+    channels_agree = len(channels) <= 1 or (sources_agree and targets_agree)
+    simple = bool(position_jumps) and not invalid and sources_agree and targets_agree
+    common = {
+        "position_jumps": position_jumps,
+        "channels_agree": channels_agree,
+        "sources_agree": sources_agree,
+        "targets_agree": targets_agree,
+    }
+    if invalid:
+        return {
+            **common,
+            "present": False,
+            "kind": "invalid_position_jump",
+            "simple_loop": False,
+            "reason": "position jump target/source is out of range or jumps forward",
+            "start_order": None,
+            "end_order_inclusive": None,
+            "intro_order_count": None,
+            "loop_order_count": None,
+            "reachable_order_range": None,
+            "unreachable_orders": None,
+            "unreachable_order_count": None,
+        }
+    if simple:
+        start_order = targets[0]
+        end_order = sources[0]
+        unreachable = list(range(end_order + 1, order_count))
+        return {
+            **common,
+            "present": True,
+            "kind": "explicit_simple_loop",
+            "simple_loop": True,
+            "reason": "all position jumps share one target and source order",
+            "start_order": start_order,
+            "end_order_inclusive": end_order,
+            "intro_order_count": start_order,
+            "loop_order_count": end_order - start_order + 1,
+            "reachable_order_range": [0, end_order],
+            "unreachable_orders": unreachable,
+            "unreachable_order_count": len(unreachable),
+        }
+    if position_jumps:
+        return {
+            **common,
+            "present": False,
+            "kind": "complex_position_jumps",
+            "simple_loop": False,
+            "reason": "multiple source/target orders or channel control paths",
+            "start_order": None,
+            "end_order_inclusive": None,
+            "intro_order_count": None,
+            "loop_order_count": None,
+            "reachable_order_range": None,
+            "unreachable_orders": None,
+            "unreachable_order_count": None,
+        }
+    end_order = max(0, order_count - 1)
+    return {
+        **common,
+        "present": True,
+        "kind": "implicit_full_order_cycle",
+        "simple_loop": True,
+        "position_jumps": [],
+        "reason": "no B position jump; hUGEDriver advances to the next order and wraps",
+        "start_order": 0,
+        "end_order_inclusive": end_order,
+        "intro_order_count": 0,
+        "loop_order_count": order_count,
+        "reachable_order_range": [0, end_order],
+        "unreachable_orders": [],
+        "unreachable_order_count": 0,
+    }
+
+
 def read_file(path: Path) -> dict[str, Any]:
     data = path.read_bytes()
     reader = Reader(data, path)
@@ -93,6 +183,13 @@ def read_file(path: Path) -> dict[str, Any]:
             raise UgeError(f"{path}: order list has no zero terminator")
         orders.append(values[:-1])
 
+    for channel, channel_orders in zip(CHANNELS, orders):
+        for order_index, pattern_key in enumerate(channel_orders):
+            if pattern_key not in patterns:
+                raise UgeError(
+                    f"{path}: {channel} order {order_index} references missing pattern {pattern_key}"
+                )
+
     # The generated Song Version 6 files have 16 ANSI routine records.
     routines: list[str] = []
     for _ in range(16):
@@ -105,7 +202,7 @@ def read_file(path: Path) -> dict[str, Any]:
         raise UgeError(f"{path}: {len(data) - reader.offset} trailing bytes")
 
     channel_reports: dict[str, dict[str, Any]] = {}
-    position_jumps: list[dict[str, int]] = []
+    position_jumps: list[dict[str, int | str]] = []
     for channel, channel_orders in zip(CHANNELS, orders):
         references = list(dict.fromkeys(channel_orders))
         non_empty_patterns = [
@@ -122,7 +219,11 @@ def read_file(path: Path) -> dict[str, Any]:
                     # one-based value; zero is the special full-cycle target.
                     position_jumps.append(
                         {
-                            "channel": CHANNELS.index(channel),
+                            "channel": channel,
+                            "channel_index": CHANNELS.index(channel),
+                            "source_order": order_index,
+                            "source_row": row_index,
+                            # Legacy aliases retained for the existing JSON shape.
                             "order": order_index,
                             "row": row_index,
                             "raw_target_order": cell[4],
@@ -138,6 +239,7 @@ def read_file(path: Path) -> dict[str, Any]:
             "non_empty_patterns": len(non_empty_patterns),
             "non_empty_pattern_keys": non_empty_patterns,
             "loop_pattern_keys": sorted(set(loop_patterns)),
+            "position_jumps": [],
             "event_count": event_count,
             "used": bool(non_empty_patterns),
         }
@@ -148,38 +250,24 @@ def read_file(path: Path) -> dict[str, Any]:
     else:
         order_alignment = "一致"
     order_count = order_counts[0] if order_counts else 0
-    targets = sorted({jump["target_order"] for jump in position_jumps})
-    if targets:
-        loop_start = min(targets)
-        loop_end = order_count - 1
-        loop = {
-            "present": True,
-            "kind": "explicit_position_jump",
-            "start_order": loop_start,
-            "end_order_inclusive": loop_end,
-            "loop_order_count": max(0, order_count - loop_start),
-            "intro_order_count": loop_start,
-            "position_jumps": position_jumps,
-            "channel_targets": targets,
-            "channels_agree": len(targets) == 1,
-        }
-    else:
-        loop = {
-            "present": True,
-            "kind": "implicit_full_order_cycle",
-            "start_order": 0,
-            "end_order_inclusive": max(0, order_count - 1),
-            "loop_order_count": order_count,
-            "intro_order_count": 0,
-            "position_jumps": [],
-            "channel_targets": [],
-            "channels_agree": True,
-        }
+    for jump in position_jumps:
+        channel_reports[str(jump["channel"])]["position_jumps"].append(jump)
+
+    loop = classify_loop(position_jumps, order_count)
 
     loop_start = loop["start_order"]
     loop_end = loop["end_order_inclusive"]
     for channel, channel_orders in zip(CHANNELS, orders):
         channel_report = channel_reports[channel]
+        if loop_start is None or loop_end is None:
+            channel_report["loop_order_pattern_keys"] = None
+            channel_report["loop_unique_patterns"] = None
+            channel_report["loop_non_empty_patterns"] = None
+            channel_report["loop_non_empty_pattern_keys"] = None
+            channel_report["loop_event_count"] = None
+            channel_report["pattern_reuse_in_orders"] = None
+            channel_report["unreachable_order_pattern_keys"] = None
+            continue
         loop_order_keys = channel_orders[loop_start : loop_end + 1]
         loop_unique = list(dict.fromkeys(loop_order_keys))
         loop_non_empty = [
@@ -199,6 +287,11 @@ def read_file(path: Path) -> dict[str, Any]:
         channel_report["pattern_reuse_in_orders"] = sorted(
             key for key, count in counts.items() if count > 1
         )
+        unreachable = loop.get("unreachable_orders") or []
+        channel_report["unreachable_order_pattern_keys"] = [
+            {"order": index, "pattern_key": channel_orders[index]}
+            for index in unreachable
+        ]
 
     return {
         "file": str(path),
