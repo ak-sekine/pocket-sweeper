@@ -8,7 +8,7 @@
 
 配布ページ上で収録曲数を確認できた候補は29曲である。個別曲名まで確認できたのはYogi #1/#2の18曲で、lillstrumpa vol.1〜3の11曲はパック単位の曲数だけを確認した。前回の暫定31曲に含まれていた lillstrumpa vol.4（6曲）とvol.5（4曲）は、作者ページで商品の存在と方向性は確認できるが、個別ページ本文で収録曲数を確認できなかったため、29曲の合計には含めない。
 
-この29曲のうち、今回実ファイル名を確認できたのはYogi #1/#2の18曲で、UGEは18曲、ASMは0曲である。現時点の「商用ゲーム向けルールの根拠として利用可能な曲数」「元データをGitHubで管理できる曲数」は、ライセンス適用範囲や詳細解析が未確認のため0曲のままである。これは配布元が利用を禁止しているという意味ではなく、取得内容・対象ファイル・ライセンス適用範囲を確認できていないため、Pocket SweeperのA〜D受入判定を確定していないという意味である。
+この29曲のうち、今回実ファイル名を確認できたのはYogi #1/#2の18曲で、UGEは18曲、ASMは0曲である。公開一次情報による今回の受入判定はA 14曲、D 4曲であり、商用ゲーム向けルールの根拠として利用可能な曲数は14曲、元UGEをGitHub管理できる曲数は14曲（CC BY 4.0条件付き）である。約20曲の目標には6曲以上不足するため、別の明確な公開ライセンス素材を追加選定する。
 
 ## 配布元の確認記録
 
@@ -105,51 +105,63 @@ UGE内部曲名は、リポジトリ内に既存のUGE読み取りツールが�
 
 ## 18曲の曲単位ライセンス判定（更新）
 
-確認日：2026-08-01。以下は法的保証ではなく、`docs/sound-spec.md` の既存定義に従うPocket Sweeperの保守的な受入判定である。配布ページのAsset license表示はパックに含まれる素材への表示として記録するが、第三者権利の不存在、原曲の許諾、個別UGEへの適用範囲を推測して補完しない。CC BY 4.0自体は商用利用・改変・再配布を許すが、帰属と変更表示が必要で、ライセンサーが持たない第三者権利まで許諾しない（[CC BY 4.0公式](https://creativecommons.org/licenses/by/4.0/)）。
+確認日：2026-08-01。以下は法的保証ではなく、公開一次情報だけで採否を決めるPocket Sweeperの運用上の受入判定である。公式配布ページのAsset licenseがCC BY 4.0で、パックとUGEが一意に対応し、第三者楽曲由来を明記していない曲はAとする。第三者権利が絶対に存在しないこと、作者の追加保証、契約不存在の証明は要求しない。CC BY 4.0は商用利用・改変・再配布を許すが、帰属と変更表示が必要である（[CC BY 4.0公式](https://creativecommons.org/licenses/by/4.0/)）。
 
-Pack #1 READMEの `Tronimal - CC-BY 2025` は正式なライセンス名・版ではなく、年号が著作権表示かも確定できない。配布ページのCC BY 4.0表示でREADMEの版を補完できる可能性はあるが、第三者由来曲へYogiが同じ許諾を付与できる根拠にはしない。Pack #2はREADME/LICENSEがなく、配布ページの表示とZIPの10曲対応は確認できるが、同梱ファイルへの明示、第三者権利不存在、元UGE再配布の作者意図を個別には確認できない。
+Pack #1 READMEの `Tronimal - CC-BY 2025` は正式な版表記としては扱わず、公式ページのCC BY 4.0表示を通常の利用根拠とする。Pack #2はREADME/LICENSEがないが、公式ページのAsset license、10曲の掲載、ZIP内の10 UGEとファイル名対応を根拠にする。第三者由来の記載がないことを確認したのであり、第三者権利の不存在を証明したわけではない。問い合わせは行わず、採用できない曲は別素材で置き換える。
 
 ### 由来・権利・区分
 
 | Pack | 曲名 | UGEファイル | 配布ページライセンス | 同梱ライセンス | 曲の由来 | 第三者権利 | 商用利用 | 改変 | 元UGE公開 | ASM公開 | 一般化結果公開 | 帰属 | A〜D | 根拠・残課題 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| #1 | Hypergolic Blast Off | `free_01_hypergolic_blast_off.uge` | CC BY 4.0 | `Tronimal - CC-BY 2025` | based on Creepy Organ by Beatscribe | 明記あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（原曲権利者確認待ち） | [Pack #1本文](https://yogi-tronimal.itch.io/game-boy-music-pack)・README。Beatscribeの原曲ライセンス/許諾が必要 |
-| #1 | Blue Ocean Remix | `free_02_blue_ocean_remix.uge` | CC BY 4.0 | 同上 | based on Blue Ocean by Coffee Bat | 明記あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（原曲権利者確認待ち） | Pack #1本文・README。Coffee Batの原曲ライセンス/許諾が必要 |
-| #1 | Darkstone Remix | `free_03_darkstone_remix.uge` | CC BY 4.0 | 同上 | based on Darkstone by DeerTears | 明記あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（原曲権利者確認待ち） | Pack #1本文・README。DeerTearsの原曲ライセンス/許諾が必要 |
-| #1 | Neurotic Robonaut | `free_04_neurotic_robonaut.uge` | CC BY 4.0 | 同上 | port of my own Virtual Boy music | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #1本文・README。元作品の第三者素材、契約、今回UGEへの適用確認が必要 |
-| #1 | Hideout | `free_05_hideout.uge` | CC BY 4.0 | 同上 | original song from discontinued Patreon project | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #1本文・README。Patreon/契約上の制約と対象UGEへの適用確認が必要 |
-| #1 | Delight | `free_06_delight.uge` | CC BY 4.0 | 同上 | based on the most popular western chord progression | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #1本文・README。特定曲由来か、作者が対象UGEを許諾できるか未確認 |
-| #1 | Observing Jupiter | `free_07_observing_jupiter.uge` | CC BY 4.0 | 同上 | tribute to the Game Boy Camera OST | 可能性あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（原曲権利者確認待ち） | Pack #1本文・README。旋律/編曲/サンプル利用と許諾が未確認 |
-| #1 | Terminate | `free_08_terminate.uge` | CC BY 4.0 | 同上 | influenced by Terminator 2 OST | 可能性あり | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #1本文・README。influence以上の表現利用と対象UGEの権利範囲が未確認 |
-| #2 | Decampment | `01_decampment.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | [Pack #2本文](https://yogi-tronimal.itch.io/game-boy-music-pack-2)・ZIP。10個のUGEへの適用、第三者権利不存在、再配布条件を作者確認 |
-| #2 | Only Hope | `02_only_hope.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
-| #2 | Walking Outdoors | `03_walking_outdoors.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
-| #2 | Absent | `04_absent.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
-| #2 | Roam The World | `05_roam_the_world.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
-| #2 | Whirlwind | `06_whirlwind.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
-| #2 | Tech | `07_tech.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
-| #2 | Gone Missing | `08_gone_missing.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
-| #2 | That Morning | `09_that_morning.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
-| #2 | Closing | `10_closing.uge` | CC BY 4.0 | なし | 個別由来記載なし | 未確認 | 未確認 | 未確認 | 未確認 | 未確認 | 条件付き | 必要 | D（作者確認待ち） | Pack #2本文・ZIP。共通確認事項はDecampmentと同じ |
+| #1 | Hypergolic Blast Off | `free_01_hypergolic_blast_off.uge` | CC BY 4.0 | `Tronimal - CC-BY 2025` | based on Creepy Organ by Beatscribe | 明記あり | 不可 | 不可 | 行わない | 行わない | 不可 | 必要 | D（採用しない） | Pack #1本文・README。第三者曲由来が明記され、問い合わせなしで除外 |
+| #1 | Blue Ocean Remix | `free_02_blue_ocean_remix.uge` | CC BY 4.0 | 同上 | based on Blue Ocean by Coffee Bat | 明記あり | 不可 | 不可 | 行わない | 行わない | 不可 | 必要 | D（採用しない） | Pack #1本文・README。第三者曲由来が明記され、問い合わせなしで除外 |
+| #1 | Darkstone Remix | `free_03_darkstone_remix.uge` | CC BY 4.0 | 同上 | based on Darkstone by DeerTears | 明記あり | 不可 | 不可 | 行わない | 行わない | 不可 | 必要 | D（採用しない） | Pack #1本文・README。第三者曲由来が明記され、問い合わせなしで除外 |
+| #1 | Neurotic Robonaut | `free_04_neurotic_robonaut.uge` | CC BY 4.0 | 同上 | port of my own Virtual Boy music | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #1本文・README。作者自身の作品由来、第三者由来の明記なし |
+| #1 | Hideout | `free_05_hideout.uge` | CC BY 4.0 | 同上 | original song from discontinued Patreon project | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #1本文・README。originalの明記を採用根拠とする |
+| #1 | Delight | `free_06_delight.uge` | CC BY 4.0 | 同上 | based on the most popular western chord progression | なし（特定曲の記載なし） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #1本文・README。一般的コード進行を第三者曲由来とは扱わない |
+| #1 | Observing Jupiter | `free_07_observing_jupiter.uge` | CC BY 4.0 | 同上 | tribute to the Game Boy Camera OST | 明記あり | 不可 | 不可 | 行わない | 行わない | 不可 | 必要 | D（採用しない） | Pack #1本文・README。第三者作品との直接的関係が明記 |
+| #1 | Terminate | `free_08_terminate.uge` | CC BY 4.0 | 同上 | influenced by Terminator 2 OST | なし（influenceのみ） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #1本文・README。influenceをremix/cover/based onと同一視しない |
+| #2 | Decampment | `01_decampment.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP。公式Asset licenseと一意なUGE対応 |
+| #2 | Only Hope | `02_only_hope.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP。README不在だけで除外しない |
+| #2 | Walking Outdoors | `03_walking_outdoors.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP |
+| #2 | Absent | `04_absent.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP |
+| #2 | Roam The World | `05_roam_the_world.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP |
+| #2 | Whirlwind | `06_whirlwind.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP |
+| #2 | Tech | `07_tech.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP |
+| #2 | Gone Missing | `08_gone_missing.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP |
+| #2 | That Morning | `09_that_morning.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP |
+| #2 | Closing | `10_closing.uge` | CC BY 4.0 | なし | 個別由来記載なし | なし（公開記載上） | 可 | 可 | 条件付きで可 | 条件付きで可 | 可 | 必要 | A | Pack #2本文・ZIP |
 
-「未確認」は禁止の意味ではなく、今回の一次情報だけでは受入条件を確定できないという意味である。ローカル保管・ローカル解析は取得済み素材について作業領域内で実施可能だが、D判定のためPocket Sweeperの公開ルール根拠には使用しない。元UGEと変換ASMの公開は、対象ファイルへの再配布許可を確認できるまで不可（確認済み扱いにしない）。一般化結果は、元曲を再現しないことを別途確認できる場合に限る条件付きであり、自由利用とは断定しない。
+ A曲の元UGE公開と派生ASM公開は、CC BY 4.0の帰属・変更表示・ライセンスURLを付ける条件付き可であり、ROM組込みとは別の判定である。D曲は採用、解析、ルール抽出、元UGE/ASM公開を行わず、問い合わせもしない。一般化結果はA曲について元曲を再現しない設計結果として可とするが、無条件の自由利用とは扱わない。
 
 ### 帰属表示案
 
-許諾確認後に採用する場合の案は、`曲名 — Yogi (Tronimal), Game Boy Music Pack #1/#2, 配布URL, Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/), 改変あり` とする。Pocket Sweeper内ではゲーム内クレジットまたはREADME、GitHubでは専用の既存音源候補文書または将来のクレジット文書に置く。第三者原曲の許諾が確認された場合は、原曲作者・原曲名・原曲URL・原曲ライセンスも追加し、改変表示を各曲単位で分ける。今回は正式なクレジットファイルを作成しない。
+ A曲の表示案は、`"<曲名>" by Yogi (Tronimal) / Source: <Pack公式URL> / Licensed under CC BY 4.0 / https://creativecommons.org/licenses/by/4.0/` とする。改変時は `Modified for Pocket Sweeper` を追加する。表示場所候補はゲーム内クレジット、配布README、itch.io配布ページ、GitHubのクレジット文書である。今回は正式なクレジットファイルを作成しない。
 
-### 人確認が必要な項目
+### A曲の利用形態別判定
 
-- `[人]` Yogi（Tronimal）へPack #1のNeurotic Robonaut、Hideout、Delight、Terminateについて、元作品・Patreon・契約・第三者素材、対象UGEへのCC BY 4.0適用、商用利用、改変、元UGE/派生ASM再配布を確認する。
-- `[人]` Beatscribe、Coffee Bat、DeerTearsへ、Pack #1の3曲の原曲ライセンス、商用利用、改変、再配布およびYogiの派生UGEへの許諾を確認する。
-- `[人]` Game Boy Camera OSTおよびTerminator 2 OSTの原曲権利者へ、該当表現の利用許諾が必要か確認する（作者確認で解決しない場合）。
-- `[人]` Yogi（Tronimal）へPack #2の10個のUGEがAsset licenseの対象であり、個別由来の第三者権利がなく、元UGE・派生ASMをGitHubで再配布できることを確認する。
+| 利用形態 | A曲14曲 | 条件 |
+|---|---|---|
+| ローカル保管 | 可 | 作業領域で管理 |
+| ローカル解析 | 可 | D曲は解析しない |
+| ルール抽出の根拠 | 可 | 元曲を再現しない一般化として利用 |
+| 商用ゲームへ使用 | 可 | CC BY 4.0の帰属条件を満たす |
+| 改変 | 可 | 改変表示を付ける |
+| 元UGEをGitHub公開 | 条件付きで可 | 帰属、変更表示、ライセンスURLを付ける |
+| 派生ASMをGitHub公開 | 条件付きで可 | 改変物として同じ条件を満たす |
+| 一般化結果公開 | 可 | 元曲の代替物・再現物にしない |
+| 帰属表示 | 必要 | 作者、曲名、公式URL、CC BY 4.0、ライセンスURL |
+| 変更表示 | 改変時に必要 | 変更内容を示す |
 
-問い合わせ結果を受けて、後続の `[Codex]` WBSで未確定の商用利用・改変・元UGE/ASM公開・A〜Dを更新する。問い合わせ文の作成・送信、購入・ログイン・規約同意は今回行わない。
+D 4曲はPocket Sweeperへの採用、商用利用、元UGE/ASM公開、ルール抽出、問い合わせを行わない。
+
+### 問い合わせを行わない運用
+
+今回の判定では作者・原曲権利者への問い合わせ、購入、ログイン、規約同意を行わない。公開一次情報で第三者楽曲由来が明記された4曲はD（採用しない）とし、残り14曲は公式Asset licenseを通常の利用根拠としてAとする。不足分は別の明確な公開ライセンス素材で補う。
 
 ## 利用可能曲数の定義と集計
 
-分母を明記する。ページ確認曲数の分母は29曲、実ファイル確認曲数の分母は0曲である。「未判定」はA〜Dのいずれにも確定していない候補であり、D（権利確認待ち）と同一視しない。
+分母を明記する。ページ確認曲数の分母は29曲、実ファイル確認曲数の分母は18曲である。今回の18曲はA〜Dを確定し、未確定は0曲とする。lillstrumpa vol.1〜3の11曲は個別ファイル未確認のため未判定である。
 
 | 指標 | 曲数 | 分母・意味 |
 |---|---:|---|
@@ -163,18 +175,20 @@ Pack #1 READMEの `Tronimal - CC-BY 2025` は正式なライセンス名・版�
 | 曲名対応暫定 | 0 | 該当なし |
 | 曲名対応不一致 | 0 | 該当なし |
 | 曲名対応確認不能 | 0 | 該当なし |
-| ライセンス適用範囲まで確認済み | 0 | 個別UGE/ASMまたは同梱条件まで照合できた曲 |
-| A（公開・商用利用可）確定 | 0 | 実ファイルと対象範囲の確認後に確定する区分 |
+| ライセンス適用範囲まで確認済み | 14 | 今回のA曲。公式Asset license、対象パック、UGE対応を確認 |
+| A（公開・商用利用可）確定 | 14 | Yogi #1の4曲、#2の10曲。公開一次情報上の受入判定 |
 | B（解析・ローカル限定）確定 | 0 | 解析・変換・非公開保管の条件まで確認できた曲 |
 | C（一般化結果のみ）確定 | 0 | 元を再現しない結果の利用条件まで確認できた曲 |
-| D（採用しない／作者確認待ち） | 18 | 今回対象のPack #1/#2全曲。原曲権利者確認待ち4、作者確認待ち14 |
+| D（採用しない） | 4 | Pack #1のbased on/remix 3曲とtribute 1曲。問い合わせは行わない |
 | A〜D未判定 | 11 | lillstrumpa vol.1〜3の個別曲（今回対象外） |
-| 商用ゲーム向けルール根拠として利用可能 | 0 | 実ファイル・権利条件確認済みの曲 |
-| 元データをGitHub管理可能 | 0 | 元UGE/ASM再配布条件まで確認済みの曲 |
-| ローカル解析のみ可能 | 0 | 非公開解析条件まで確認済みの曲 |
-| 権利確認待ち | 18 | 今回対象のPack #1/#2全曲 |
+| 商用ゲーム向けルール根拠として利用可能 | 14 | A曲。CC BY 4.0条件と帰属を適用 |
+| 元データをGitHub管理可能 | 14 | CC BY 4.0の帰属・変更表示・URL付きで条件付き可 |
+| 派生ASMをGitHub公開可能 | 14 | 改変物として変更表示・帰属・URL付きで条件付き可 |
+| ローカル解析のみ可能 | 0 | A曲は公開根拠として利用し、D曲は解析しない |
+| 作者問い合わせ待ち | 0 | 問い合わせを行わない運用 |
+| 原曲権利者問い合わせ待ち | 0 | D曲は問い合わせせず採用しない |
 
-ページ確認母数の検算は `11 + 8 + 10 = 29`。今回対象18曲の判定検算は `A 0 + B 0 + C 0 + D 18 + 未確定 0 = 18`、Pack #1は `原曲権利者確認待ち4 + 作者確認待ち4 = 8`、Pack #2は作者確認待ち10曲である。lillstrumpa 11曲とvol.4/#5の暫定10曲は今回の18曲判定には含めない。
+ページ確認母数の検算は `11 + 8 + 10 = 29`。今回対象18曲の判定検算は `A 14 + B 0 + C 0 + D 4 + 未確定 0 = 18`、Pack #1はA4/D4、Pack #2はA10/D0である。ページ確認29曲全体ではA14、B0、C0、D4、未判定11である。
 
 ### 作者別・配布元別・ライセンス別・形式別
 
@@ -196,7 +210,7 @@ Pack #1 READMEの `Tronimal - CC-BY 2025` は正式なライセンス名・版�
 | calm / gentle / cozy / background | 11以上 | 29 | lillstrumpa vol.1〜3のパック説明。個別曲への割当ではない |
 | playful / happy / warm / cute | 4以上 | 29 | vol.1の4 mood説明、vol.2/#3のパック説明。重複あり |
 | mysterious / slightly tense | 1 | 29 | vol.1の説明にあるmood。個別曲名は未確認 |
-| based on / remix / tribute / influence | 5 | 29 | Yogi #1の曲説明。今回の保守的判定ではD 5曲（原曲権利者確認待ち3、原曲権利者確認待ちのtribute 1、作者確認待ち1） |
+| based on / remix / tribute / influence | 5 | 29 | Yogi #1の曲説明。Dはbased on/remix 3曲とtribute 1曲、influenced by 1曲はA |
 | タイトル、メニュー、通常プレイ等の用途 | 0確定 | 29 | 個別曲の用途説明・試聴未確認 |
 | 戦闘、ボス、勝利、ゲームオーバー、短いジングル | 0確定 | 29 | 不足と断定せず、未確認として扱う |
 | 曲調不明 | 29 | 29 | 個別曲単位の試聴・説明確認がないため、上記タグと両立する |
@@ -222,15 +236,15 @@ Pack #1 READMEの `Tronimal - CC-BY 2025` は正式なライセンス名・版�
 | ASMを主形式とする候補 | 3曲 | UGE依存を避け、export差異を比較する |
 | 作者 | 追加で2〜3名 | 作者偏りを緩和する |
 
-20曲程度の選定は、ページ上の曲数だけなら可能だが、実ファイル・ライセンス・用途分類が未確認のため、現時点では解析対象として確定できない。まず少なくとも20曲について、ZIP内部のUGE、ライセンス適用範囲、著作権者、用途・曲調、CH1〜CH4の構造を確認してから選定する。
+現時点で公開一次情報に基づき採用できるのは14曲で、約20曲の目標には6曲以上不足する。後続WBSでは問い合わせで救済せず、公式配布ページと明確な公開ライセンスが確認できるUGE/ASM素材を追加選定する。用途・曲調と構造は後続の解析・試聴WBSで確認する。
 
 ## 後続WBSの候補選定方針
 
 1. 配布ページの曲数ではなく、実ファイルのUGE/ASM一覧を取得して曲単位のレコードを作る。
 2. `docs/sound-spec.md` の候補記録様式に、作者、取得日、対象ファイル、ライセンス版、適用根拠、A〜D区分、未確認事項を記録する。
-3. ライセンス表示が同じでも、remix、cover、tribute、他作者作品は原曲権利者と編曲許諾を別に確認する。
-4. 元データをGitHubに登録できる曲、ローカル解析だけの曲、一般化結果だけ使える曲を分ける。詳細なorder、pattern、loop、音符列を公開できるとは推測しない。
-5. Aまたは、商用利用と一般化結果の公開条件を確認したCだけを商用ゲーム向けルールの根拠に使う。Dと未判定は採用候補から除外する。
+3. remix、cover、based on、tributeなど第三者作品との関係が明記された候補は問い合わせず採用対象外にする。influenced byだけは同一視しない。
+4. A曲の元データGitHub公開、派生ASM公開、ROM組込み、一般化結果公開を分け、CC BY 4.0の帰属・変更表示・URL条件を付ける。
+5. Aだけを商用ゲーム向けルールの根拠に使い、Dは採用・解析しない。未判定候補は別途公開ライセンスを確認する。
 6. 用途・曲調は、配布元説明、曲名、README、試聴の根拠を別欄に記録し、曲名だけの分類は暫定タグにする。
 7. 20曲を選ぶ場合も、作者・配布元・用途・曲調・形式の最大偏りを避け、特定パックだけで埋めない。
 
@@ -241,12 +255,11 @@ Pack #1 READMEの `Tronimal - CC-BY 2025` は正式なライセンス名・版�
 - hUGEDriver ASMが同梱されるか、またはUGEから再ExportしたASMを解析対象としてよいか。
 - 個別UGEに作者・著作権・ライセンス情報が埋め込まれているか。
 - lillstrumpa vol.4/#5の個別曲数、曲名、個別ページのライセンス表示。
-- Yogi #1のremix・tribute対象の原曲権利者、編曲許諾、詳細解析結果の公開条件。
-- Yogi #2の各曲の作者・権利関係、元データ再配布条件。
+- 追加候補の実ファイル、ライセンス、用途・曲調、構造。
 - 試聴に基づく用途・曲調、CH4/Noise使用傾向、4チャンネルの多様性。
 - Doug T、Beatscribe、TipTopTomCat等の追加候補は、今回の調査では一次情報とファイル内容を十分確認できなかったため、候補一覧の集計に含めていない。
 
-以上の未確認事項が解消されるまで、このWBSは完了にしない。
+上記は後続の構造解析、試聴、追加素材選定に関する未確認事項であり、今回の14曲のA/4曲のD判定を保留する理由ではない。
 
 ## 実ファイルの取得・保管・確認手順
 
@@ -258,7 +271,7 @@ Pack #1 READMEの `Tronimal - CC-BY 2025` は正式なライセンス名・版�
 2. itch.io等で無料ダウンロード可能だが、画面上のDownload操作が必要な素材
 3. 任意価格または支払いが必要な素材
 4. 有料素材
-5. 作者への問い合わせが必要な素材
+5. 今回の採用基準を満たさず、公開ライセンス素材へ置き換える素材
 
 購入、ログイン、メール入力、決済、利用規約への同意、Cookie同意、アクセス制御の回避、配布元が意図しないURLの推測は行わない。Codexが自動取得できない候補は、ユーザーによる取得が必要として記録する。任意価格・有料素材を今回購入するとは決めず、必要ならユーザー判断とする。
 
