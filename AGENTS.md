@@ -94,3 +94,11 @@ WBSに伴う実装・確認作業では、原則としてテスト、commit、pu
 - Pythonツールは原則としてプロジェクトの`.venv`を使用し、利用できない場合は環境の`python3`を使用する。
 - RGBDS、SameBoy、BGB、hUGETrackerなど外部ツールを実行できない場合は、実行したと報告せず、未確認範囲と理由を記録する。
 - hUGETrackerやエミュレータのGUI確認は、人が実際に操作した結果が提供された場合だけ完了扱いにする。
+
+## 新WBS管理方式
+
+- WBS詳細・状態の正本は `wbs/tasks/*.md`、定義は `wbs/schema.md`、分野別仕様は `docs/*.md`、一覧は自動生成の `reports/wbs.xlsx` とする。
+- 標準依頼は `WBS-001-01003を実施してください。` のように完全IDで指定する。同名候補が複数ある場合は推測しない。
+- `actor: codex` は実装・文書更新・自動確認、`actor: human` は人が行う具体的手順の提示、`actor: none` は未完了子タスクの案内を行う。人の確認をAIだけで完了扱いにしない。
+- WBS更新は対象Markdown、`python3 tools/validate_wbs.py`、`python3 tools/generate_wbs_excel.py`、Excel確認の順で行う。Excelは直接編集しない。
+- taskの完了条件と証跡を満たした場合だけ完了にし、親は子孫がすべて完了した場合だけ完了とする。流用元WBSは `source_wbs` に記録し、parent/depends_onへ使わない。
