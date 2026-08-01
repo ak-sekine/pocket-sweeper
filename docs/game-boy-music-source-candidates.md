@@ -8,7 +8,7 @@
 
 配布ページ上で収録曲数を確認できた候補は36曲である。内訳はYogi #1/#2の18曲、lillstrumpa vol.1〜3の11曲、objetdiscretの追加7曲である。個別曲名まで確認できたのはYogi #1/#2の18曲とobjetdiscretの7曲で、lillstrumpa vol.1〜3の11曲はパック単位の曲数だけを確認した。前回の暫定31曲に含まれていた lillstrumpa vol.4（6曲）とvol.5（4曲）は、作者ページで商品の存在と方向性は確認できるが、個別ページ本文で収録曲数を確認できなかったため、36曲の合計には含めない。
 
-この36曲のうち、実ファイル名を確認できたのはYogi #1/#2の18曲で、UGEは18曲、ASMは0曲である。objetdiscretの7曲はページ上でUGEファイル名まで確認したが、実ファイルは取得待ちである。公開一次情報による既存Aは14曲で、今回の追加選定候補は7曲、合計のページ選定候補は21曲となる。ただし、実ファイル確認済みの利用可能曲数は既存14曲のままである。
+この36曲のうち、実ファイル詳細確認済みはYogi #1/#2の18曲で、UGEは18曲、ASMは0曲である。objetdiscretの7曲は取得・配置済みだが、実ファイル詳細確認待ちである。公開一次情報による既存Aは14曲で、今回の追加選定候補は7曲、合計のページ選定候補は21曲となる。ただし、実ファイル確認済みの利用可能曲数は既存14曲のままである。
 
 ## 配布元の確認記録
 
@@ -30,7 +30,7 @@
 - [lillstrumpa作者ページ](https://lillstrumpa.itch.io/)：vol.4、vol.5の存在、作者の制作方針、UGEを含むパックであることを確認。ただし個別ページの曲数・適用ライセンスは未確認。
 - [Yogi Game Boy Music Pack #1](https://yogi-tronimal.itch.io/game-boy-music-pack)：8曲、各曲名、UGE、CC BY 4.0、remix/tribute/influenceの記載を確認。作者コメントの「commercial games」許可も確認したが、原曲権利者の許諾を代替しない。
 - [Yogi Game Boy Music Pack #2](https://yogi-tronimal.itch.io/game-boy-music-pack-2)：10曲、各曲名、UGE、CC BY 4.0を確認。取得ZIP内でも10個のUGEを確認した。
-- [Fabulous Classical Chiptunes](https://objetdiscret.itch.io/fab-class-tunes)：objetdiscret作。公式ページで7曲、7個の個別UGEファイル名、GB Studio/hUGETracker対応、UGEへのCC BY 4.0適用を確認。原曲は公開ページ記載のパブリックドメイン作曲家の作品。ダウンロードはitch.ioのName your own price操作が必要で、実ファイルは未取得。
+- [Fabulous Classical Chiptunes](https://objetdiscret.itch.io/fab-class-tunes)：objetdiscret作。公式ページで7曲、7個の個別UGEファイル名、GB Studio/hUGETracker対応、UGEへのCC BY 4.0適用を確認。原曲は公開ページ記載のパブリックドメイン作曲家の作品。ユーザーが取得し、指定ディレクトリへ配置済み。実ファイルの詳細・ライセンス適用範囲は後続確認待ち。
 
 ライセンス本文の一般条件は、既存の [`docs/sound-spec.md`](sound-spec.md) に記録したCreative Commons公式情報を参照する。今回の候補調査では、Pack #1 README内の「Tronimal - CC-BY 2025」と第三者作品由来の記載、Pack #2の同梱ファイル不在を確認した。これは個別UGEへのライセンス適用範囲や原曲権利者の許諾を最終確定するものではない。
 
@@ -38,7 +38,7 @@
 
 ### 選定基準と状態
 
-公開一次情報だけで、公式配布ページ、作者、UGE形式、曲数、ライセンス、商用利用・改変・再配布の判断材料、帰属条件、第三者由来の記載を確認した候補を選定した。実ファイル未取得の候補は「選定候補・取得待ち」とし、実ファイル確認済みの利用可能曲数には加えない。購入・ログイン・ダウンロード操作は行わない。
+公開一次情報だけで、公式配布ページ、作者、UGE形式、曲数、ライセンス、商用利用・改変・再配布の判断材料、帰属条件、第三者由来の記載を確認した候補を選定した。objetdiscretの7曲は人による取得・配置が完了したが、実ファイル詳細確認前なので「取得済み・実ファイル詳細確認待ち」とし、A確定曲数には加えない。購入・ログイン・ダウンロード操作は行わない。
 
 ### objetdiscret / Fabulous Classical Chiptunes
 
@@ -46,21 +46,21 @@
 
 | 配布元 | パック名 | 公式URL | ページ記載曲数 | 個別曲名 | UGE | ASM | ライセンス | 商用利用 | 改変 | 元UGE公開 | 派生ASM公開 | 帰属 | 第三者由来 | 取得方法 | 状態 | 根拠・残課題 |
 |---|---|---|---:|---|---:|---:|---|---|---|---|---|---|---|---|---|---|
-| objetdiscret | Fabulous Classical Chiptunes | [itch.io](https://objetdiscret.itch.io/fab-class-tunes) | 7 | Title-Prelude; Overworld-Liebestraum; Gallery-Pathetique; Underwater-Tristesse; Indoors-Heaven; Dream-Gymnopedie; Ending-Rondo | 7（ページ記載） | 0（ページ記載なし） | CC BY 4.0 | 可 | 可 | 条件付きで可 | 条件付きで可 | 作者名、曲名、公式URL、CC BY 4.0、ライセンスURL、改変表示 | なし（公開ページ上。原曲は公開ページ記載のパブリックドメイン作品） | 人手（itch.ioのName your own price、最低価格表示あり） | 選定候補・取得待ち | ページ本文、個別UGEファイル名、ライセンス記載を確認。ZIP内部、UGEハッシュ、内部曲名、ASM有無は未確認 |
+| objetdiscret | Fabulous Classical Chiptunes | [itch.io](https://objetdiscret.itch.io/fab-class-tunes) | 7 | Title-Prelude; Overworld-Liebestraum; Gallery-Pathetique; Underwater-Tristesse; Indoors-Heaven; Dream-Gymnopedie; Ending-Rondo | 7（配置済み） | 0（配置なし） | CC BY 4.0 | 可 | 可 | 条件付きで可 | 条件付きで可 | 作者名、曲名、公式URL、CC BY 4.0、ライセンスURL、改変表示 | なし（公開ページ上。原曲は公開ページ記載のパブリックドメイン作品） | 人手（取得・配置完了） | 取得済み・実ファイル詳細確認待ち | 7 UGE、ファイル名一致、非0バイトを確認。SHA-256、README/LICENSE、内部曲名、構造、ライセンス適用範囲は未確認 |
 
 #### 曲単位の追加候補
 
 | 曲名 | UGEファイル名 | 原曲（公式ページ記載） | 形式 | ライセンス適用 | 状態 |
 |---|---|---|---|---|---|
-| Title-Prelude | `01-Title-Prelude.uge` | Prelude in C major — Johann Sebastian Bach | UGE | CC BY 4.0 | 選定候補・取得待ち |
-| Overworld-Liebestraum | `02-Overworld-Liebestraum.uge` | Liebestraum No. 3 — Franz Liszt | UGE | CC BY 4.0 | 選定候補・取得待ち |
-| Gallery-Pathetique | `03-Gallery-Pathetique.uge` | Piano Sonata No. 8 — Ludwig van Beethoven | UGE | CC BY 4.0 | 選定候補・取得待ち |
-| Underwater-Tristesse | `04-Underwater-Tristesse.uge` | Etude Op. 10, No. 3 — Frédéric Chopin | UGE | CC BY 4.0 | 選定候補・取得待ち |
-| Indoors-Heaven | `05-Indoors-Heaven.uge` | My Blue Heaven — Walter Donaldson | UGE | CC BY 4.0 | 選定候補・取得待ち |
-| Dream-Gymnopedie | `06-Dream-Gymnopedie.uge` | Gymnopédie No. 1 — Erik Satie | UGE | CC BY 4.0 | 選定候補・取得待ち |
-| Ending-Rondo | `07-Ending-Rondo.uge` | Piano Sonata No. 11 / Rondo alla Turca — Wolfgang Amadeus Mozart | UGE | CC BY 4.0 | 選定候補・取得待ち |
+| Title-Prelude | `01-Title-Prelude.uge` | Prelude in C major — Johann Sebastian Bach | UGE | CC BY 4.0 | 取得済み・実ファイル詳細確認待ち |
+| Overworld-Liebestraum | `02-Overworld-Liebestraum.uge` | Liebestraum No. 3 — Franz Liszt | UGE | CC BY 4.0 | 取得済み・実ファイル詳細確認待ち |
+| Gallery-Pathetique | `03-Gallery-Pathetique.uge` | Piano Sonata No. 8 — Ludwig van Beethoven | UGE | CC BY 4.0 | 取得済み・実ファイル詳細確認待ち |
+| Underwater-Tristesse | `04-Underwater-Tristesse.uge` | Etude Op. 10, No. 3 — Frédéric Chopin | UGE | CC BY 4.0 | 取得済み・実ファイル詳細確認待ち |
+| Indoors-Heaven | `05-Indoors-Heaven.uge` | My Blue Heaven — Walter Donaldson | UGE | CC BY 4.0 | 取得済み・実ファイル詳細確認待ち |
+| Dream-Gymnopedie | `06-Dream-Gymnopedie.uge` | Gymnopédie No. 1 — Erik Satie | UGE | CC BY 4.0 | 取得済み・実ファイル詳細確認待ち |
+| Ending-Rondo | `07-Ending-Rondo.uge` | Piano Sonata No. 11 / Rondo alla Turca — Wolfgang Amadeus Mozart | UGE | CC BY 4.0 | 取得済み・実ファイル詳細確認待ち |
 
-この7曲はページ上の追加選定候補としては6曲以上の条件を満たすが、実ファイル取得前なので「利用可能確定20曲」とは扱わない。公開ページには音声プレビューとゲーム用途の説明があるが、試聴による最終的な用途・曲調評価は後続の人作業とする。
+この7曲はページ上の追加選定候補であり、今回ユーザーによる取得・配置まで完了した。ただし、実ファイル数・ファイル名・非0バイト以外の詳細、ライセンス適用範囲、内部構造、用途・曲調は後続WBSで確認するため、「利用可能確定20曲」や追加A確定曲にはまだ加えない。
 
 ### 既存候補の再評価と代表的な除外
 
@@ -203,18 +203,20 @@ D 4曲はPocket Sweeperへの採用、商用利用、元UGE/ASM公開、ルー�
 
 ## 利用可能曲数の定義と集計
 
-分母を明記する。ページ確認曲数の分母は36曲、実ファイル確認曲数の分母は18曲である。今回の既存18曲はA〜Dを確定し、objetdiscretの追加7曲は選定候補・取得待ち、lillstrumpa vol.1〜3の11曲は個別ファイル未確認のため未判定である。
+分母を明記する。ページ確認曲数の分母は36曲、実ファイル詳細確認済み曲数の分母は18曲である。今回の既存18曲はA〜Dを確定し、objetdiscretの追加7曲は取得済み・実ファイル詳細確認待ち、lillstrumpa vol.1〜3の11曲は個別ファイル未確認のため未判定である。
 
 | 指標 | 曲数 | 分母・意味 |
 |---|---:|---|
 | 配布ページ上で曲名・曲数を確認 | 36 | vol.1〜3、Yogi #1/#2、objetdiscretのページ記載分。vol.4/#5暫定表示は除外 |
 | 配布ページ上で存在だけ確認した追加候補 | 10 | lillstrumpa vol.4/#5の暫定曲数。内訳・個別ページ未確認 |
 | 配布ページ上で個別曲名を確認 | 25 | Yogi #1/#2の18曲、objetdiscretの7曲。lillstrumpa vol.1〜3の11曲は曲名未確認 |
-| 実ファイル名確認済み | 18 | Yogi #1/#2のZIPを取得してファイル一覧を確認できた曲 |
+| 実ファイル配置済み | 25 | Yogi #1/#2の18曲とobjetdiscretの7曲。詳細確認済み数とは別 |
+| 実ファイル詳細確認済み | 18 | Yogi #1/#2のZIPを取得してファイル一覧・対応を確認できた曲 |
 | 実ファイル確認済みUGE | 18 | Yogi #1/#2のZIP内UGEファイル（曲名対応まで確認、詳細内容は未解析） |
 | 実ファイル確認済みASM | 0 | ASMを取得して内容を確認できた曲 |
-| ページ上の追加選定候補 | 7 | objetdiscretの7 UGE。実ファイル取得待ちで、利用可能確定数には未算入 |
-| 追加候補の取得待ち | 7 | itch.ioのName your own price操作・最低価格表示が必要 |
+| ページ上の追加選定候補 | 7 | objetdiscretの7 UGE。取得済みだが詳細確認待ち |
+| 追加候補の取得待ち | 0 | 人による取得・配置は完了 |
+| 追加候補の実ファイル詳細確認待ち | 7 | SHA-256、README/LICENSE、内部曲名・構造、ライセンス適用範囲は未確認 |
 | 曲名対応確定 | 18 | Pack #1 8曲、Pack #2 10曲。配布ページ・README/ファイル名・曲順を照合 |
 | 曲名対応暫定 | 0 | 該当なし |
 | 曲名対応不一致 | 0 | 該当なし |
@@ -232,7 +234,7 @@ D 4曲はPocket Sweeperへの採用、商用利用、元UGE/ASM公開、ルー�
 | 作者問い合わせ待ち | 0 | 問い合わせを行わない運用 |
 | 原曲権利者問い合わせ待ち | 0 | D曲は問い合わせせず採用しない |
 
-ページ確認母数の検算は `11 + 8 + 10 + 7 = 36`。既存対象18曲の判定検算は `A 14 + B 0 + C 0 + D 4 + 未確定 0 = 18`。追加候補は `7曲・UGE 7・ASM 0・取得待ち7` である。実ファイル確認済み曲数は18曲で、そのうち利用可能なA確定曲は14曲である。ページ確認36曲全体では、既存A14、既存D4、追加取得待ち7、既存未判定11である。
+ページ確認母数の検算は `11 + 8 + 10 + 7 = 36`。実ファイル配置済みは `18 + 7 = 25`、実ファイル詳細確認済みは18曲、既存対象18曲の判定検算は `A 14 + B 0 + C 0 + D 4 + 未確定 0 = 18` である。追加7曲は取得済み・詳細確認待ちで、A確定には加算しない。実ファイル確認済み曲数は18曲で、そのうち利用可能なA確定曲は14曲である。ページ確認36曲全体では、既存A14、既存D4、追加取得済み・確認待ち7、既存未判定11である。
 
 ### 作者別・配布元別・ライセンス別・形式別
 
@@ -263,7 +265,7 @@ D 4曲はPocket Sweeperへの採用、商用利用、元UGE/ASM公開、ルー�
 
 ## 偏りの評価と追加収集目標
 
-- 20曲程度を選べるページ上の候補母数があり、実ファイル名確認済みは18曲ある。既存Yogi 18曲のうち、ライセンス適用範囲まで確認して解析コーパスとして利用可能と確定した母数は14曲である。objetdiscret追加7曲は実ファイル取得待ちである。
+- 20曲程度を選べるページ上の候補母数があり、実ファイル詳細確認済みは18曲ある。既存Yogi 18曲のうち、ライセンス適用範囲まで確認して解析コーパスとして利用可能と確定した母数は14曲である。objetdiscret追加7曲は取得済み・実ファイル詳細確認待ちである。
 - 作者は確認済みページ母数では3名、lillstrumpa、Yogi、objetdiscretへ偏っている。特定作者の作風を一般化しないため、後続選定では少なくとも4〜5名を目標にする。
 - 配布元説明はcalm、cozy、cute、background寄りで、戦闘・高速アクション・不穏・恐怖・勝利・短いジングルの実数は未確認である。
 - UGEは配布ページ上で36曲すべてに表示されるが、ASM候補は0曲である。実ファイル取得後も、UGEからのASM exportだけでなく、最初からASMで配布される候補を少なくとも3曲探す。
