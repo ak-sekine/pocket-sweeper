@@ -581,12 +581,12 @@
           - [ ] [Codex] 作者・配布元・ライセンス・形式・用途・曲調の分布を再集計する
           - [ ] [Codex] 不足する用途・曲調・作者・ASM候補を実数に基づいて整理する
           - [ ] [Codex] 利用可能な約20曲を確定し、調査文書とWBSを更新する
-          - [ ] [Codex] 不足する6曲以上を明確な公開ライセンスのUGE／ASM素材から追加選定する
+          - [x] [Codex] 不足する6曲以上を明確な公開ライセンスのUGE／ASM素材から追加選定する
             - [x] [Codex] 公式配布ページとライセンスが明確な追加候補を探す
             - [x] [Codex] remix・cover・第三者楽曲由来の候補を除外する
             - [x] [人] objetdiscret「Fabulous Classical Chiptunes」を公式itch.ioページから取得し、`local/music-source-candidates/objetdiscret-fab-class-tunes/original/`へ配置する
             - [x] [Codex] 取得した追加素材の実ファイル数とライセンス適用範囲を確認する
-            - [ ] [Codex] 確認済み追加素材の用途・曲調を整理する
+            - [x] [Codex] 確認済み追加素材の用途・曲調を整理する
         - [ ] 20曲程度の少数データを統計学習用コーパスではなく設計パターン抽出元として扱う方針を決める
 
       - [ ] 既存Game Boy楽曲から抽出する設計情報を決める

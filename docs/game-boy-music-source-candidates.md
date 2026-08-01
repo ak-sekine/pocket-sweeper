@@ -95,6 +95,41 @@
 
 原曲は公式ページのTrack Listに記載されたBach、Liszt、Beethoven、Chopin、Donaldson、Satie、Mozartの作品で、ページ本文はpublic domain musicを編曲・シーケンスしたものと説明している。これは本プロジェクトの公開一次情報に基づく受入根拠であり、全地域・全権利についての法的保証ではない。特に`My Blue Heaven`については、公式ページがWalter Donaldsonの作品として記載し、公開年・地域別の権利状態を今回独立確認したものではないため、同ページのpublic domain説明をプロジェクト上の根拠として扱う。
 
+### objetdiscret 7曲の用途・曲調（試聴前の暫定整理、2026-08-01）
+
+公式ページはこのパックをGBゲーム用に作成したサウンドトラックと説明し、`.uge`をGB Studio/hUGETracker対応ファイルとして列挙している。また、Track Listで各曲の原曲と作曲家を示している。[公式配布ページ](https://objetdiscret.itch.io/fab-class-tunes)から直接確認できる曲名、ファイル名の用途語、原曲情報を「確定情報」とした。原曲の一般的な音楽的性格は「原曲についての暫定的な説明」であり、objetdiscretによるUGE編曲の聴感を確認したものではない。Pocket Sweeperでの用途、テンポ、音量、緊張感、ループ適性は「用途候補」または「試聴確認待ち」とする。
+
+分類軸は、タイトル、メニュー、通常プレイ、ポーズ、クリア、ゲームオーバー、エンディング、短い演出、その他、未確定の用途区分と、雰囲気・動き・継続再生適性である。継続再生適性は、UGEのSong Version、order、pattern、loop、演奏時間を今回確認していないため、7曲とも試聴・構造確認待ちとした。
+
+| 曲名 | UGEファイル | 原曲 | 原作曲家 | 作者想定用途 | Pocket Sweeper用途候補 | 雰囲気候補 | 動き候補 | 継続再生適性 | 根拠 | 確度 | 試聴確認事項 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Title-Prelude | `01-Title-Prelude.uge` | Prelude in C major | Johann Sebastian Bach | Title（ファイル名） | タイトル、メニュー | 優雅、落ち着いた（原曲一般の印象） | 未確定 | 試聴・構造確認待ち | 公式Track List、`Title`、原曲の一般的性格。UGE版の印象は未確認 | 暫定 | 冒頭の印象、タイトル画面での長さ、ループ境界、音量 |
+| Overworld-Liebestraum | `02-Overworld-Liebestraum.uge` | Liebestraum No. 3 | Franz Liszt | Overworld（ファイル名） | 通常プレイ、メニュー | 優雅、幻想的、穏やか（原曲一般の印象） | 未確定 | 試聴・構造確認待ち | 公式Track List、`Overworld`、原曲の一般的性格 | 暫定 | 長時間再生の疲れ、思考の妨げ、反復時の違和感 |
+| Gallery-Pathetique | `03-Gallery-Pathetique.uge` | Piano Sonata No. 8 (Pathetique) | Ludwig van Beethoven | Gallery（ファイル名） | メニュー、記録・選択画面 | 壮大、緊張感、哀愁（原曲一般の印象） | 未確定 | 試聴・構造確認待ち | 公式Track List、`Gallery`、原曲の一般的性格 | 暫定 | メニュー画面で強すぎないか、原曲のどの部分か、ループ適性 |
+| Underwater-Tristesse | `04-Underwater-Tristesse.uge` | Etude Op. 10, No. 3 (Tristesse) | Frédéric Chopin | Underwater（ファイル名） | 落ち着いた通常プレイ、ポーズ | 哀愁、穏やか、落ち着いた（原曲一般の印象） | 緩やか | 試聴・構造確認待ち | 公式Track List、`Underwater`、原曲の一般的性格 | 暫定 | 静けさの程度、通常プレイで眠くなりすぎないか、音量 |
+| Indoors-Heaven | `05-Indoors-Heaven.uge` | My Blue Heaven | Walter Donaldson | Indoors（ファイル名） | メニュー、通常プレイ | 明るい、軽快（原曲一般の印象） | 未確定 | 試聴・構造確認待ち | 公式Track List、`Indoors`、原曲の一般的性格 | 暫定 | 明るさ・軽快さ、反復適性、SFXとの干渉 |
+| Dream-Gymnopedie | `06-Dream-Gymnopedie.uge` | Gymnopédie No. 1 | Erik Satie | Dream（ファイル名） | ポーズ、落ち着いた画面、エンディング | 幻想的、穏やか、落ち着いた（原曲一般の印象） | 緩やか | 試聴・構造確認待ち | 公式Track List、`Dream`、原曲の一般的性格 | 暫定 | 通常プレイには穏やかすぎないか、演奏時間、ループ境界 |
+| Ending-Rondo | `07-Ending-Rondo.uge` | Piano Sonata No. 11 (Rondo alla Turca) | Wolfgang Amadeus Mozart | Ending（ファイル名） | クリア、エンディング | 軽快、達成感、コミカル（原曲一般の印象） | 活発 | 試聴・構造確認待ち | 公式Track List、`Ending`、原曲の一般的性格 | 暫定 | クリア演出に長すぎないか、達成感、短い演出への切り出し可否 |
+
+#### 用途別の暫定候補
+
+これはPocket Sweeper側の採用候補であり、作者による用途指定の確定表ではない。
+
+| 用途 | 暫定候補 | 状態 |
+|---|---|---|
+| タイトル | Title-Prelude、Dream-Gymnopedie | ファイル名・原曲印象に基づく暫定候補。試聴待ち |
+| メニュー | Title-Prelude、Gallery-Pathetique、Indoors-Heaven | 試聴待ち |
+| 通常プレイ | Overworld-Liebestraum、Underwater-Tristesse、Indoors-Heaven | 長時間再生適性は未確認 |
+| ポーズ | Underwater-Tristesse、Dream-Gymnopedie | 試聴待ち |
+| クリア | Ending-Rondo | ファイル名・原曲印象に基づく暫定候補。試聴待ち |
+| エンディング | Dream-Gymnopedie、Ending-Rondo | 試聴待ち |
+| ゲームオーバー | 該当候補なし | 7曲から無理に割り当てない。試聴後に再評価 |
+| 短い演出 | 該当候補なし | 曲長・構造未確認のため確定しない |
+| その他 | Gallery-Pathetiqueの記録画面候補 | Pocket Sweeper固有用途としては未確定 |
+| 未確定 | 7曲すべての最終用途、テンポ、音量、ループ適性 | 人の試聴・後続構造解析待ち |
+
+試聴時は、タイトル・通常プレイ・ポーズ・クリア・エンディングへの適性、思考を妨げないか、明るさ・穏やかさ・緊張感、ループ境界、1ループの長さ、音量感、CH4/Noiseの目立ち方、既存SFXとの干渉を確認する。今回試聴は実施しておらず、UGE構造も解析していない。人の試聴と後続のSong Version・CH1〜CH4・CH4/Noise・pattern/order/loop確認後に最終用途・曲調を確定する。
+
 ### 既存候補の再評価と代表的な除外
 
 確認日：2026-08-01。lillstrumpa vol.1（4曲）、vol.2（3曲）、vol.3（4曲）は公式ページで作者、UGE形式、CC BY 4.0、GB Studio用途、original chiptune loopsの説明を再確認した。ただし各ページは最低価格購入が必要で、ZIP内部のUGEファイル名・ハッシュ・個別ライセンス適用は未確認のため、11曲は取得待ち候補ではなく既存の未判定候補として扱う。vol.4/vol.5は個別ページ・曲数・対象UGEを確認できないため保留のままとする。
