@@ -109,4 +109,4 @@ WBSを追加するときは、既存最大番号の次の5桁番号でMarkdown�
 
 WBS変更後は検証、Excel再生成、`reports/wbs.xlsx` の確認を行います。MarkdownとExcelが不一致ならMarkdownを正とします。
 
-検証ではYAML各フィールドの型、日付形式、ID・親・依存の循環、`specs` と `related_files` の存在、`source_wbs` の分離、同一親配下の同名を確認します。同名は警告、それ以外の不正はエラーです。Excelの完了条件・証跡は各Markdownの本文から生成され、最上位group別のtask進捗も集計されます。Excelを直接編集せず、必ずMarkdownを更新して再生成してください。
+検証ではYAML各フィールドの型、日付形式、ID・親・依存の循環、`specs` と `related_files` の存在、`source_wbs` の分離、同一親配下の同名を確認します。同名は警告、それ以外の不正はエラーです。Excelの完了条件・証跡は各Markdownの本文から生成され、最上位group別のtask進捗も集計されます。`reports/wbs.xlsx` は読み取り専用推奨として生成されますが、暗号化や完全な編集禁止ではありません。Excelを直接編集せず、変更時はMarkdownを更新してExcelを再生成してください。

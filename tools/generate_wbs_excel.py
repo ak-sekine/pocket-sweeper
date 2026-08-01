@@ -1,5 +1,9 @@
 from pathlib import Path
+import os
 import sys
+import tempfile
+import zipfile
+import xml.etree.ElementTree as ET
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
@@ -7,6 +11,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from validate_wbs import ROOT, TASKS, validate
 
 OUT = ROOT / "reports/wbs.xlsx"
+MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+ET.register_namespace("", MAIN_NS)
 
 def extract_section(text, heading):
     lines = text.splitlines(); start = None
@@ -22,6 +28,30 @@ def extract_section(text, heading):
 def _value(meta, key):
     value = meta.get(key)
     return ", ".join(value) if isinstance(value, list) else (value or "")
+
+def _set_read_only_recommended(source, output):
+    source = Path(source); output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fd, patched_name = tempfile.mkstemp(prefix="wbs-patched-", suffix=".xlsx", dir=output.parent)
+    os.close(fd)
+    try:
+        with zipfile.ZipFile(source, "r") as source_zip, zipfile.ZipFile(patched_name, "w", zipfile.ZIP_DEFLATED) as target_zip:
+            workbook_xml = ET.fromstring(source_zip.read("xl/workbook.xml"))
+            sharing = workbook_xml.find(f"{{{MAIN_NS}}}fileSharing")
+            if sharing is None:
+                sharing = ET.Element(f"{{{MAIN_NS}}}fileSharing")
+                workbook_pr = workbook_xml.find(f"{{{MAIN_NS}}}workbookPr")
+                insert_at = list(workbook_xml).index(workbook_pr) + 1 if workbook_pr is not None else 0
+                workbook_xml.insert(insert_at, sharing)
+            sharing.set("readOnlyRecommended", "1")
+            workbook_data = ET.tostring(workbook_xml, encoding="utf-8", xml_declaration=True)
+            for info in source_zip.infolist():
+                target_zip.writestr(info, workbook_data if info.filename == "xl/workbook.xml" else source_zip.read(info.filename))
+        os.replace(patched_name, output)
+    except Exception:
+        try: os.unlink(patched_name)
+        except FileNotFoundError: pass
+        raise
 
 def _tree(data):
     children = {ident: [] for ident in data}
@@ -81,7 +111,20 @@ def generate_wbs_excel(tasks_dir=TASKS, output=OUT):
         for row in sheet.iter_rows():
             for cell in row: cell.alignment = Alignment(vertical="top", wrap_text=True)
         for i in range(1, sheet.max_column + 1): sheet.column_dimensions[get_column_letter(i)].width = min(52, max(12, max(len(str(sheet.cell(r, i).value or "")) for r in range(1, min(sheet.max_row, 40) + 1)) + 2))
-    output = Path(output); output.parent.mkdir(parents=True, exist_ok=True); wb.save(output); return output
+    output = Path(output); output.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary_name = tempfile.mkstemp(prefix="wbs-generated-", suffix=".xlsx", dir=output.parent)
+    os.close(fd)
+    try:
+        wb.save(temporary_name)
+        _set_read_only_recommended(temporary_name, output)
+    except Exception:
+        try: os.unlink(temporary_name)
+        except FileNotFoundError: pass
+        raise
+    finally:
+        try: os.unlink(temporary_name)
+        except FileNotFoundError: pass
+    return output
 
 def main():
     try: print(generate_wbs_excel())

@@ -1,10 +1,23 @@
 import tempfile
 import unittest
+import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from openpyxl import load_workbook
 from tools.generate_wbs_excel import extract_section, generate_wbs_excel
 
 class GenerateWbsExcelTest(unittest.TestCase):
+    def test_read_only_recommended_xml_and_regeneration(self):
+        output = Path(__file__).parents[1] / "reports" / "wbs.xlsx"
+        generate_wbs_excel(output=output)
+        generate_wbs_excel(output=output)
+        with zipfile.ZipFile(output) as archive:
+            root = ET.fromstring(archive.read("xl/workbook.xml"))
+            namespace = {"main": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+            sharing = root.findall("main:fileSharing", namespace)
+            self.assertEqual(1, len(sharing)); self.assertIn(sharing[0].get("readOnlyRecommended"), {"1", "true"})
+        self.assertIn("WBS一覧", load_workbook(output).sheetnames)
+
     def test_section_extraction_and_empty_section(self):
         text = "# 完了条件\n\n条件1\n条件2\n# 証跡\n\n証跡1\n# その他\n\n除外"
         self.assertEqual("条件1\n条件2", extract_section(text, "完了条件")); self.assertEqual("証跡1", extract_section(text, "証跡")); self.assertEqual("未登録", extract_section("# 完了条件\n\n# 証跡\n\n", "完了条件"))
