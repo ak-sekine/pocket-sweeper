@@ -37,13 +37,15 @@ def _set_read_only_recommended(source, output):
     try:
         with zipfile.ZipFile(source, "r") as source_zip, zipfile.ZipFile(patched_name, "w", zipfile.ZIP_DEFLATED) as target_zip:
             workbook_xml = ET.fromstring(source_zip.read("xl/workbook.xml"))
-            sharing = workbook_xml.find(f"{{{MAIN_NS}}}fileSharing")
-            if sharing is None:
-                sharing = ET.Element(f"{{{MAIN_NS}}}fileSharing")
-                workbook_pr = workbook_xml.find(f"{{{MAIN_NS}}}workbookPr")
-                insert_at = list(workbook_xml).index(workbook_pr) + 1 if workbook_pr is not None else 0
-                workbook_xml.insert(insert_at, sharing)
+            sharing_nodes = workbook_xml.findall(f"{{{MAIN_NS}}}fileSharing")
+            sharing = sharing_nodes[0] if sharing_nodes else ET.Element(f"{{{MAIN_NS}}}fileSharing")
+            for duplicate in sharing_nodes:
+                workbook_xml.remove(duplicate)
             sharing.set("readOnlyRecommended", "1")
+            children = list(workbook_xml)
+            anchors = ("workbookPr", "bookViews", "sheets", "definedNames", "calcPr", "extLst")
+            insert_at = next((i for i, child in enumerate(children) if child.tag.rsplit("}", 1)[-1] in anchors), len(children))
+            workbook_xml.insert(insert_at, sharing)
             workbook_data = ET.tostring(workbook_xml, encoding="utf-8", xml_declaration=True)
             for info in source_zip.infolist():
                 target_zip.writestr(info, workbook_data if info.filename == "xl/workbook.xml" else source_zip.read(info.filename))

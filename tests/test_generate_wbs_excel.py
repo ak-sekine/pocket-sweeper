@@ -16,6 +16,10 @@ class GenerateWbsExcelTest(unittest.TestCase):
             namespace = {"main": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
             sharing = root.findall("main:fileSharing", namespace)
             self.assertEqual(1, len(sharing)); self.assertIn(sharing[0].get("readOnlyRecommended"), {"1", "true"})
+            names = [node.tag.rsplit("}", 1)[-1] for node in root]
+            self.assertLess(names.index("fileSharing"), names.index("workbookPr"))
+            self.assertLess(names.index("fileSharing"), names.index("bookViews"))
+            self.assertLess(names.index("fileSharing"), names.index("sheets"))
         self.assertIn("WBS一覧", load_workbook(output).sheetnames)
 
     def test_section_extraction_and_empty_section(self):
