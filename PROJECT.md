@@ -567,7 +567,7 @@
           - [x] [Codex] 人が手動取得する候補と配置先を整理する
           - [x] [人] Yogi Game Boy Music Pack #1と#2を公式ページから取得する
           - [x] [人] 取得したZIPを指定されたGit追跡対象外ディレクトリへ配置する
-          - [ ] [Codex] 取得したZIPのファイル一覧・SHA-256・README・LICENSEを確認する
+          - [x] [Codex] 取得したZIPのファイル一覧・SHA-256・README・LICENSEを確認する
           - [ ] [Codex] UGE・ASMの実ファイル数と曲名の対応を確認する
           - [ ] [Codex] 曲単位でライセンス適用範囲とA〜D区分を確定する
           - [ ] [Codex] UGEからSong Version・CH1〜CH4・CH4/Noise・loop構造を確認する

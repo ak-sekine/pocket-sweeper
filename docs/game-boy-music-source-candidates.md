@@ -4,11 +4,11 @@
 
 ## 調査範囲と結論
 
-確認日：2026-08-01。対象は、hUGETrackerのUGEまたはhUGEDriver ASMとして論理構造を解析できる可能性があるGame Boy向け楽曲配布元である。配布ページ上の説明とライセンス表示を一次情報として確認したが、購入・ダウンロードが必要なZIPの内部ファイル、UGE個数、ASM export、README、同梱ライセンスファイルはこの調査環境から取得できなかった。したがって、ページ記載曲数と実ファイル確認数を混同しない。
+確認日：2026-08-01。対象は、hUGETrackerのUGEまたはhUGEDriver ASMとして論理構造を解析できる可能性があるGame Boy向け楽曲配布元である。配布ページ上の説明とライセンス表示に加え、今回Yogi #1/#2の取得済みZIPを展開せずに検査し、Git追跡対象外の作業領域へ展開してファイル一覧・ハッシュ・README/LICENSE候補を確認した。ページ記載曲数と実ファイル確認数を混同しない。
 
 配布ページ上で収録曲数を確認できた候補は29曲である。個別曲名まで確認できたのはYogi #1/#2の18曲で、lillstrumpa vol.1〜3の11曲はパック単位の曲数だけを確認した。前回の暫定31曲に含まれていた lillstrumpa vol.4（6曲）とvol.5（4曲）は、作者ページで商品の存在と方向性は確認できるが、個別ページ本文で収録曲数を確認できなかったため、29曲の合計には含めない。
 
-この29曲について実ファイルを確認できたUGEは0曲、ASMは0曲である。したがって、現時点の「商用ゲーム向けルールの根拠として利用可能な曲数」「元データをGitHubで管理できる曲数」は、確認済みの実ファイルを母数にすると0曲である。これは配布元が利用を禁止しているという意味ではなく、取得内容・対象ファイル・ライセンス適用範囲を確認できていないため、Pocket SweeperのA〜D受入判定を確定していないという意味である。
+この29曲のうち、今回実ファイル名を確認できたのはYogi #1/#2の18曲で、UGEは18曲、ASMは0曲である。現時点の「商用ゲーム向けルールの根拠として利用可能な曲数」「元データをGitHubで管理できる曲数」は、ライセンス適用範囲や詳細解析が未確認のため0曲のままである。これは配布元が利用を禁止しているという意味ではなく、取得内容・対象ファイル・ライセンス適用範囲を確認できていないため、Pocket SweeperのA〜D受入判定を確定していないという意味である。
 
 ## 配布元の確認記録
 
@@ -19,8 +19,8 @@
 | lillstrumpa vol.3 | 4 | UGE、WAV | CC BY 4.0 | UGE 0、ASM 0 | 未判定（A候補） | 4 loops、calm/background向けの説明。個別曲の用途・曲調、ZIP内部は未確認 |
 | lillstrumpa vol.4 | 6（作者ページの暫定表示。個別本文未確認） | UGEを含む旨の作者説明 | CC BY 4.0の個別適用未確認 | UGE 0、ASM 0 | 未判定 | 商品の存在、Soft chiptune loops for GB Studio and GameBoyは作者ページで確認。曲数・個別ライセンス・ZIP内部は未確認 |
 | lillstrumpa vol.5 | 4（作者ページの暫定表示。個別本文未確認） | UGEを含む旨の作者説明 | CC BY 4.0の個別適用未確認 | UGE 0、ASM 0 | 未判定 | 商品の存在、Cute loops in uge-formatは作者ページで確認。曲数・個別ライセンス・ZIP内部は未確認 |
-| Yogi（Tronimal）Game Boy Music Pack #1 | 8 | UGE | CC BY 4.0 | UGE 0、ASM 0 | 曲単位で判定 | remix、tribute、influence等が混在。原曲権利者・編曲許諾・UGE再配布条件は未確認 |
-| Yogi（Tronimal）Game Boy Music Pack #2 | 10 | UGE | CC BY 4.0 | UGE 0、ASM 0 | 未判定（A候補） | Decampment、Only Hope、Walking Outdoors、Absent、Roam The World、Whirlwind、Tech、Gone Missing、That Morning、Closing。個別曲の権利関係、ZIP内部、UGE個数は未確認 |
+| Yogi（Tronimal）Game Boy Music Pack #1 | 8 | UGE | CC BY表示（READMEはCC-BY 2025表記） | UGE 8、ASM 0 | 曲単位で判定 | remix、tribute、influence等が混在。原曲権利者・編曲許諾・UGE再配布条件は未確認 |
+| Yogi（Tronimal）Game Boy Music Pack #2 | 10 | UGE | 配布ページ表示はCC BY 4.0、同梱記載なし | UGE 10、ASM 0 | 未判定（A候補） | ZIP実体で10曲のUGEを確認。個別曲の権利関係・UGE再配布条件は未確認 |
 
 ### 一次情報
 
@@ -29,9 +29,45 @@
 - [lillstrumpa Game Boy Music for GB Studio vol.3](https://lillstrumpa.itch.io/music-pack-for-gb-studio-vol3)：4 loops、UGE/WAV、作者、CC BY 4.0を確認。ZIP内部は未取得。
 - [lillstrumpa作者ページ](https://lillstrumpa.itch.io/)：vol.4、vol.5の存在、作者の制作方針、UGEを含むパックであることを確認。ただし個別ページの曲数・適用ライセンスは未確認。
 - [Yogi Game Boy Music Pack #1](https://yogi-tronimal.itch.io/game-boy-music-pack)：8曲、各曲名、UGE、CC BY 4.0、remix/tribute/influenceの記載を確認。作者コメントの「commercial games」許可も確認したが、原曲権利者の許諾を代替しない。
-- [Yogi Game Boy Music Pack #2](https://yogi-tronimal.itch.io/game-boy-music-pack-2)：10曲、各曲名、UGE、CC BY 4.0を確認。ZIP内部は未取得。
+- [Yogi Game Boy Music Pack #2](https://yogi-tronimal.itch.io/game-boy-music-pack-2)：10曲、各曲名、UGE、CC BY 4.0を確認。取得ZIP内でも10個のUGEを確認した。
 
-ライセンス本文の一般条件は、既存の [`docs/sound-spec.md`](sound-spec.md) に記録したCreative Commons公式情報を参照する。今回の候補調査では、配布ページの「Asset license」表示を確認しただけであり、各ZIP内のライセンスファイルや個別UGEへの著作権表示までは確認していない。
+ライセンス本文の一般条件は、既存の [`docs/sound-spec.md`](sound-spec.md) に記録したCreative Commons公式情報を参照する。今回の候補調査では、Pack #1 README内の「Tronimal - CC-BY 2025」と第三者作品由来の記載、Pack #2の同梱ファイル不在を確認した。これは個別UGEへのライセンス適用範囲や原曲権利者の許諾を最終確定するものではない。
+
+## 取得済みZIPの実ファイル確認（2026-08-01）
+
+元素材のZIPと展開後ファイルは `.gitignore` の `local/music-source-candidates/` 配下に置き、Git管理へ追加しない。ZIPは暗号化されておらず、`unzip -t` は両方とも `No errors detected` となった。ZIP内部のパスに絶対パスまたは `..` はなく、展開は `unzip -n` で既存ファイルを上書きせず実施した。単純な拡張子集計であり、UGEの曲名・構造・ライセンス適用範囲の詳細解析は後続WBSで行う。
+
+### Pack #1（Yogi Game Boy Music Pack #1）
+
+- ZIP：`local/music-source-candidates/yogi-pack1/original/Free Game Boy Music Pack.zip`
+- サイズ：25,082 bytes
+- SHA-256：`3ad5fd2ad0e081e10427722bcd873dbd650634fd6a6db2cd40d4ff8a2d13a581`
+- ZIPテスト・形式：ZIP、非暗号化、`unzip -t` 成功
+- 内部件数：ファイル9、ディレクトリ1（配布ページ記載8曲と一致）
+- 拡張子別：UGE 8、ASM 0、INC 0、WAV 0、MP3 0、OGG 0、TXT 1、MD 0、その他0
+- UGE一覧：`free_01_hypergolic_blast_off.uge`、`free_02_blue_ocean_remix.uge`、`free_03_darkstone_remix.uge`、`free_04_neurotic_robonaut.uge`、`free_05_hideout.uge`、`free_06_delight.uge`、`free_07_observing_jupiter.uge`、`free_08_terminate.uge`
+- README候補：`Free Game Boy Music Pack/readme.txt`
+- LICENSE候補：なし
+- その他の記載候補：README内に `Tronimal - CC-BY 2025`、`based on` 3曲、`tribute` 1曲、`influenced by` 1曲の記載。第三者原曲の権利・許諾は未確認
+- 展開先：`local/music-source-candidates/yogi-pack1/extracted/`
+- Git：ZIP・展開後代表ファイルとも除外確認済み
+- 未確認：UGE詳細、曲名対応の確定、個別ライセンス適用範囲、原曲権利・編曲許諾、試聴・用途・曲調、A〜D確定
+
+### Pack #2（Yogi Game Boy Music Pack #2）
+
+- ZIP：`local/music-source-candidates/yogi-pack2/original/Game Boy Music Pack.zip`
+- サイズ：25,351 bytes
+- SHA-256：`8ecc7cac7f21de233f0532023002fd2b48ef17d71c0a75f6917c4eb2b4cd16fc`
+- ZIPテスト・形式：ZIP、非暗号化、`unzip -t` 成功
+- 内部件数：ファイル10、ディレクトリ1（配布ページ記載10曲と一致）
+- 拡張子別：UGE 10、ASM 0、INC 0、WAV 0、MP3 0、OGG 0、TXT 0、MD 0、その他0
+- UGE一覧：`01_decampment.uge`、`02_only_hope.uge`、`03_walking_outdoors.uge`、`04_absent.uge`、`05_roam_the_world.uge`、`06_whirlwind.uge`、`07_tech.uge`、`08_gone_missing.uge`、`09_that_morning.uge`、`10_closing.uge`
+- README候補：なし
+- LICENSE候補：なし
+- その他の記載候補：なし（安全にテキストとして読める記載ファイルなし）
+- 展開先：`local/music-source-candidates/yogi-pack2/extracted/`
+- Git：ZIP・展開後代表ファイルとも除外確認済み
+- 未確認：README相当の配布条件、個別ライセンス適用範囲、各曲の作者・権利関係、UGE詳細、曲名対応の確定、試聴・用途・曲調、A〜D確定
 
 ### Yogi Game Boy Music Pack #1の曲単位判定
 
@@ -59,8 +95,8 @@ Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8
 | 配布ページ上で曲名・曲数を確認 | 29 | vol.1〜3、Yogi #1/#2のページ記載分。vol.4/#5暫定表示は除外 |
 | 配布ページ上で存在だけ確認した追加候補 | 10 | lillstrumpa vol.4/#5の暫定曲数。内訳・個別ページ未確認 |
 | 配布ページ上で個別曲名を確認 | 18 | Yogi #1/#2。lillstrumpa vol.1〜3の11曲は曲名未確認 |
-| 実ファイル名確認済み | 0 | ZIPを取得してファイル一覧を確認できた曲 |
-| 実ファイル確認済みUGE | 0 | UGEを取得して内容を確認できた曲 |
+| 実ファイル名確認済み | 18 | Yogi #1/#2のZIPを取得してファイル一覧を確認できた曲 |
+| 実ファイル確認済みUGE | 18 | Yogi #1/#2のZIP内UGEファイル（詳細内容は未解析） |
 | 実ファイル確認済みASM | 0 | ASMを取得して内容を確認できた曲 |
 | ライセンス適用範囲まで確認済み | 0 | 個別UGE/ASMまたは同梱条件まで照合できた曲 |
 | A（公開・商用利用可）確定 | 0 | 実ファイルと対象範囲の確認後に確定する区分 |
@@ -104,7 +140,7 @@ Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8
 
 ## 偏りの評価と追加収集目標
 
-- 20曲程度を選べるページ上の候補母数はあるが、実ファイル確認済みは0曲なので、解析コーパスとしての利用可能母数はまだ0曲である。
+- 20曲程度を選べるページ上の候補母数があり、実ファイル名確認済みは18曲ある。ただしライセンス適用範囲・詳細構造・試聴が未確認なので、解析コーパスとして利用可能と確定した母数はまだ0曲である。
 - 作者は確認済み母数では2名、lillstrumpaとYogiへ偏っている。特定作者の作風を一般化しないため、後続選定では少なくとも4〜5名を目標にする。
 - 配布元説明はcalm、cozy、cute、background寄りで、戦闘・高速アクション・不穏・恐怖・勝利・短いジングルの実数は未確認である。
 - UGEは配布ページ上で29曲すべてに表示されるが、ASM候補は0曲である。実ファイル取得後も、UGEからのASM exportだけでなく、最初からASMで配布される候補を少なくとも3曲探す。
@@ -135,7 +171,7 @@ Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8
 
 ## 未確認事項
 
-- 各ZIPを取得した後のUGEファイル数、ファイル名、Song Version、OrderMatrix、pattern、Instrument、Wave/Noise、loop表現。
+- 各UGEのSong Version、OrderMatrix、pattern、Instrument、Wave/Noise、loop表現。
 - hUGEDriver ASMが同梱されるか、またはUGEから再ExportしたASMを解析対象としてよいか。
 - 個別UGEに作者・著作権・ライセンス情報が埋め込まれているか。
 - lillstrumpa vol.4/#5の個別曲数、曲名、個別ページのライセンス表示。
