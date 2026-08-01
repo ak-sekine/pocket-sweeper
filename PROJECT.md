@@ -575,7 +575,7 @@
             - [x] [Codex] Pack #1の残り4曲をCC BY 4.0の採用候補として確定する
             - [x] [Codex] Pack #2の10曲をCC BY 4.0の採用候補として確定する
             - [x] [Codex] 14曲の帰属・改変・再配布条件を整理する
-          - [ ] [Codex] UGEからSong Version・CH1〜CH4・CH4/Noise・loop構造を確認する
+          - [x] [Codex] UGEからSong Version・CH1〜CH4・CH4/Noise・loop構造を確認する
           - [ ] [人] 確認対象曲を試聴して用途・曲調を評価する
           - [ ] [Codex] 人の試聴結果と配布元情報を基に用途・曲調を曲単位で整理する
           - [ ] [Codex] 作者・配布元・ライセンス・形式・用途・曲調の分布を再集計する

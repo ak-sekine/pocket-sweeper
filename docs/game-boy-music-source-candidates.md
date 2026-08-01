@@ -47,7 +47,7 @@
 
 | 配布元 | パック名 | 公式URL | ページ記載曲数 | 個別曲名 | UGE | ASM | ライセンス | 商用利用 | 改変 | 元UGE公開 | 派生ASM公開 | 帰属 | 第三者由来 | 取得方法 | 状態 | 根拠・残課題 |
 |---|---|---|---:|---|---:|---:|---|---|---|---|---|---|---|---|---|---|
-| objetdiscret | Fabulous Classical Chiptunes | [itch.io](https://objetdiscret.itch.io/fab-class-tunes) | 7 | Title-Prelude; Overworld-Liebestraum; Gallery-Pathetique; Underwater-Tristesse; Indoors-Heaven; Dream-Gymnopedie; Ending-Rondo | 7（確認済み） | 0 | CC BY 4.0 | 可 | 可 | 条件付きで可 | 条件付きで可 | 作者名、曲名、公式URL、CC BY 4.0、ライセンスURL、改変表示 | なし（公式ページ上。原曲はpublic domain作品として説明） | 人手（取得・配置完了） | 実ファイル・ライセンス確認済み／A | 7 UGE、ファイル名・サイズ・SHA-256・非0バイトを確認。README/LICENSEなし。内部曲名・構造は未確認 |
+| objetdiscret | Fabulous Classical Chiptunes | [itch.io](https://objetdiscret.itch.io/fab-class-tunes) | 7 | Title-Prelude; Overworld-Liebestraum; Gallery-Pathetique; Underwater-Tristesse; Indoors-Heaven; Dream-Gymnopedie; Ending-Rondo | 7（確認済み） | 0 | CC BY 4.0 | 可 | 可 | 条件付きで可 | 条件付きで可 | 作者名、曲名、公式URL、CC BY 4.0、ライセンスURL、改変表示 | なし（公式ページ上。原曲はpublic domain作品として説明） | 人手（取得・配置完了） | 実ファイル・ライセンス確認済み／A | 7 UGE、ファイル名・サイズ・SHA-256・非0バイト・内部Song Name・構造を確認。README/LICENSEなし |
 
 #### 曲単位の追加候補
 
@@ -61,7 +61,7 @@
 | Dream-Gymnopedie | `06-Dream-Gymnopedie.uge` | Gymnopédie No. 1 — Erik Satie | UGE | CC BY 4.0 | A |
 | Ending-Rondo | `07-Ending-Rondo.uge` | Piano Sonata No. 11 / Rondo alla Turca — Wolfgang Amadeus Mozart | UGE | CC BY 4.0 | A |
 
-この7曲は、公式ページに列挙された7個のUGEと配置済み実ファイルが一意に対応し、全て非空のバイナリファイルであることを確認した。公式ページは`.flac`と`.uge`をCC BY 4.0の対象と明記し、商用利用・改変・共有はCC BY 4.0の条件下で可能である。原曲は公式ページがpublic domain musicとして説明しているため、今回の受入基準では7曲をAとする。ただし、内部Song Name・Song Version・チャンネル・pattern/order/loop等の構造、用途・曲調は後続WBSで確認する。
+この7曲は、公式ページに列挙された7個のUGEと配置済み実ファイルが一意に対応し、全て非空のバイナリファイルであることを確認した。公式ページは`.flac`と`.uge`をCC BY 4.0の対象と明記し、商用利用・改変・共有はCC BY 4.0の条件下で可能である。原曲は公式ページがpublic domain musicとして説明しているため、今回の受入基準では7曲をAとする。内部Song Name、Song Version、チャンネル、pattern/order/loop等の構造は2026-08-01に確認したが、用途・曲調は試聴後の確認事項として残す。
 
 #### objetdiscret実ファイル確認（2026-08-01）
 
@@ -181,7 +181,7 @@
 
 ### Yogi #1/#2 実ファイルと曲名の対応
 
-UGE内部曲名は、リポジトリ内に既存のUGE読み取りツールがなく、hUGETrackerも実行環境にないため、未確認とした。バイナリからUTF-16LEらしい可読文字列は得られるが、それだけでは内部Song Nameの確定根拠としない。以下の対応判定は、配布ページ、Pack #1 README、曲順、ファイル名を照合した結果である。Pack #2にはREADMEがない。今回の確認では配布ZIPにASM/INCはなく、UGEからのASM exportも実施していない。
+以下の対応判定は、配布ページ、Pack #1 README、曲順、ファイル名を照合した結果である。Pack #2にはREADMEがない。今回の構造解析ではA曲21曲について内部Song Nameも固定長文字列として読み取った。D曲4曲は構造解析の集計対象外であり、内部Song Nameも今回更新しない。配布ZIPにASM/INCはなく、UGEからのASM exportも実施していない。
 
 #### Pack #1
 
@@ -211,7 +211,61 @@ UGE内部曲名は、リポジトリ内に既存のUGE読み取りツールが�
 | 9 | That Morning | なし | `09_that_morning.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
 | 10 | Closing | なし | `10_closing.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
 
-対応集計は、確定18曲、暫定0曲、不一致0曲、確認不能0曲である。実ファイルはPack #1 UGE 8件、Pack #2 UGE 10件の計18件、ASM 0件、INC 0件で、空ファイル・同一内容ファイル・ファイル名重複は確認されなかった。配布ページ記載曲数（8曲、10曲）とも一致する。UGE内部曲名の確認、Song Version・CH1〜CH4・CH4/Noise・loop構造、ライセンス適用範囲、試聴は後続WBSで扱う。
+対応集計は、確定18曲、暫定0曲、不一致0曲、確認不能0曲である。実ファイルはPack #1 UGE 8件、Pack #2 UGE 10件の計18件、ASM 0件、INC 0件で、空ファイル・同一内容ファイル・ファイル名重複は確認されなかった。配布ページ記載曲数（8曲、10曲）とも一致する。A曲21曲のUGE内部曲名、Song Version・CH1〜CH4・CH4/Noise・loop構造は後述の構造解析で確認し、試聴は後続WBSで扱う。
+
+## A曲21曲のUGE構造解析（2026-08-01）
+
+### 解析条件と方法
+
+対象は、曲単位表でAと判定したYogi #1の4曲、Yogi #2の10曲、objetdiscretの7曲の計21曲である。D判定4曲とlillstrumpaの未判定11曲は解析・集計から除外した。入力ファイルはGit追跡対象外の`local/music-source-candidates/`配下から明示的に指定し、元UGEは変更していない。
+
+既存の`tools/json_to_uge.py`に定義されたSong Version 6の固定構造（45 Instrument record、16 Wave bank、64行Pattern、4本のOrder、Routine record）を根拠に、読み取り専用の`tools/analyze_uge.py`を追加した。Pattern cellのnote、instrument、volume、effect、effect parameterを読み、参照Orderに非空cellがある場合を構造上の「使用」とした。CH4については、Noise用Patternに非空cellがあるか、loop範囲内に非空Patternがあるかを記録した。
+
+明示的なloopは、hUGEDriver公式ソースのB（position jump）effectを検出し、1-basedのeffect parameterを0-basedのorderへ変換した。B effectがない曲は、通常のhUGEDriverのorder循環に基づく「明示Bなし・全order循環」と記録した。これはデータ上の制御構造であり、音楽的に自然なloopであること、実機・エミュレータでの再生結果を意味しない。Song Version 6以外は解析を拒否する。
+
+機械可読結果は、`.gitignore`で除外される`build/analysis/uge-structure-a.json`へ出力した。各曲のSHA-256、内部Song Name、Pattern key、チャンネル別Order列、非空Pattern、loop内Pattern、position jumpを含む。D曲のファイルは入力に含めていない。
+
+### 曲単位概要
+
+Pattern欄は各チャンネルの`unique参照数/非空unique数`、loop欄は`kind start-end`（endはinclusive）である。`implicit_full_order_cycle`は明示B effectなし、`explicit_position_jump`はB effectありを示す。
+
+| UGEファイル | Song Version | 内部Song Name | CH1/CH2/CH3/CH4 | order数 | Pattern（CH1/CH2/CH3/CH4） | loop | intro order数 | order整合 |
+|---|---:|---|---|---:|---|---|---:|---|
+| `free_04_neurotic_robonaut.uge` | 6 | Neurotic Robonaut GB | 使用/使用/使用/使用 | 38 | 20/14, 20/17, 20/15, 20/11 | explicit 0-37 | 0 | 一致 |
+| `free_05_hideout.uge` | 6 | Hideout | 使用/使用/使用/使用 | 18 | 9/9, 9/7, 9/9, 9/6 | explicit 4-17 | 4 | 一致 |
+| `free_06_delight.uge` | 6 | Delight | 使用/使用/使用/空 | 16 | 8/7, 8/8, 8/7, 8/0 | implicit 0-15 | 0 | 一致 |
+| `free_08_terminate.uge` | 6 | Terminate | 使用/使用/使用/使用 | 26 | 16/16, 16/12, 16/16, 16/16 | explicit 4-25 | 4 | 一致 |
+| `01_decampment.uge` | 6 | Decampment | 使用/使用/使用/使用 | 20 | 15/14, 15/15, 15/15, 15/8 | explicit 6-19 | 6 | 一致 |
+| `02_only_hope.uge` | 6 | Only Hope | 使用/使用/使用/使用 | 12 | 7/7, 7/7, 7/7, 7/1 | explicit 4-11 | 4 | 一致 |
+| `03_walking_outdoors.uge` | 6 | Walking Outdoors | 使用/使用/使用/使用 | 14 | 8/8, 8/8, 8/8, 8/6 | explicit 2-13 | 2 | 一致 |
+| `04_absent.uge` | 6 | Absent | 使用/使用/使用/使用 | 12 | 5/5, 5/5, 5/5, 5/3 | implicit 0-11 | 0 | 一致 |
+| `05_roam_the_world.uge` | 6 | Roam The World | 使用/使用/使用/使用 | 8 | 6/6, 6/6, 6/6, 6/4 | implicit 0-7 | 0 | 一致 |
+| `06_whirlwind.uge` | 6 | Whirlwind | 使用/使用/使用/使用 | 24 | 20/19, 20/12, 20/20, 20/17 | explicit 4-23 | 4 | 一致 |
+| `07_tech.uge` | 6 | Tech | 使用/使用/使用/使用 | 14 | 9/9, 9/9, 9/9, 9/8 | explicit 8-13 | 8 | 一致 |
+| `08_gone_missing.uge` | 6 | Gone Missing | 使用/使用/使用/使用 | 12 | 8/8, 8/8, 8/8, 8/5 | explicit 6-11 | 6 | 一致 |
+| `09_that_morning.uge` | 6 | That Morning | 使用/使用/使用/空 | 6 | 6/6, 6/6, 6/6, 6/0 | explicit 4-5 | 4 | 一致 |
+| `10_closing.uge` | 6 | Closing | 使用/使用/使用/空 | 12 | 6/6, 6/6, 6/6, 6/0 | implicit 0-11 | 0 | 一致 |
+| `01-Title-Prelude.uge` | 6 | Prelude in C major | 使用/使用/空/空 | 4 | 4/4, 4/2, 4/0, 4/0 | implicit 0-3 | 0 | 一致 |
+| `02-Overworld-Liebestraum.uge` | 6 | Liebestraum No. 3 | 使用/使用/使用/空 | 4 | 4/3, 4/4, 4/4, 4/0 | implicit 0-3 | 0 | 一致 |
+| `03-Gallery-Pathetique.uge` | 6 | Piano Sonata No. 8 (Pathetique) | 使用/使用/使用/空 | 7 | 7/7, 7/7, 7/2, 7/0 | implicit 0-6 | 0 | 一致 |
+| `04-Underwater-Tristesse.uge` | 6 | Etude Op. 10, No. 3 (Tristesse) | 使用/使用/空/空 | 5 | 4/4, 4/4, 4/0, 4/0 | implicit 0-4 | 0 | 一致 |
+| `05-Indoors-Heaven.uge` | 6 | My Blue Heaven | 使用/使用/使用/空 | 6 | 4/4, 4/4, 4/4, 4/0 | implicit 0-5 | 0 | 一致 |
+| `06-Dream-Gymnopedie.uge` | 6 | Gymnopedie No. 1 | 使用/使用/使用/空 | 15 | 13/13, 13/13, 13/12, 13/0 | implicit 0-14 | 0 | 一致 |
+| `07-Ending-Rondo.uge` | 6 | Piano Sonata No. 11 (Rondo Alla Turca) | 使用/使用/空/空 | 8 | 4/4, 4/4, 4/0, 4/0 | implicit 0-7 | 0 | 一致 |
+
+### CH4／Noiseとloop集計
+
+- CH1使用: 21曲、CH2使用: 21曲、CH3使用: 18曲、CH4使用: 11曲。空: CH3 3曲、CH4 10曲。定義のみ・解析不能は0曲。
+- CH4使用曲: Neurotic Robonaut、Hideout、Terminate、Decampment、Only Hope、Walking Outdoors、Absent、Roam The World、Whirlwind、Tech、Gone Missing。
+- CH4未使用曲: Delight、That Morning、Closing、Title-Prelude、Overworld-Liebestraum、Gallery-Pathetique、Underwater-Tristesse、Indoors-Heaven、Dream-Gymnopedie、Ending-Rondo。
+- CH4のloop範囲内に非空Patternがある曲は、CH4使用11曲のうち11曲。CH4の非空Patternがloop外だけにある曲は0曲。
+- 明示B effectによるloopあり: 10曲。明示B effectなしの全order循環: 11曲。loop開始orderは`0, 2, 4, 6, 8`等の構造上の値として記録し、音楽的な自然さは判定していない。
+- すべての曲で4チャンネルのorder数は一致した。チャンネル別Pattern数や非空Pattern数には差がある。
+- CH4のnote／instrument／effect等の非空cellとPattern再利用を数えたが、ドラム、ハイハット、スネア等の音楽的役割は判定していない。
+
+### 未確認事項
+
+内部構造としてSong Version、内部Song Name、CH1〜CH4の非空Pattern、Order、Pattern参照、構造上のloopを確認した。一方、音楽的に自然なloopか、実際のテンポ、演奏時間、音量、CH4の聴感上の役割、SFXとの干渉、用途・曲調の最終判断は未確認である。試聴と、必要に応じた詳細なnote length・volume・音域・instrument・Wave table・Noise instrument解析は後続WBSに残す。
 
 ## 18曲の曲単位ライセンス判定（更新）
 
@@ -280,7 +334,7 @@ D 4曲はPocket Sweeperへの採用、商用利用、元UGE/ASM公開、ルー�
 | 配布ページ上で個別曲名を確認 | 25 | Yogi #1/#2の18曲、objetdiscretの7曲。lillstrumpa vol.1〜3の11曲は曲名未確認 |
 | 実ファイル配置済み | 25 | Yogi #1/#2の18曲とobjetdiscretの7曲。詳細確認済み数とは別 |
 | 実ファイル詳細確認済み | 25 | Yogi #1/#2の18曲とobjetdiscretの7曲。ファイル一覧・対応・ハッシュを確認 |
-| 実ファイル確認済みUGE | 25 | Yogi #1/#2の18曲とobjetdiscretの7曲。UGE内部構造は未解析 |
+| 実ファイル確認済みUGE | 25 | Yogi #1/#2の18曲とobjetdiscretの7曲。A曲21曲の構造解析を確認済み |
 | 実ファイル確認済みASM | 0 | ASMを取得して内容を確認できた曲 |
 | ページ上の追加選定候補 | 7 | objetdiscretの7 UGE。実ファイル・ライセンス確認済み |
 | 追加候補の取得待ち | 0 | 人による取得・配置は完了 |
@@ -289,15 +343,15 @@ D 4曲はPocket Sweeperへの採用、商用利用、元UGE/ASM公開、ルー�
 | 曲名対応暫定 | 0 | 該当なし |
 | 曲名対応不一致 | 0 | 該当なし |
 | 曲名対応確認不能 | 0 | 該当なし |
-| ライセンス適用範囲まで確認済み | 14 | 今回のA曲。公式Asset license、対象パック、UGE対応を確認 |
-| A（公開・商用利用可）確定 | 14 | Yogi #1の4曲、#2の10曲。公開一次情報上の受入判定 |
+| ライセンス適用範囲まで確認済み | 21 | 今回のA曲。公式Asset license、対象パック、UGE対応を確認 |
+| A（公開・商用利用可）確定 | 21 | Yogi #1の4曲、#2の10曲、objetdiscretの7曲。公開一次情報上の受入判定 |
 | B（解析・ローカル限定）確定 | 0 | 解析・変換・非公開保管の条件まで確認できた曲 |
 | C（一般化結果のみ）確定 | 0 | 元を再現しない結果の利用条件まで確認できた曲 |
 | D（採用しない） | 4 | Pack #1のbased on/remix 3曲とtribute 1曲。問い合わせは行わない |
 | A〜D未判定 | 11 | lillstrumpa vol.1〜3の個別曲（今回対象外） |
-| 商用ゲーム向けルール根拠として利用可能 | 14 | A曲。CC BY 4.0条件と帰属を適用 |
-| 元データをGitHub管理可能 | 14 | CC BY 4.0の帰属・変更表示・URL付きで条件付き可 |
-| 派生ASMをGitHub公開可能 | 14 | 改変物として変更表示・帰属・URL付きで条件付き可 |
+| 商用ゲーム向けルール根拠として利用可能 | 21 | A曲。CC BY 4.0条件と帰属を適用 |
+| 元データをGitHub管理可能 | 21 | CC BY 4.0の帰属・変更表示・URL付きで条件付き可 |
+| 派生ASMをGitHub公開可能 | 21 | 改変物として変更表示・帰属・URL付きで条件付き可 |
 | ローカル解析のみ可能 | 0 | A曲は公開根拠として利用し、D曲は解析しない |
 | 作者問い合わせ待ち | 0 | 問い合わせを行わない運用 |
 | 原曲権利者問い合わせ待ち | 0 | D曲は問い合わせせず採用しない |
@@ -310,7 +364,7 @@ D 4曲はPocket Sweeperへの採用、商用利用、元UGE/ASM公開、ルー�
 |---|---|
 | 作者 | lillstrumpa 11曲（30.6%）、Yogi 18曲（50.0%）、objetdiscret 7曲（19.4%） |
 | 配布元 | lillstrumpa vol.1〜3 11曲、Yogi #1/#2 18曲、objetdiscret 7曲 |
-| ライセンス表示 | CC BY 4.0表示あり 36曲（100%）。実ファイル適用確認済みは既存A14曲 |
+| ライセンス表示 | CC BY 4.0表示あり 36曲（100%）。実ファイル適用確認済みはA21曲 |
 | 形式表示 | UGE表示あり 36曲（100%）、WAV/FLAC併記あり、ASM表示 0曲（0%） |
 
 作者ページのvol.4/#5を含めると、作者・配布元の暫定母数は39曲となるが、曲数と個別ライセンスの確認不足があるため、分布集計には使用しない。
@@ -350,7 +404,7 @@ D 4曲はPocket Sweeperへの採用、商用利用、元UGE/ASM公開、ルー�
 | ASMを主形式とする候補 | 3曲 | UGE依存を避け、export差異を比較する |
 | 作者 | 追加で2〜3名 | 作者偏りを緩和する |
 
-現時点で公開一次情報に基づき採用できるのは14曲で、約20曲の目標には6曲以上不足する。後続WBSでは問い合わせで救済せず、公式配布ページと明確な公開ライセンスが確認できるUGE/ASM素材を追加選定する。用途・曲調と構造は後続の解析・試聴WBSで確認する。
+現時点で公開一次情報に基づき採用できるのは21曲である。追加選定は完了し、用途・曲調の最終判断は試聴、構造から抽出する設計情報は後続WBSで確認する。
 
 ## 後続WBSの候補選定方針
 
