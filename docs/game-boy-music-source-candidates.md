@@ -71,6 +71,40 @@
 
 ### Yogi Game Boy Music Pack #1の曲単位判定
 
+### Yogi #1/#2 実ファイルと曲名の対応
+
+UGE内部曲名は、リポジトリ内に既存のUGE読み取りツールがなく、hUGETrackerも実行環境にないため、未確認とした。バイナリからUTF-16LEらしい可読文字列は得られるが、それだけでは内部Song Nameの確定根拠としない。以下の対応判定は、配布ページ、Pack #1 README、曲順、ファイル名を照合した結果である。Pack #2にはREADMEがない。今回の確認では配布ZIPにASM/INCはなく、UGEからのASM exportも実施していない。
+
+#### Pack #1
+
+| 曲順 | 配布ページ曲名 | README曲名 | UGEファイル名 | UGE内部曲名 | 対応判定 | 判定根拠 | 備考 |
+|---:|---|---|---|---|---|---|---|
+| 1 | Hypergolic Blast Off | Hypergolic Blast Off | `free_01_hypergolic_blast_off.uge` | 未確認 | 確定 | 曲順、番号、ファイル名、READMEが一致 | README原文は `Hypergolic Blast  Off`。`based on Creepy Organ` の権利事項は後続 |
+| 2 | Blue Ocean Remix | Blue Ocean Remix | `free_02_blue_ocean_remix.uge` | 未確認 | 確定 | 曲順、番号、ファイル名、READMEが一致 | README原文は `Blue Ocean Remix`。`based on Blue Ocean` の権利事項は後続 |
+| 3 | Darkstone Remix | Darkstone Remix | `free_03_darkstone_remix.uge` | 未確認 | 確定 | 曲順、番号、ファイル名、READMEが一致 | README原文は `Darkstone  Remix`。`based on Darkstone` の権利事項は後続 |
+| 4 | Neurotic Robonaut | Neurotic Robonaut | `free_04_neurotic_robonaut.uge` | 未確認 | 確定 | 曲順、番号、ファイル名、READMEが一致 | README原文は `Neurotic  Robonaut`、内部文字列候補は根拠に不使用 |
+| 5 | Hideout | Hideout | `free_05_hideout.uge` | 未確認 | 確定 | 曲順、番号、ファイル名、READMEが一致 | README記載のPatreon由来事項は後続 |
+| 6 | Delight | Delight | `free_06_delight.uge` | 未確認 | 確定 | 曲順、番号、ファイル名、READMEが一致 | README記載のbased on事項は後続 |
+| 7 | Observing Jupiter | Observing Jupiter | `free_07_observing_jupiter.uge` | 未確認 | 確定 | 曲順、番号、ファイル名、READMEが一致 | README記載のtribute事項は後続 |
+| 8 | Terminate | Terminate | `free_08_terminate.uge` | 未確認 | 確定 | 曲順、番号、ファイル名、READMEが一致 | README原文は `Terminate`。influenced by事項は後続 |
+
+#### Pack #2
+
+| 曲順 | 配布ページ曲名 | README曲名 | UGEファイル名 | UGE内部曲名 | 対応判定 | 判定根拠 | 備考 |
+|---:|---|---|---|---|---|---|---|
+| 1 | Decampment | なし | `01_decampment.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 2 | Only Hope | なし | `02_only_hope.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 3 | Walking Outdoors | なし | `03_walking_outdoors.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 4 | Absent | なし | `04_absent.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 5 | Roam The World | なし | `05_roam_the_world.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 6 | Whirlwind | なし | `06_whirlwind.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 7 | Tech | なし | `07_tech.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 8 | Gone Missing | なし | `08_gone_missing.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 9 | That Morning | なし | `09_that_morning.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+| 10 | Closing | なし | `10_closing.uge` | 未確認 | 確定 | 曲順、番号、ファイル名が一致 | |
+
+対応集計は、確定18曲、暫定0曲、不一致0曲、確認不能0曲である。実ファイルはPack #1 UGE 8件、Pack #2 UGE 10件の計18件、ASM 0件、INC 0件で、空ファイル・同一内容ファイル・ファイル名重複は確認されなかった。配布ページ記載曲数（8曲、10曲）とも一致する。UGE内部曲名の確認、Song Version・CH1〜CH4・CH4/Noise・loop構造、ライセンス適用範囲、試聴は後続WBSで扱う。
+
 配布ページの説明をそのまま分類根拠とし、`inspired by` や `influence` を `remix` と同一視しない。これは法的な最終判断ではなく、実ファイル・原曲権利・許諾を確認するまでの保守的なプロジェクト判定である。
 
 | 曲名 | 配布ページの記述 | 暫定区分 | 判定理由 |
@@ -96,8 +130,12 @@ Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8
 | 配布ページ上で存在だけ確認した追加候補 | 10 | lillstrumpa vol.4/#5の暫定曲数。内訳・個別ページ未確認 |
 | 配布ページ上で個別曲名を確認 | 18 | Yogi #1/#2。lillstrumpa vol.1〜3の11曲は曲名未確認 |
 | 実ファイル名確認済み | 18 | Yogi #1/#2のZIPを取得してファイル一覧を確認できた曲 |
-| 実ファイル確認済みUGE | 18 | Yogi #1/#2のZIP内UGEファイル（詳細内容は未解析） |
+| 実ファイル確認済みUGE | 18 | Yogi #1/#2のZIP内UGEファイル（曲名対応まで確認、詳細内容は未解析） |
 | 実ファイル確認済みASM | 0 | ASMを取得して内容を確認できた曲 |
+| 曲名対応確定 | 18 | Pack #1 8曲、Pack #2 10曲。配布ページ・README/ファイル名・曲順を照合 |
+| 曲名対応暫定 | 0 | 該当なし |
+| 曲名対応不一致 | 0 | 該当なし |
+| 曲名対応確認不能 | 0 | 該当なし |
 | ライセンス適用範囲まで確認済み | 0 | 個別UGE/ASMまたは同梱条件まで照合できた曲 |
 | A（公開・商用利用可）確定 | 0 | 実ファイルと対象範囲の確認後に確定する区分 |
 | B（解析・ローカル限定）確定 | 0 | 解析・変換・非公開保管の条件まで確認できた曲 |
@@ -171,7 +209,8 @@ Yogi #1の集計はD 4曲、未判定（A候補）2曲、未判定2曲で合計8
 
 ## 未確認事項
 
-- 各UGEのSong Version、OrderMatrix、pattern、Instrument、Wave/Noise、loop表現。
+- 各UGEのSong Version、OrderMatrix、pattern、Instrument、Wave/Noise、loop表現、内部Song Nameの安全な読み取り。
+- Pack #1/#2の実ファイルにはASM/INCが同梱されていない。UGEからのASM exportは未実施であり、ASMが必要な後続解析では別途exportまたは別配布元調査が必要。
 - hUGEDriver ASMが同梱されるか、またはUGEから再ExportしたASMを解析対象としてよいか。
 - 個別UGEに作者・著作権・ライセンス情報が埋め込まれているか。
 - lillstrumpa vol.4/#5の個別曲数、曲名、個別ページのライセンス表示。
