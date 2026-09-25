@@ -100,13 +100,20 @@ def validate(directory=TASKS, root=ROOT):
         key = meta.get("parent")
         if (key, meta.get("title")) in seen_titles: issues.append(("warning", ident, str(path), "同一親配下に同名項目"))
         seen_titles[(key, meta.get("title"))] = ident
-        if meta.get("type") == "group" and meta.get("status") == "complete":
+        if meta.get("type") == "group":
+            descendants = []
             for child, (_, cm, _) in byid.items():
                 cur = cm.get("parent")
                 while cur:
-                    if cur == ident and cm.get("status") != "complete":
-                        issues.append(("warning", ident, str(path), "完了した親に未完了子孫（移行前からの矛盾）")); break
+                    if cur == ident:
+                        descendants.append((child, cm)); break
                     cur = byid.get(cur, (None, {}, ""))[1].get("parent")
+            if descendants:
+                incomplete = [child for child, cm in descendants if cm.get("status") != "complete"]
+                if meta.get("status") == "complete" and incomplete:
+                    issues.append(("error", ident, str(path), f"complete groupに未完了子孫: {', '.join(incomplete)}"))
+                elif meta.get("status") == "incomplete" and not incomplete:
+                    issues.append(("error", ident, str(path), "全子孫がcompleteなのにgroupがincomplete"))
     return byid, issues
 
 if __name__ == "__main__":

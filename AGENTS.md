@@ -41,7 +41,7 @@ WBSを変更した場合は、対象Markdownを更新し、必要な確認結果
 3. `reports/wbs.md` と正本Markdownの整合性を確認する
 4. 正本Markdownと生成Markdownを一緒にcommitする
 
-WBSの状態は対象Markdownだけで管理する。親は子孫がすべて完了した場合だけ完了とし、生成一覧と正本が不一致なら正本Markdownを正とする。
+WBSの状態は対象Markdownだけで管理する。`type: group` は、明示的な追加完了条件がない限り、配下の子孫WBSがすべて `complete` になった時点で `complete` とする。1件でも `incomplete` の子孫があれば `incomplete` とする。生成一覧と正本が不一致なら正本Markdownを正とする。
 
 ## 仕様・変更範囲
 

@@ -11,6 +11,13 @@ def write_task(root, ident="WBS-001-01000", **overrides):
     meta.update(overrides); body = "\n\n".join(f"# {section}\n\n本文" for section in SECTIONS)
     path = Path(root) / f"{ident}.md"; path.write_text(f"---\n{yaml.safe_dump(meta, allow_unicode=True, sort_keys=False)}---\n\n{body}\n", encoding="utf-8"); return path
 
+def write_group(root, ident="WBS-001-01000", **overrides):
+    meta = {"id": ident, "title": "テスト", "type": "group", "status": "incomplete", "actor": "none", "parent": None, "depends_on": [], "specs": [], "related_files": [], "outputs": [], "blocked_by": [], "source_wbs": [], "evidence_required": True, "updated": "2026-08-01"}
+    meta.update(overrides)
+    path = Path(root) / f"{ident}.md"
+    path.write_text(f"---\n{yaml.safe_dump(meta, allow_unicode=True, sort_keys=False)}---\n\n# 概要\n\n概要\n\n# 配下の作業\n\n作業\n", encoding="utf-8")
+    return path
+
 class ValidateWbsTest(unittest.TestCase):
     def check_error(self, **overrides):
         with tempfile.TemporaryDirectory() as d:
@@ -38,8 +45,23 @@ class ValidateWbsTest(unittest.TestCase):
             write_task(d); write_task(d, ident="WBS-001-01001"); _, issues=validate(d, Path(d)); self.assertTrue(any("同一親配下" in x[3] for x in issues))
         with tempfile.TemporaryDirectory() as d:
             write_task(d, ident="WBS-001-01000", title="親A"); write_task(d, ident="WBS-001-01001", title="親B"); write_task(d, ident="WBS-001-01002", title="同名", parent="WBS-001-01000"); write_task(d, ident="WBS-001-01003", title="同名", parent="WBS-001-01001"); _, issues=validate(d, Path(d)); self.assertFalse(any(x[0] == "error" for x in issues))
-    def test_complete_group_with_incomplete_descendant_is_warning(self):
+    def test_complete_group_with_incomplete_descendant_is_error(self):
         with tempfile.TemporaryDirectory() as d:
-            write_task(d, ident="WBS-001-01000", type="group", actor="none", status="complete"); write_task(d, ident="WBS-001-01001", parent="WBS-001-01000"); _, issues=validate(d, Path(d)); self.assertTrue(any(x[0] == "warning" for x in issues))
+            write_task(d, ident="WBS-001-01000", type="group", actor="none", status="complete"); write_task(d, ident="WBS-001-01001", parent="WBS-001-01000"); _, issues=validate(d, Path(d)); self.assertTrue(any(x[0] == "error" for x in issues))
+
+    def test_incomplete_group_with_all_complete_descendants_is_error(self):
+        with tempfile.TemporaryDirectory() as d:
+            write_task(d, ident="WBS-001-01000", type="group", actor="none", status="incomplete")
+            write_task(d, ident="WBS-001-01001", parent="WBS-001-01000", status="complete")
+            _, issues = validate(d, Path(d))
+            self.assertTrue(any(x[0] == "error" and "全子孫がcomplete" in x[3] for x in issues))
+
+    def test_nested_group_status_is_aggregated(self):
+        with tempfile.TemporaryDirectory() as d:
+            write_group(d, ident="WBS-001-01000", status="complete")
+            write_group(d, ident="WBS-001-01001", status="complete", parent="WBS-001-01000")
+            write_task(d, ident="WBS-001-01002", parent="WBS-001-01001", status="complete")
+            _, issues = validate(d, Path(d))
+            self.assertFalse(any(x[0] == "error" for x in issues))
 
 if __name__ == "__main__": unittest.main()

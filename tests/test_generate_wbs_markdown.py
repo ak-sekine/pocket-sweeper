@@ -34,7 +34,7 @@ class GenerateWbsMarkdownTest(unittest.TestCase):
 id: {ident}
 title: {title}
 type: {kind}
-status: {status}
+status: {"incomplete" if ident == "WBS-001-01000" else status}
 actor: {actor}
 parent: {parent_yaml}
 depends_on: []
@@ -54,7 +54,7 @@ updated: '2026-09-25'
             generate_wbs_markdown(tasks, second)
             self.assertEqual(first.read_bytes(), second.read_bytes())
             self.assertEqual(first.read_text(encoding="utf-8").splitlines(), [
-                "# WBS一覧", "", "- [x] WBS-001-01000 root",
+                "# WBS一覧", "", "- [ ] WBS-001-01000 root",
                 "  - [ ] WBS-001-01001 child",
                 "    - [x] WBS-001-01002 grandchild",
             ])

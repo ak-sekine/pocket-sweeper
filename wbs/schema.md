@@ -10,6 +10,8 @@ YAMLの型は、`id/title/type/status/actor/updated` が文字列、`parent` が
 
 taskは「目的」「作業内容」「入力」「成果物」「完了条件」「完了にしてはいけない条件」「確認結果」「証跡」、groupは「概要」「配下の作業」を必須とする。仕様参照は `specs`、関連対象は `related_files` に記録する。
 
-`tools/validate_wbs.py` は不正な構造をエラー、同名・担当確認・移行前からの親状態矛盾を警告として出力する。エラー終了は1、警告だけは0である。`tools/generate_wbs_markdown.py` は検証済みWBSを `reports/wbs.md` へ決定的な閲覧用一覧として生成する。生成一覧は直接編集しない。
+`type: group` の `status` は配下の子孫WBSの状態を集約する。子孫がすべて `complete` の場合はgroupも `complete` とし、1件でも `incomplete` の子孫が存在する場合は `incomplete` とする。group本文に明示的な追加完了条件がある場合は、その条件も満たす必要がある。
+
+`tools/validate_wbs.py` は不正な構造とgroup status集約の矛盾をエラー、同名・担当確認を警告として出力する。エラー終了は1、警告だけは0である。`tools/generate_wbs_markdown.py` は検証済みWBSを `reports/wbs.md` へ決定的な閲覧用一覧として生成する。生成一覧は直接編集しない。
 
 自己参照と親子・依存関係の循環はエラーであり、循環経路を表示する。`source_wbs` は形式が正しい限り実在不要で、parent/depends_onとは分離する。同一親配下の同名項目は警告、異なる親配下の同名項目は許可する。生成一覧は各WBSを1行のnested listで出力し、statusをcheckbox、parentをindentへ変換する。
