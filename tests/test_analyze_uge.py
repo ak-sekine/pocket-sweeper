@@ -41,6 +41,9 @@ class AnalyzeUgeTests(unittest.TestCase):
         self.assertEqual(result["loop"]["loop_order_count"], 4)
         self.assertEqual(result["loop"]["unreachable_orders"], [])
         self.assertTrue(all(result["channels"][channel]["used"] for channel in analyze_uge.CHANNELS))
+        self.assertEqual(len(result["pattern_cells"]), result["pattern_count"])
+        self.assertTrue(all(len(cells) == analyze_uge.PATTERN_ROWS for cells in result["pattern_cells"].values()))
+        self.assertTrue(all(len(cell) == 5 for cells in result["pattern_cells"].values() for cell in cells))
 
     def test_simple_loop_ends_at_jump_source_before_final_order(self):
         result = analyze_uge.classify_loop([self.jump("ch1", 3, 1)], 6)

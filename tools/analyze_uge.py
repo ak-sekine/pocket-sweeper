@@ -303,6 +303,12 @@ def read_file(path: Path) -> dict[str, Any]:
         "comment": comment,
         "tempo_raw": tempo,
         "pattern_count": pattern_count,
+        # Keep the parser's existing raw cell representation available to
+        # structural validation without introducing a second IR.
+        "pattern_cells": {
+            str(key): [list(cell) for cell in cells]
+            for key, cells in sorted(patterns.items())
+        },
         "channels": channel_reports,
         "order_count": order_count,
         "order_counts": order_counts,
