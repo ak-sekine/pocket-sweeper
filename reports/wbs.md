@@ -565,7 +565,7 @@
         - [x] WBS-001-01562 pulse伴奏・harmonyをGame Boy制約下で設計する条件を調査する
         - [x] WBS-001-01563 wave/bassの役割と音源制約を調査する
         - [x] WBS-001-01564 CH4 noiseのリズムとゲームBGM向け密度を調査する
-        - [ ] WBS-001-01565 Instrument・effectの実仕様とhUGETracker表現範囲を調査する
+        - [x] WBS-001-01565 Instrument・effectの実仕様とhUGETracker表現範囲を調査する
       - [ ] WBS-001-01566 既存UGE解析機能の現状と不足を棚卸しする
         - [x] WBS-001-01567 既存analyze_uge.pyが取得できるUGE情報を棚卸しする
         - [ ] WBS-001-01568 生成UGEの検証に必要な解析結果の契約を定義する
