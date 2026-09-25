@@ -23,9 +23,9 @@
 - WBS詳細：`wbs/tasks/*.md`
 - WBS定義：`wbs/schema.md`
 - 分野別仕様：`docs/*.md`
-- WBS一覧：`reports/wbs.xlsx`（自動生成物）
+- WBS一覧：`reports/wbs.md`（自動生成の閲覧用一覧。直接編集しない）
 
-WBS変更は `wbs/tasks/*.md` に対して行い、更新後に `tools/validate_wbs.py` と `tools/generate_wbs_excel.py` を実行する。Excelは直接編集しない。MarkdownとExcelが不一致の場合はMarkdownを正とし、WBS指定は完全なWBS IDを優先する。
+WBS変更は `wbs/tasks/*.md` に対して行い、更新後に `tools/validate_wbs.py` と `tools/generate_wbs_markdown.py` を実行する。生成一覧は直接編集せず、正本Markdownと不一致の場合は正本Markdownを正とする。WBS指定は完全なWBS IDを優先する。
 
 ## 詳細仕様書
 
@@ -37,4 +37,4 @@ WBS変更は `wbs/tasks/*.md` に対して行い、更新後に `tools/validate_
 
 ## WBS移行
 
-PROJECT.mdに記載していた詳細チェックリストは、出現順を保ったまま `wbs/tasks/` へ移行した。移行前後の件数・状態・対応は [移行報告](docs/wbs-migration-report.md) と `reports/wbs.xlsx` の「移行対応」を参照する。
+PROJECT.mdに記載していた詳細チェックリストは、出現順を保ったまま `wbs/tasks/` へ移行した。移行前後の件数・状態・対応は [移行報告](docs/wbs-migration-report.md) と生成された `reports/wbs.md` を参照する。

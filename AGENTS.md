@@ -6,7 +6,7 @@
 - `wbs/tasks/*.md`: WBS詳細・状態の正本
 - `wbs/schema.md`: WBS記述規則
 - `docs/*.md`: 分野別仕様の正本
-- `reports/wbs.xlsx`: 自動生成一覧（直接編集しない）
+- `reports/wbs.md`: 自動生成一覧（直接編集しない）
 
 WBSを指定された場合、標準依頼は `WBS-001-01003を実施してください。` とする。タイトル指定より完全なWBS IDを優先し、同名候補が複数なら推測しない。
 
@@ -37,11 +37,11 @@ WBSを指定された場合、標準依頼は `WBS-001-01003を実施してく�
 WBSを変更した場合は、対象Markdownを更新し、必要な確認結果と証跡を本文へ記録する。その後、次を順に実行する。
 
 1. `python3 tools/validate_wbs.py`
-2. `python3 tools/generate_wbs_excel.py`
-3. `reports/wbs.xlsx` を確認する
-4. 正本MarkdownとExcelを一緒にcommitする
+2. `python3 tools/generate_wbs_markdown.py`
+3. `reports/wbs.md` と正本Markdownの整合性を確認する
+4. 正本Markdownと生成Markdownを一緒にcommitする
 
-WBSの状態は対象Markdownだけで管理する。親は子孫がすべて完了した場合だけ完了とし、ExcelとMarkdownが不一致ならMarkdownを正とする。
+WBSの状態は対象Markdownだけで管理する。親は子孫がすべて完了した場合だけ完了とし、生成一覧と正本が不一致なら正本Markdownを正とする。
 
 ## 仕様・変更範囲
 
@@ -61,4 +61,4 @@ WBSの状態は対象Markdownだけで管理する。親は子孫がすべて完
 
 ## Python
 
-プロジェクトの`.venv`を優先し、利用できなければ`python3`を使用する。Excel生成は`openpyxl`、YAML解析は`PyYAML`を使用する。
+プロジェクトの`.venv`を優先し、利用できなければ`python3`を使用する。WBS YAML解析は`PyYAML`を使用する。

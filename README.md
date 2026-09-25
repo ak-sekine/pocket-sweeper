@@ -96,17 +96,17 @@ AI向けの作業ルールは `AGENTS.md` を参照してください。
 - WBS ID形式: `WBS-001-NNNNN`
 - 詳細正本: `wbs/tasks/*.md`
 - 定義: `wbs/schema.md`
-- 生成一覧: `reports/wbs.xlsx`（直接編集しない）
+- 生成一覧: `reports/wbs.md`（直接編集しない）
 
 WBSを追加するときは、既存最大番号の次の5桁番号でMarkdownを作成し、front matterの `id` とファイル名を一致させます。状態は `complete` / `incomplete`、親と依存先は完全なWBS IDで指定し、流用元は `source_wbs` に記録します。
 
-`.venv` を使う場合は `python3 -m venv .venv` と ` .venv/bin/pip install -r requirements.txt` を実行してください。検証とExcel生成は次のコマンドです。
+`.venv` を使う場合は `python3 -m venv .venv` と ` .venv/bin/pip install -r requirements.txt` を実行してください。検証とWBS一覧生成は次のコマンドです。
 
 ```bash
 .venv/bin/python tools/validate_wbs.py
-.venv/bin/python tools/generate_wbs_excel.py
+.venv/bin/python tools/generate_wbs_markdown.py
 ```
 
-WBS変更後は検証、Excel再生成、`reports/wbs.xlsx` の確認を行います。MarkdownとExcelが不一致ならMarkdownを正とします。
+WBS変更後は検証、`reports/wbs.md` の再生成、正本Markdownとの整合性確認を行います。生成一覧と正本が不一致なら正本Markdownを正とします。
 
-検証ではYAML各フィールドの型、日付形式、ID・親・依存の循環、`specs` と `related_files` の存在、`source_wbs` の分離、同一親配下の同名を確認します。同名は警告、それ以外の不正はエラーです。Excelの完了条件・証跡は各Markdownの本文から生成され、最上位group別のtask進捗も集計されます。`reports/wbs.xlsx` は読み取り専用推奨として生成されますが、暗号化や完全な編集禁止ではありません。Excelを直接編集せず、変更時はMarkdownを更新してExcelを再生成してください。
+検証ではYAML各フィールドの型、日付形式、ID・親・依存の循環、`specs` と `related_files` の存在、`source_wbs` の分離、同一親配下の同名を確認します。同名は警告、それ以外の不正はエラーです。`reports/wbs.md` は全WBSをparentに基づくnested listとして出力する閲覧用生成物です。生成一覧を直接編集せず、変更時は正本Markdownを更新して一覧を再生成してください。
