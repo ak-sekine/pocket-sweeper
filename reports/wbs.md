@@ -561,7 +561,7 @@
         - [x] WBS-001-01558 ゲームBGMの構成・loop技法を信頼できる資料から調査する
         - [x] WBS-001-01559 Game Boy 4chの音源特性と編曲制約を調査する
         - [x] WBS-001-01560 一般音楽理論に基づくmelody・harmony・rhythmの調査を行う
-        - [ ] WBS-001-01561 ゲームBGMにおけるmotif反復・変奏とlayer設計を調査する
+        - [x] WBS-001-01561 ゲームBGMにおけるmotif反復・変奏とlayer設計を調査する
         - [ ] WBS-001-01562 pulse伴奏・harmonyをGame Boy制約下で設計する条件を調査する
         - [ ] WBS-001-01563 wave/bassの役割と音源制約を調査する
         - [ ] WBS-001-01564 CH4 noiseのリズムとゲームBGM向け密度を調査する
