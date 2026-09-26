@@ -3,6 +3,7 @@ import os
 import random
 import subprocess
 import sys
+import tempfile
 import unittest
 from types import SimpleNamespace
 from pathlib import Path
@@ -47,6 +48,7 @@ from bgm_generator import (  # noqa: E402
 )
 import json_to_uge  # noqa: E402
 import json_to_huge_asm  # noqa: E402
+import build_sound_test_rom  # noqa: E402
 
 
 class GenerationContextTests(unittest.TestCase):
@@ -468,6 +470,16 @@ class GameBoyConversionTests(unittest.TestCase):
         result = convert_to_json_v2(self.conversion(structure=structure))
         self.assertEqual(result["loop"], {"mode": "range", "start_order": 1, "end_order": 2})
         self.assertIn("generated_song_loop_metadata", json_to_huge_asm.build_asm(result, "generated_song"))
+
+    def test_generated_asm_builds_version_two_test_rom(self):
+        data = convert_to_json_v2(self.conversion())
+        asm = json_to_huge_asm.build_asm(data, "generated_song")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            asm_path = Path(temp_dir) / "generated_song.asm"
+            rom_path = Path(temp_dir) / "generated_song.gb"
+            asm_path.write_text(asm, encoding="utf-8")
+            build_sound_test_rom.build_rom(asm_path, rom_path)
+            self.assertEqual(rom_path.stat().st_size, 32768)
 
 
 if __name__ == "__main__":
