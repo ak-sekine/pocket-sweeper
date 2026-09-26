@@ -46,6 +46,7 @@ from bgm_generator import (  # noqa: E402
     convert_to_json_v2,
 )
 import json_to_uge  # noqa: E402
+import json_to_huge_asm  # noqa: E402
 
 
 class GenerationContextTests(unittest.TestCase):
@@ -431,11 +432,17 @@ class GameBoyConversionTests(unittest.TestCase):
         self.assertEqual(result["version"], 2)
         self.assertEqual(result["order"], {"pulse1": ["section-001", "section-002"]})
         self.assertTrue(json_to_uge.build_uge(result))
+        asm = json_to_huge_asm.build_asm(result, "generated_song")
+        self.assertIn('include "hUGE.inc"', asm)
+        self.assertIn("generated_song_loop_metadata", asm)
         self.assertFalse(hasattr(self.layer, "physical_channel"))
 
     def test_conversion_is_deterministic_and_full_loop_is_preserved(self):
-        self.assertEqual(convert_to_json_v2(self.conversion()), convert_to_json_v2(self.conversion()))
-        self.assertEqual(convert_to_json_v2(self.conversion())["loop"], {"mode": "full"})
+        first = convert_to_json_v2(self.conversion())
+        second = convert_to_json_v2(self.conversion())
+        self.assertEqual(first, second)
+        self.assertEqual(json_to_huge_asm.build_asm(first, "generated_song"), json_to_huge_asm.build_asm(second, "generated_song"))
+        self.assertEqual(first["loop"], {"mode": "full"})
 
     def test_unresolved_pitch_and_non_exact_grid_are_rejected(self):
         unresolved = SimpleNamespace(**{**self.layer.__dict__, "events": (
@@ -460,6 +467,7 @@ class GameBoyConversionTests(unittest.TestCase):
         )
         result = convert_to_json_v2(self.conversion(structure=structure))
         self.assertEqual(result["loop"], {"mode": "range", "start_order": 1, "end_order": 2})
+        self.assertIn("generated_song_loop_metadata", json_to_huge_asm.build_asm(result, "generated_song"))
 
 
 if __name__ == "__main__":
