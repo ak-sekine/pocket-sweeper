@@ -87,6 +87,43 @@ class GenerationContext:
         return values
 
 
+@dataclass(frozen=True)
+class LogicalGenerationPlan:
+    """Caller-owned inputs for a complete deterministic logical generation run."""
+
+    structure_parameters: "StructureParameters"
+    structure_options: "StructureGenerationOptions"
+    melody_parameters: "MelodyParameters"
+    melody_options: "MelodyGenerationOptions"
+    accompaniment_parameters: "AccompanimentParameters"
+    accompaniment_options: "AccompanimentGenerationOptions"
+    bass_parameters: "BassParameters"
+    bass_options: "BassGenerationOptions"
+    noise_parameters: "NoiseParameters"
+    noise_options: "NoiseGenerationOptions"
+
+
+@dataclass(frozen=True)
+class LogicalGenerationResult:
+    seed: int
+    generator_version: str
+    structure: "CompositionStructure"
+    melody: "MelodyLayer"
+    accompaniment: "AccompanimentLayer"
+    bass: "BassLayer"
+    noise: "NoiseLayer"
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "metadata": {"seed": self.seed, "generator_version": self.generator_version},
+            "structure": self.structure.as_dict(),
+            "melody": self.melody.as_dict(),
+            "accompaniment": self.accompaniment.as_dict(),
+            "bass": self.bass.as_dict(),
+            "noise": self.noise.as_dict(),
+        }
+
+
 LOOP_MODES = ("none", "full", "range")
 
 
@@ -1510,3 +1547,16 @@ def deterministic_probe(seed: int) -> dict[str, object]:
         "weighted": context.weighted_choice(values, [1, 2, 3, 4]),
         "shuffle": context.shuffled(values),
     }
+
+
+def generate_logical_composition(seed: int, plan: LogicalGenerationPlan) -> LogicalGenerationResult:
+    """Generate all logical layers from one master seed and one shared stream."""
+    context = GenerationContext(seed)
+    structure = generate_structure(context, plan.structure_parameters, plan.structure_options)
+    melody = generate_melody(context, structure, plan.melody_parameters, plan.melody_options)
+    accompaniment = generate_accompaniment(
+        context, structure, plan.accompaniment_parameters, plan.accompaniment_options
+    )
+    bass = generate_bass(context, structure, plan.bass_parameters, plan.bass_options)
+    noise = generate_noise(context, structure, plan.noise_parameters, plan.noise_options)
+    return LogicalGenerationResult(seed, GENERATOR_VERSION, structure, melody, accompaniment, bass, noise)

@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 from bgm_generator import (  # noqa: E402
     GENERATOR_VERSION,
     GenerationContext,
+    LogicalGenerationPlan,
     GenerationInputError,
     StructureGenerationOptions,
     StructureParameters,
@@ -44,6 +45,7 @@ from bgm_generator import (  # noqa: E402
     validate_game_boy_allocation,
     generate_melody,
     generate_structure,
+    generate_logical_composition,
     convert_to_json_v2,
 )
 import json_to_uge  # noqa: E402
@@ -108,6 +110,45 @@ class GenerationContextTests(unittest.TestCase):
             env=env,
         )
         self.assertEqual(json.loads(first.stdout), json.loads(second.stdout))
+
+
+class CompleteLogicalGenerationTests(unittest.TestCase):
+    def plan(self):
+        motif = MotifDefinition("motif-a", (MotifStep(2, absolute_pitch=0), MotifStep(2, rest=True)))
+        accompaniment = AccompanimentPatternDefinition(
+            "support-a", "rhythmic_support", (AccompanimentPatternStep(2, absolute_pitch=0), AccompanimentPatternStep(2, rest=True))
+        )
+        bass = BassPatternDefinition(
+            "bass-a", (BassPatternStep(2, bass_relation="root", absolute_pitch=0), BassPatternStep(2, rest=True))
+        )
+        noise = NoisePatternDefinition(
+            "noise-a", (NoisePatternStep(2, role="beat_support", character_ref="low"), NoisePatternStep(2, rest=True))
+        )
+        return LogicalGenerationPlan(
+            StructureParameters(4, 4, phrase_measures=1, section_phrase_counts=(2,), loop_mode="full"),
+            StructureGenerationOptions(),
+            MelodyParameters(motif_by_phrase=("motif-a", "motif-a"), variation_by_phrase=("exact", "exact")),
+            MelodyGenerationOptions(motif_definitions=(motif,)),
+            AccompanimentParameters(pattern_by_phrase=("support-a", "support-a"), variation_by_phrase=("exact", "exact")),
+            AccompanimentGenerationOptions(pattern_definitions=(accompaniment,)),
+            BassParameters(pattern_by_phrase=("bass-a", "bass-a"), variation_by_phrase=("exact", "exact")),
+            BassGenerationOptions(pattern_definitions=(bass,)),
+            NoiseParameters(pattern_by_phrase=("noise-a", "noise-a"), variation_by_phrase=("exact", "exact")),
+            NoiseGenerationOptions(pattern_definitions=(noise,)),
+        )
+
+    def test_master_seed_reproduces_complete_logical_composition(self):
+        for seed in (0, 1, 42, -1, 2**256):
+            first = generate_logical_composition(seed, self.plan())
+            second = generate_logical_composition(seed, self.plan())
+            self.assertEqual(first.as_dict(), second.as_dict())
+            self.assertEqual(first.as_dict()["metadata"], {"seed": seed, "generator_version": GENERATOR_VERSION})
+
+    def test_complete_generation_does_not_use_global_random_state(self):
+        random.seed(1)
+        first = generate_logical_composition(42, self.plan()).as_dict()
+        random.seed(999)
+        self.assertEqual(first, generate_logical_composition(42, self.plan()).as_dict())
 
 
 class StructureGenerationTests(unittest.TestCase):
