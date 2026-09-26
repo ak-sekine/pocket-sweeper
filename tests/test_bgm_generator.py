@@ -14,7 +14,10 @@ from bgm_generator import (  # noqa: E402
     GENERATOR_VERSION,
     GenerationContext,
     GenerationInputError,
+    StructureGenerationOptions,
+    StructureParameters,
     deterministic_probe,
+    generate_structure,
 )
 
 
@@ -75,6 +78,53 @@ class GenerationContextTests(unittest.TestCase):
             env=env,
         )
         self.assertEqual(json.loads(first.stdout), json.loads(second.stdout))
+
+
+class StructureGenerationTests(unittest.TestCase):
+    def setUp(self):
+        self.parameters = StructureParameters(
+            ticks_per_beat=4,
+            beats_per_measure=4,
+            phrase_measures=2,
+            section_phrase_counts=(1, 2),
+        )
+
+    def test_structure_is_reproducible_and_serializable(self):
+        first = generate_structure(GenerationContext(7), self.parameters, StructureGenerationOptions(loop_modes=("full",)))
+        second = generate_structure(GenerationContext(7), self.parameters, StructureGenerationOptions(loop_modes=("full",)))
+        self.assertEqual(first.as_dict(), second.as_dict())
+        self.assertEqual(first.total_duration_tick, 96)
+        self.assertEqual(first.loop_start_tick, 0)
+        self.assertEqual(first.loop_end_tick, 96)
+
+    def test_structure_has_contiguous_sections_and_phrases(self):
+        structure = generate_structure(GenerationContext(1), self.parameters, StructureGenerationOptions(loop_modes=("none",)))
+        self.assertEqual([section.start_tick for section in structure.sections], [0, 32])
+        self.assertEqual([phrase.start_tick for phrase in structure.phrases], [0, 32, 64])
+        self.assertEqual(structure.as_dict()["time_grid"]["ticks_per_measure"], 16)
+        self.assertIsNone(structure.loop_start_tick)
+
+    def test_range_loop_uses_phrase_boundaries(self):
+        parameters = StructureParameters(**{**self.parameters.__dict__, "loop_mode": "range", "loop_start_phrase": 1, "loop_end_phrase": 3})
+        structure = generate_structure(GenerationContext(2), parameters)
+        self.assertEqual((structure.loop_start_tick, structure.loop_end_tick), (32, 96))
+
+    def test_candidates_are_selected_by_context_and_empty_candidates_fail(self):
+        parameters = StructureParameters(ticks_per_beat=4, beats_per_measure=4)
+        options = StructureGenerationOptions(phrase_measures=(1, 2), section_phrase_counts=((1,), (2,)), loop_modes=("none", "full"))
+        first = generate_structure(GenerationContext(10), parameters, options)
+        second = generate_structure(GenerationContext(10), parameters, options)
+        self.assertEqual(first.as_dict(), second.as_dict())
+        with self.assertRaises(GenerationInputError):
+            generate_structure(GenerationContext(1), parameters, StructureGenerationOptions())
+
+    def test_invalid_grid_and_loop_are_rejected(self):
+        with self.assertRaises(GenerationInputError):
+            generate_structure(GenerationContext(1), StructureParameters(0, 4, 1, (1,), "full"))
+        with self.assertRaises(GenerationInputError):
+            generate_structure(GenerationContext(1), StructureParameters(4, 4, 1, (1,), "range"))
+        with self.assertRaises(GenerationInputError):
+            generate_structure(GenerationContext(1), StructureParameters(4, 4, 1, (1,), "range", 1, 1))
 
 
 if __name__ == "__main__":
