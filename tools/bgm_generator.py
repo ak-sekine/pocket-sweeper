@@ -417,6 +417,243 @@ def validate_melody(layer: MelodyLayer, structure: CompositionStructure) -> None
         previous_end[event.phrase_ref] = event.start_tick + event.duration_tick
 
 
+ACCOMPANIMENT_REALIZATIONS = ("sustained_tone", "repeated_tone", "rhythmic_support")
+ACCOMPANIMENT_VARIATIONS = ("exact", "relative_interval_offset")
+
+
+@dataclass(frozen=True)
+class AccompanimentPatternStep:
+    duration_tick: int
+    rest: bool = False
+    relative_interval: int | None = None
+    scale_degree: int | None = None
+    absolute_pitch: int | None = None
+    harmony_ref: str | None = None
+    accent: str | None = None
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "duration_tick": self.duration_tick,
+            "rest": self.rest,
+            "relative_interval": self.relative_interval,
+            "scale_degree": self.scale_degree,
+            "absolute_pitch": self.absolute_pitch,
+            "harmony_ref": self.harmony_ref,
+            "accent": self.accent,
+        }
+
+
+@dataclass(frozen=True)
+class AccompanimentPatternDefinition:
+    id: str
+    realization: str
+    steps: tuple[AccompanimentPatternStep, ...]
+    rule_refs: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, object]:
+        return {"id": self.id, "realization": self.realization, "steps": [step.as_dict() for step in self.steps], "rule_refs": list(self.rule_refs)}
+
+
+@dataclass(frozen=True)
+class AccompanimentPatternInstance:
+    id: str
+    pattern_ref: str
+    phrase_ref: str
+    start_tick: int
+    transformation: dict[str, object]
+    rule_refs: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "id": self.id,
+            "pattern_ref": self.pattern_ref,
+            "phrase_ref": self.phrase_ref,
+            "start_tick": self.start_tick,
+            "transformation": dict(self.transformation),
+            "rule_refs": list(self.rule_refs),
+        }
+
+
+@dataclass(frozen=True)
+class AccompanimentEvent:
+    id: str
+    phrase_ref: str
+    start_tick: int
+    duration_tick: int
+    rest: bool
+    pitch_kind: str | None
+    pitch_value: int | None
+    harmony_ref: str | None
+    pattern_instance_ref: str
+    accent: str | None = None
+    rule_refs: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "id": self.id,
+            "phrase_ref": self.phrase_ref,
+            "start_tick": self.start_tick,
+            "duration_tick": self.duration_tick,
+            "rest": self.rest,
+            "pitch_kind": self.pitch_kind,
+            "pitch_value": self.pitch_value,
+            "harmony_ref": self.harmony_ref,
+            "pattern_instance_ref": self.pattern_instance_ref,
+            "accent": self.accent,
+            "rule_refs": list(self.rule_refs),
+        }
+
+
+@dataclass(frozen=True)
+class AccompanimentLayer:
+    metadata: GenerationMetadata
+    id: str
+    pattern_definitions: tuple[AccompanimentPatternDefinition, ...]
+    pattern_instances: tuple[AccompanimentPatternInstance, ...]
+    events: tuple[AccompanimentEvent, ...]
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "metadata": self.metadata.as_dict(),
+            "layer": {"id": self.id, "type": "accompaniment", "physical_channel": None},
+            "pattern_definitions": [pattern.as_dict() for pattern in self.pattern_definitions],
+            "pattern_instances": [instance.as_dict() for instance in self.pattern_instances],
+            "events": [event.as_dict() for event in self.events],
+        }
+
+
+@dataclass(frozen=True)
+class AccompanimentParameters:
+    pattern_by_phrase: tuple[str, ...] | None = None
+    variation_by_phrase: tuple[str, ...] | None = None
+    variation_offsets_by_phrase: tuple[int, ...] | None = None
+
+
+@dataclass(frozen=True)
+class AccompanimentGenerationOptions:
+    pattern_definitions: tuple[AccompanimentPatternDefinition, ...] = ()
+    pattern_candidates_by_phrase: tuple[tuple[str, ...], ...] = ()
+    variation_candidates: tuple[str, ...] = ()
+    harmony_refs: tuple[str, ...] = ()
+
+
+def generate_accompaniment(
+    context: GenerationContext,
+    structure: CompositionStructure,
+    parameters: AccompanimentParameters | None = None,
+    options: AccompanimentGenerationOptions | None = None,
+) -> AccompanimentLayer:
+    """Generate a logical accompaniment voice without assigning a channel."""
+    parameters = parameters or AccompanimentParameters()
+    options = options or AccompanimentGenerationOptions()
+    patterns = {pattern.id: pattern for pattern in options.pattern_definitions}
+    if len(patterns) != len(options.pattern_definitions) or not patterns:
+        raise GenerationInputError("pattern definitions must be non-empty and uniquely identified")
+    phrases = structure.phrases
+    pattern_ids = parameters.pattern_by_phrase
+    if pattern_ids is None:
+        if len(options.pattern_candidates_by_phrase) != len(phrases):
+            raise GenerationInputError("pattern candidates must cover every phrase")
+        pattern_ids = tuple(context.choice(candidates) for candidates in options.pattern_candidates_by_phrase)
+    if len(pattern_ids) != len(phrases) or any(pattern_id not in patterns for pattern_id in pattern_ids):
+        raise GenerationInputError("pattern_by_phrase must reference one pattern per phrase")
+    variations = parameters.variation_by_phrase
+    if variations is None:
+        if not options.variation_candidates:
+            raise GenerationInputError("variation candidates are required when variations are not fixed")
+        variations = tuple(context.choice(options.variation_candidates) for _ in phrases)
+    if len(variations) != len(phrases) or any(variation not in ACCOMPANIMENT_VARIATIONS for variation in variations):
+        raise GenerationInputError("unsupported or incomplete accompaniment variation")
+
+    instances: list[AccompanimentPatternInstance] = []
+    events: list[AccompanimentEvent] = []
+    for phrase, pattern_id, variation in zip(phrases, pattern_ids, variations):
+        pattern = patterns[pattern_id]
+        _validate_accompaniment_pattern(pattern, options.harmony_refs)
+        pattern_duration = sum(step.duration_tick for step in pattern.steps)
+        if pattern_duration > phrase.duration_tick:
+            raise GenerationInputError("accompaniment pattern does not fit inside its phrase")
+        instance_id = f"accompaniment-instance-{len(instances) + 1:03d}"
+        transformation: dict[str, object] = {"type": variation}
+        if variation == "relative_interval_offset":
+            offsets = parameters.variation_offsets_by_phrase
+            if offsets is None or len(offsets) != len(phrases):
+                raise GenerationInputError("relative variation requires one offset per phrase")
+            transformation["offset"] = offsets[len(instances)]
+        instances.append(AccompanimentPatternInstance(instance_id, pattern_id, phrase.id, phrase.start_tick, transformation))
+        offset = 0
+        for step in pattern.steps:
+            if step.rest:
+                kind = value = None
+            elif step.relative_interval is not None:
+                kind, value = "relative_interval", step.relative_interval + int(transformation.get("offset", 0))
+            elif step.scale_degree is not None:
+                kind, value = "scale_degree", step.scale_degree
+            else:
+                kind, value = "absolute_pitch", step.absolute_pitch
+            events.append(AccompanimentEvent(
+                f"accompaniment-event-{len(events) + 1:03d}", phrase.id, phrase.start_tick + offset,
+                step.duration_tick, step.rest, kind, value, step.harmony_ref, instance_id, step.accent,
+            ))
+            offset += step.duration_tick
+        if offset < phrase.duration_tick:
+            events.append(AccompanimentEvent(
+                f"accompaniment-event-{len(events) + 1:03d}", phrase.id, phrase.start_tick + offset,
+                phrase.duration_tick - offset, True, None, None, None, instance_id,
+            ))
+    layer = AccompanimentLayer(context.metadata, "accompaniment-001", tuple(options.pattern_definitions), tuple(instances), tuple(events))
+    validate_accompaniment(layer, structure, options.harmony_refs)
+    return layer
+
+
+def _validate_accompaniment_pattern(pattern: AccompanimentPatternDefinition, harmony_refs: tuple[str, ...]) -> None:
+    if not pattern.id or pattern.realization not in ACCOMPANIMENT_REALIZATIONS or not pattern.steps:
+        raise GenerationInputError("unsupported or incomplete accompaniment pattern")
+    for step in pattern.steps:
+        _positive_int(step.duration_tick, "accompaniment step duration")
+        values = [step.relative_interval, step.scale_degree, step.absolute_pitch]
+        if step.rest and (any(value is not None for value in values) or step.harmony_ref is not None):
+            raise GenerationInputError("rest accompaniment step must not have pitch relation")
+        if not step.rest and sum(value is not None for value in values) != 1:
+            raise GenerationInputError("accompaniment step must have exactly one pitch relation")
+        if step.harmony_ref is not None and step.harmony_ref not in harmony_refs:
+            raise GenerationInputError("accompaniment harmony_ref is not available")
+
+
+def validate_accompaniment(layer: AccompanimentLayer, structure: CompositionStructure, harmony_refs: tuple[str, ...] = ()) -> None:
+    patterns = {pattern.id: pattern for pattern in layer.pattern_definitions}
+    instances = {instance.id: instance for instance in layer.pattern_instances}
+    phrases = {phrase.id: phrase for phrase in structure.phrases}
+    if len(patterns) != len(layer.pattern_definitions) or len(instances) != len(layer.pattern_instances):
+        raise GenerationInputError("accompaniment IDs must be unique")
+    for instance in layer.pattern_instances:
+        if instance.pattern_ref not in patterns or instance.phrase_ref not in phrases:
+            raise GenerationInputError("accompaniment instance reference is broken")
+    event_ids: set[str] = set()
+    previous_end: dict[str, int] = {}
+    for event in layer.events:
+        if event.id in event_ids:
+            raise GenerationInputError("accompaniment event IDs must be unique")
+        event_ids.add(event.id)
+        if event.phrase_ref not in phrases or event.pattern_instance_ref not in instances:
+            raise GenerationInputError("accompaniment event reference is broken")
+        instance = instances[event.pattern_instance_ref]
+        if instance.phrase_ref != event.phrase_ref:
+            raise GenerationInputError("accompaniment event and instance phrase differ")
+        phrase = phrases[event.phrase_ref]
+        if event.duration_tick <= 0 or event.start_tick < phrase.start_tick or event.start_tick + event.duration_tick > phrase.end_tick:
+            raise GenerationInputError("accompaniment event is outside its phrase")
+        if event.harmony_ref is not None and event.harmony_ref not in harmony_refs:
+            raise GenerationInputError("accompaniment event harmony_ref is not available")
+        if event.rest and (event.pitch_kind is not None or event.pitch_value is not None or event.harmony_ref is not None):
+            raise GenerationInputError("rest accompaniment event must not have pitch relation")
+        if not event.rest and (event.pitch_kind not in ("relative_interval", "scale_degree", "absolute_pitch") or event.pitch_value is None):
+            raise GenerationInputError("pitched accompaniment event must have one pitch relation")
+        if event.phrase_ref in previous_end and event.start_tick < previous_end[event.phrase_ref]:
+            raise GenerationInputError("accompaniment events must not overlap within a phrase")
+        previous_end[event.phrase_ref] = event.start_tick + event.duration_tick
+
+
 def generate_structure(
     context: GenerationContext,
     parameters: StructureParameters,

@@ -20,7 +20,12 @@ from bgm_generator import (  # noqa: E402
     MelodyParameters,
     MotifDefinition,
     MotifStep,
+    AccompanimentGenerationOptions,
+    AccompanimentParameters,
+    AccompanimentPatternDefinition,
+    AccompanimentPatternStep,
     deterministic_probe,
+    generate_accompaniment,
     generate_melody,
     generate_structure,
 )
@@ -178,6 +183,59 @@ class MelodyGenerationTests(unittest.TestCase):
         long_motif = MotifDefinition("long", (MotifStep(100, relative_interval=0),))
         with self.assertRaises(GenerationInputError):
             generate_melody(GenerationContext(1), self.structure, MelodyParameters(motif_by_phrase=("long", "long"), variation_by_phrase=("exact", "exact")), MelodyGenerationOptions(motif_definitions=(long_motif,)))
+
+
+class AccompanimentGenerationTests(unittest.TestCase):
+    def setUp(self):
+        self.structure = generate_structure(
+            GenerationContext(4),
+            StructureParameters(4, 4, 1, (2,)),
+            StructureGenerationOptions(loop_modes=("full",)),
+        )
+        self.pattern = AccompanimentPatternDefinition(
+            "support-a", "rhythmic_support",
+            (AccompanimentPatternStep(2, relative_interval=0), AccompanimentPatternStep(2, rest=True)),
+        )
+
+    def _generate(self, seed=4):
+        return generate_accompaniment(
+            GenerationContext(seed), self.structure,
+            AccompanimentParameters(pattern_by_phrase=("support-a", "support-a"), variation_by_phrase=("exact", "relative_interval_offset"), variation_offsets_by_phrase=(0, 1)),
+            AccompanimentGenerationOptions(pattern_definitions=(self.pattern,)),
+        )
+
+    def test_accompaniment_is_reproducible_and_not_channel_bound(self):
+        first = self._generate()
+        self.assertEqual(first.as_dict(), self._generate().as_dict())
+        self.assertIsNone(first.as_dict()["layer"]["physical_channel"])
+        self.assertEqual(first.events[3].pitch_value, 1)
+
+    def test_pattern_instance_and_event_phrase_references_are_checked(self):
+        layer = self._generate()
+        self.assertTrue(all(event.pattern_instance_ref for event in layer.events))
+        self.assertTrue(all(event.phrase_ref in {"phrase-001", "phrase-002"} for event in layer.events))
+
+    def test_harmony_ref_requires_caller_supplied_context(self):
+        pattern = AccompanimentPatternDefinition(
+            "harmony-support", "sustained_tone",
+            (AccompanimentPatternStep(2, relative_interval=0, harmony_ref="h-1"),),
+        )
+        params = AccompanimentParameters(pattern_by_phrase=("harmony-support", "harmony-support"), variation_by_phrase=("exact", "exact"))
+        with self.assertRaises(GenerationInputError):
+            generate_accompaniment(GenerationContext(1), self.structure, params, AccompanimentGenerationOptions(pattern_definitions=(pattern,)))
+        layer = generate_accompaniment(GenerationContext(1), self.structure, params, AccompanimentGenerationOptions(pattern_definitions=(pattern,), harmony_refs=("h-1",)))
+        self.assertEqual(layer.events[0].harmony_ref, "h-1")
+
+    def test_invalid_realization_pitch_overlap_and_fit_are_rejected(self):
+        bad_realization = AccompanimentPatternDefinition("bad", "arpeggiation", (AccompanimentPatternStep(1, relative_interval=0),))
+        with self.assertRaises(GenerationInputError):
+            generate_accompaniment(GenerationContext(1), self.structure, AccompanimentParameters(pattern_by_phrase=("bad", "bad"), variation_by_phrase=("exact", "exact")), AccompanimentGenerationOptions(pattern_definitions=(bad_realization,)))
+        bad_pitch = AccompanimentPatternDefinition("bad-pitch", "sustained_tone", (AccompanimentPatternStep(1, relative_interval=0, scale_degree=1),))
+        with self.assertRaises(GenerationInputError):
+            generate_accompaniment(GenerationContext(1), self.structure, AccompanimentParameters(pattern_by_phrase=("bad-pitch", "bad-pitch"), variation_by_phrase=("exact", "exact")), AccompanimentGenerationOptions(pattern_definitions=(bad_pitch,)))
+        long_pattern = AccompanimentPatternDefinition("long", "sustained_tone", (AccompanimentPatternStep(100, relative_interval=0),))
+        with self.assertRaises(GenerationInputError):
+            generate_accompaniment(GenerationContext(1), self.structure, AccompanimentParameters(pattern_by_phrase=("long", "long"), variation_by_phrase=("exact", "exact")), AccompanimentGenerationOptions(pattern_definitions=(long_pattern,)))
 
 
 if __name__ == "__main__":
