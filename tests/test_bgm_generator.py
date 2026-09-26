@@ -16,7 +16,12 @@ from bgm_generator import (  # noqa: E402
     GenerationInputError,
     StructureGenerationOptions,
     StructureParameters,
+    MelodyGenerationOptions,
+    MelodyParameters,
+    MotifDefinition,
+    MotifStep,
     deterministic_probe,
+    generate_melody,
     generate_structure,
 )
 
@@ -125,6 +130,54 @@ class StructureGenerationTests(unittest.TestCase):
             generate_structure(GenerationContext(1), StructureParameters(4, 4, 1, (1,), "range"))
         with self.assertRaises(GenerationInputError):
             generate_structure(GenerationContext(1), StructureParameters(4, 4, 1, (1,), "range", 1, 1))
+
+
+class MelodyGenerationTests(unittest.TestCase):
+    def setUp(self):
+        self.structure = generate_structure(
+            GenerationContext(3),
+            StructureParameters(4, 4, 1, (2,)),
+            StructureGenerationOptions(loop_modes=("full",)),
+        )
+        self.motif = MotifDefinition(
+            "motif-a",
+            (MotifStep(2, relative_interval=0), MotifStep(2, relative_interval=1), MotifStep(2, rest=True)),
+        )
+
+    def _generate(self, seed=3):
+        return generate_melody(
+            GenerationContext(seed),
+            self.structure,
+            MelodyParameters(motif_by_phrase=("motif-a", "motif-a"), variation_by_phrase=("exact", "relative_interval_offset"), variation_offsets_by_phrase=(0, 1)),
+            MelodyGenerationOptions(motif_definitions=(self.motif,), variation_candidates=("exact",)),
+        )
+
+    def test_melody_is_reproducible_and_not_channel_bound(self):
+        first = self._generate()
+        second = self._generate()
+        self.assertEqual(first.as_dict(), second.as_dict())
+        self.assertIsNone(first.as_dict()["layer"]["physical_channel"])
+        self.assertEqual(first.events[1].pitch_value, 1)
+
+    def test_motif_instance_and_phrase_references_are_preserved(self):
+        layer = self._generate()
+        self.assertEqual([instance.phrase_ref for instance in layer.motif_instances], ["phrase-001", "phrase-002"])
+        self.assertTrue(all(event.phrase_ref in {"phrase-001", "phrase-002"} for event in layer.events))
+        self.assertEqual(layer.as_dict(), self._generate().as_dict())
+
+    def test_invalid_motif_and_candidate_inputs_are_rejected(self):
+        invalid = MotifDefinition("bad", (MotifStep(1, rest=True, relative_interval=0),))
+        with self.assertRaises(GenerationInputError):
+            generate_melody(GenerationContext(1), self.structure, MelodyParameters(motif_by_phrase=("bad", "bad"), variation_by_phrase=("exact", "exact")), MelodyGenerationOptions(motif_definitions=(invalid,)))
+        with self.assertRaises(GenerationInputError):
+            generate_melody(GenerationContext(1), self.structure, MelodyParameters(motif_by_phrase=("motif-a", "motif-a"), variation_by_phrase=("unsupported", "exact")), MelodyGenerationOptions(motif_definitions=(self.motif,)))
+        with self.assertRaises(GenerationInputError):
+            generate_melody(GenerationContext(1), self.structure, MelodyParameters(motif_by_phrase=("motif-a",), variation_by_phrase=("exact", "exact")), MelodyGenerationOptions(motif_definitions=(self.motif,)))
+
+    def test_motif_must_fit_and_duplicate_events_are_rejected_by_validation(self):
+        long_motif = MotifDefinition("long", (MotifStep(100, relative_interval=0),))
+        with self.assertRaises(GenerationInputError):
+            generate_melody(GenerationContext(1), self.structure, MelodyParameters(motif_by_phrase=("long", "long"), variation_by_phrase=("exact", "exact")), MelodyGenerationOptions(motif_definitions=(long_motif,)))
 
 
 if __name__ == "__main__":
