@@ -654,6 +654,252 @@ def validate_accompaniment(layer: AccompanimentLayer, structure: CompositionStru
         previous_end[event.phrase_ref] = event.start_tick + event.duration_tick
 
 
+BASS_RELATIONS = ("root", "chord_tone", "passing", "pedal", "ostinato")
+
+
+@dataclass(frozen=True)
+class BassPatternStep:
+    duration_tick: int
+    rest: bool = False
+    bass_relation: str | None = None
+    relative_interval: int | None = None
+    scale_degree: int | None = None
+    absolute_pitch: int | None = None
+    harmony_ref: str | None = None
+    accent: str | None = None
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "duration_tick": self.duration_tick,
+            "rest": self.rest,
+            "bass_relation": self.bass_relation,
+            "relative_interval": self.relative_interval,
+            "scale_degree": self.scale_degree,
+            "absolute_pitch": self.absolute_pitch,
+            "harmony_ref": self.harmony_ref,
+            "accent": self.accent,
+        }
+
+
+@dataclass(frozen=True)
+class BassPatternDefinition:
+    id: str
+    steps: tuple[BassPatternStep, ...]
+    rule_refs: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, object]:
+        return {"id": self.id, "steps": [step.as_dict() for step in self.steps], "rule_refs": list(self.rule_refs)}
+
+
+@dataclass(frozen=True)
+class BassPatternInstance:
+    id: str
+    pattern_ref: str
+    phrase_ref: str
+    start_tick: int
+    transformation: dict[str, object]
+    rule_refs: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "id": self.id,
+            "pattern_ref": self.pattern_ref,
+            "phrase_ref": self.phrase_ref,
+            "start_tick": self.start_tick,
+            "transformation": dict(self.transformation),
+            "rule_refs": list(self.rule_refs),
+        }
+
+
+@dataclass(frozen=True)
+class BassEvent:
+    id: str
+    phrase_ref: str
+    start_tick: int
+    duration_tick: int
+    rest: bool
+    bass_relation: str | None
+    pitch_kind: str | None
+    pitch_value: int | None
+    harmony_ref: str | None
+    pattern_instance_ref: str
+    accent: str | None = None
+    rule_refs: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "id": self.id,
+            "phrase_ref": self.phrase_ref,
+            "start_tick": self.start_tick,
+            "duration_tick": self.duration_tick,
+            "rest": self.rest,
+            "bass_relation": self.bass_relation,
+            "pitch_kind": self.pitch_kind,
+            "pitch_value": self.pitch_value,
+            "harmony_ref": self.harmony_ref,
+            "pattern_instance_ref": self.pattern_instance_ref,
+            "accent": self.accent,
+            "rule_refs": list(self.rule_refs),
+        }
+
+
+@dataclass(frozen=True)
+class BassLayer:
+    metadata: GenerationMetadata
+    id: str
+    pattern_definitions: tuple[BassPatternDefinition, ...]
+    pattern_instances: tuple[BassPatternInstance, ...]
+    events: tuple[BassEvent, ...]
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "metadata": self.metadata.as_dict(),
+            "layer": {"id": self.id, "type": "bass", "physical_channel": None},
+            "pattern_definitions": [pattern.as_dict() for pattern in self.pattern_definitions],
+            "pattern_instances": [instance.as_dict() for instance in self.pattern_instances],
+            "events": [event.as_dict() for event in self.events],
+        }
+
+
+@dataclass(frozen=True)
+class BassParameters:
+    pattern_by_phrase: tuple[str, ...] | None = None
+    variation_by_phrase: tuple[str, ...] | None = None
+    variation_offsets_by_phrase: tuple[int, ...] | None = None
+
+
+@dataclass(frozen=True)
+class BassGenerationOptions:
+    pattern_definitions: tuple[BassPatternDefinition, ...] = ()
+    pattern_candidates_by_phrase: tuple[tuple[str, ...], ...] = ()
+    variation_candidates: tuple[str, ...] = ()
+    harmony_refs: tuple[str, ...] = ()
+
+
+def generate_bass(
+    context: GenerationContext,
+    structure: CompositionStructure,
+    parameters: BassParameters | None = None,
+    options: BassGenerationOptions | None = None,
+) -> BassLayer:
+    """Generate a logical bass voice without assigning a Game Boy channel."""
+    parameters = parameters or BassParameters()
+    options = options or BassGenerationOptions()
+    patterns = {pattern.id: pattern for pattern in options.pattern_definitions}
+    if len(patterns) != len(options.pattern_definitions) or not patterns:
+        raise GenerationInputError("bass pattern definitions must be non-empty and unique")
+    phrases = structure.phrases
+    pattern_ids = parameters.pattern_by_phrase
+    if pattern_ids is None:
+        if len(options.pattern_candidates_by_phrase) != len(phrases):
+            raise GenerationInputError("bass pattern candidates must cover every phrase")
+        pattern_ids = tuple(context.choice(candidates) for candidates in options.pattern_candidates_by_phrase)
+    if len(pattern_ids) != len(phrases) or any(pattern_id not in patterns for pattern_id in pattern_ids):
+        raise GenerationInputError("bass pattern_by_phrase has an invalid reference")
+    variations = parameters.variation_by_phrase
+    if variations is None:
+        if not options.variation_candidates:
+            raise GenerationInputError("bass variation candidates are required")
+        variations = tuple(context.choice(options.variation_candidates) for _ in phrases)
+    if len(variations) != len(phrases) or any(variation not in ACCOMPANIMENT_VARIATIONS for variation in variations):
+        raise GenerationInputError("unsupported or incomplete bass variation")
+
+    instances: list[BassPatternInstance] = []
+    events: list[BassEvent] = []
+    for phrase, pattern_id, variation in zip(phrases, pattern_ids, variations):
+        pattern = patterns[pattern_id]
+        _validate_bass_pattern(pattern, options.harmony_refs)
+        pattern_duration = sum(step.duration_tick for step in pattern.steps)
+        if pattern_duration > phrase.duration_tick:
+            raise GenerationInputError("bass pattern does not fit inside its phrase")
+        instance_id = f"bass-instance-{len(instances) + 1:03d}"
+        transformation: dict[str, object] = {"type": variation}
+        if variation == "relative_interval_offset":
+            offsets = parameters.variation_offsets_by_phrase
+            if offsets is None or len(offsets) != len(phrases):
+                raise GenerationInputError("relative bass variation requires one offset per phrase")
+            transformation["offset"] = offsets[len(instances)]
+        instances.append(BassPatternInstance(instance_id, pattern_id, phrase.id, phrase.start_tick, transformation))
+        offset = 0
+        for step in pattern.steps:
+            if step.rest:
+                kind = value = relation = None
+            elif step.relative_interval is not None:
+                kind, value, relation = "relative_interval", step.relative_interval + int(transformation.get("offset", 0)), step.bass_relation
+            elif step.scale_degree is not None:
+                kind, value, relation = "scale_degree", step.scale_degree, step.bass_relation
+            else:
+                kind, value, relation = "absolute_pitch", step.absolute_pitch, step.bass_relation
+            events.append(BassEvent(
+                f"bass-event-{len(events) + 1:03d}", phrase.id, phrase.start_tick + offset,
+                step.duration_tick, step.rest, relation, kind, value, step.harmony_ref, instance_id, step.accent,
+            ))
+            offset += step.duration_tick
+        if offset < phrase.duration_tick:
+            events.append(BassEvent(
+                f"bass-event-{len(events) + 1:03d}", phrase.id, phrase.start_tick + offset,
+                phrase.duration_tick - offset, True, None, None, None, None, instance_id,
+            ))
+    layer = BassLayer(context.metadata, "bass-001", tuple(options.pattern_definitions), tuple(instances), tuple(events))
+    validate_bass(layer, structure, options.harmony_refs)
+    return layer
+
+
+def _validate_bass_pattern(pattern: BassPatternDefinition, harmony_refs: tuple[str, ...]) -> None:
+    if not pattern.id or not pattern.steps:
+        raise GenerationInputError("bass pattern must have an id and steps")
+    for step in pattern.steps:
+        _positive_int(step.duration_tick, "bass step duration")
+        values = [step.relative_interval, step.scale_degree, step.absolute_pitch]
+        if step.rest:
+            if any(value is not None for value in values) or step.bass_relation is not None or step.harmony_ref is not None:
+                raise GenerationInputError("rest bass step must not have relation or pitch")
+        else:
+            if sum(value is not None for value in values) != 1:
+                raise GenerationInputError("bass step must have exactly one pitch relation")
+            if step.bass_relation is not None and step.bass_relation not in BASS_RELATIONS:
+                raise GenerationInputError("unsupported bass relation")
+            if step.harmony_ref is not None and step.harmony_ref not in harmony_refs:
+                raise GenerationInputError("bass harmony_ref is not available")
+
+
+def validate_bass(layer: BassLayer, structure: CompositionStructure, harmony_refs: tuple[str, ...] = ()) -> None:
+    patterns = {pattern.id: pattern for pattern in layer.pattern_definitions}
+    instances = {instance.id: instance for instance in layer.pattern_instances}
+    phrases = {phrase.id: phrase for phrase in structure.phrases}
+    if len(patterns) != len(layer.pattern_definitions) or len(instances) != len(layer.pattern_instances):
+        raise GenerationInputError("bass IDs must be unique")
+    for instance in layer.pattern_instances:
+        if instance.pattern_ref not in patterns or instance.phrase_ref not in phrases:
+            raise GenerationInputError("bass instance reference is broken")
+    event_ids: set[str] = set()
+    previous_end: dict[str, int] = {}
+    for event in layer.events:
+        if event.id in event_ids:
+            raise GenerationInputError("bass event IDs must be unique")
+        event_ids.add(event.id)
+        if event.phrase_ref not in phrases or event.pattern_instance_ref not in instances:
+            raise GenerationInputError("bass event reference is broken")
+        instance = instances[event.pattern_instance_ref]
+        if instance.phrase_ref != event.phrase_ref:
+            raise GenerationInputError("bass event and instance phrase differ")
+        phrase = phrases[event.phrase_ref]
+        if event.duration_tick <= 0 or event.start_tick < phrase.start_tick or event.start_tick + event.duration_tick > phrase.end_tick:
+            raise GenerationInputError("bass event is outside its phrase")
+        if event.harmony_ref is not None and event.harmony_ref not in harmony_refs:
+            raise GenerationInputError("bass event harmony_ref is not available")
+        if event.rest and any(value is not None for value in (event.bass_relation, event.pitch_kind, event.pitch_value, event.harmony_ref)):
+            raise GenerationInputError("rest bass event must not have relation or pitch")
+        if not event.rest:
+            if event.bass_relation is not None and event.bass_relation not in BASS_RELATIONS:
+                raise GenerationInputError("unsupported bass relation")
+            if event.pitch_kind not in ("relative_interval", "scale_degree", "absolute_pitch") or event.pitch_value is None:
+                raise GenerationInputError("pitched bass event must have one pitch relation")
+        if event.phrase_ref in previous_end and event.start_tick < previous_end[event.phrase_ref]:
+            raise GenerationInputError("bass events must not overlap within a phrase")
+        previous_end[event.phrase_ref] = event.start_tick + event.duration_tick
+
+
 def generate_structure(
     context: GenerationContext,
     parameters: StructureParameters,

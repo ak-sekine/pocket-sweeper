@@ -24,8 +24,13 @@ from bgm_generator import (  # noqa: E402
     AccompanimentParameters,
     AccompanimentPatternDefinition,
     AccompanimentPatternStep,
+    BassGenerationOptions,
+    BassParameters,
+    BassPatternDefinition,
+    BassPatternStep,
     deterministic_probe,
     generate_accompaniment,
+    generate_bass,
     generate_melody,
     generate_structure,
 )
@@ -236,6 +241,55 @@ class AccompanimentGenerationTests(unittest.TestCase):
         long_pattern = AccompanimentPatternDefinition("long", "sustained_tone", (AccompanimentPatternStep(100, relative_interval=0),))
         with self.assertRaises(GenerationInputError):
             generate_accompaniment(GenerationContext(1), self.structure, AccompanimentParameters(pattern_by_phrase=("long", "long"), variation_by_phrase=("exact", "exact")), AccompanimentGenerationOptions(pattern_definitions=(long_pattern,)))
+
+
+class BassGenerationTests(unittest.TestCase):
+    def setUp(self):
+        self.structure = generate_structure(
+            GenerationContext(5),
+            StructureParameters(4, 4, 1, (2,)),
+            StructureGenerationOptions(loop_modes=("full",)),
+        )
+        self.pattern = BassPatternDefinition(
+            "bass-a",
+            (BassPatternStep(2, bass_relation="root", relative_interval=0), BassPatternStep(2, rest=True)),
+        )
+
+    def _generate(self, seed=5):
+        return generate_bass(
+            GenerationContext(seed), self.structure,
+            BassParameters(pattern_by_phrase=("bass-a", "bass-a"), variation_by_phrase=("exact", "relative_interval_offset"), variation_offsets_by_phrase=(0, -1)),
+            BassGenerationOptions(pattern_definitions=(self.pattern,)),
+        )
+
+    def test_bass_is_reproducible_and_not_channel_bound(self):
+        first = self._generate()
+        self.assertEqual(first.as_dict(), self._generate().as_dict())
+        self.assertIsNone(first.as_dict()["layer"]["physical_channel"])
+        self.assertEqual(first.events[3].pitch_value, -1)
+        self.assertEqual(first.events[0].bass_relation, "root")
+
+    def test_bass_relation_and_harmony_reference_are_separate(self):
+        pattern = BassPatternDefinition(
+            "harmony-bass", (BassPatternStep(2, bass_relation="chord_tone", relative_interval=0, harmony_ref="h-1"),),
+        )
+        params = BassParameters(pattern_by_phrase=("harmony-bass", "harmony-bass"), variation_by_phrase=("exact", "exact"))
+        with self.assertRaises(GenerationInputError):
+            generate_bass(GenerationContext(1), self.structure, params, BassGenerationOptions(pattern_definitions=(pattern,)))
+        layer = generate_bass(GenerationContext(1), self.structure, params, BassGenerationOptions(pattern_definitions=(pattern,), harmony_refs=("h-1",)))
+        self.assertEqual(layer.events[0].bass_relation, "chord_tone")
+        self.assertEqual(layer.events[0].harmony_ref, "h-1")
+
+    def test_invalid_relation_pitch_and_pattern_fit_are_rejected(self):
+        bad_relation = BassPatternDefinition("bad", (BassPatternStep(1, bass_relation="walking", relative_interval=0),))
+        with self.assertRaises(GenerationInputError):
+            generate_bass(GenerationContext(1), self.structure, BassParameters(pattern_by_phrase=("bad", "bad"), variation_by_phrase=("exact", "exact")), BassGenerationOptions(pattern_definitions=(bad_relation,)))
+        bad_pitch = BassPatternDefinition("bad-pitch", (BassPatternStep(1, bass_relation="pedal", relative_interval=0, scale_degree=1),))
+        with self.assertRaises(GenerationInputError):
+            generate_bass(GenerationContext(1), self.structure, BassParameters(pattern_by_phrase=("bad-pitch", "bad-pitch"), variation_by_phrase=("exact", "exact")), BassGenerationOptions(pattern_definitions=(bad_pitch,)))
+        long_pattern = BassPatternDefinition("long", (BassPatternStep(100, relative_interval=0),))
+        with self.assertRaises(GenerationInputError):
+            generate_bass(GenerationContext(1), self.structure, BassParameters(pattern_by_phrase=("long", "long"), variation_by_phrase=("exact", "exact")), BassGenerationOptions(pattern_definitions=(long_pattern,)))
 
 
 if __name__ == "__main__":
