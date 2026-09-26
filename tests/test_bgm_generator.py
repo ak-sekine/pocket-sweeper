@@ -38,11 +38,14 @@ from bgm_generator import (  # noqa: E402
     generate_bass,
     generate_noise,
     LayerAllocation,
+    GameBoyConversionInput,
     SfxOccupancy,
     validate_game_boy_allocation,
     generate_melody,
     generate_structure,
+    convert_to_json_v2,
 )
+import json_to_uge  # noqa: E402
 
 
 class GenerationContextTests(unittest.TestCase):
@@ -397,6 +400,66 @@ class AllocationValidationTests(unittest.TestCase):
         result = validate_game_boy_allocation(self.layers, (), (SfxOccupancy("cursor", "CH4"),), timeline_continues_during_sfx=False)
         self.assertFalse(result.valid)
         self.assertTrue(any("timeline" in item for item in result.machine_violations))
+
+
+class GameBoyConversionTests(unittest.TestCase):
+    def setUp(self):
+        self.structure = generate_structure(
+            GenerationContext(7),
+            StructureParameters(1, 1, phrase_measures=1, section_phrase_counts=(1, 1), loop_mode="full"),
+        )
+        self.layer = SimpleNamespace(
+            id="melody-001",
+            events=(SimpleNamespace(id="event-001", phrase_ref="phrase-001", start_tick=0,
+                                    duration_tick=1, rest=False, pitch_kind="absolute_pitch", pitch_value=0),),
+        )
+        self.instrument = {"id": 1, "name": "caller-pulse", "channel": "pulse1"}
+
+    def conversion(self, **kwargs):
+        values = dict(
+            structure=self.structure, logical_layers=(self.layer,),
+            allocations=(LayerAllocation("melody-001", "CH1", ("pulse",)),),
+            title="generated", tempo=120, ticks_per_row=1,
+            instrument_by_channel={"CH1": 1}, instruments=(self.instrument,),
+            absolute_pitch_map={0: "C4"}, noise_character_map={},
+        )
+        values.update(kwargs)
+        return GameBoyConversionInput(**values)
+
+    def test_explicit_allocation_and_existing_v2_converter(self):
+        result = convert_to_json_v2(self.conversion())
+        self.assertEqual(result["version"], 2)
+        self.assertEqual(result["order"], {"pulse1": ["section-001", "section-002"]})
+        self.assertTrue(json_to_uge.build_uge(result))
+        self.assertFalse(hasattr(self.layer, "physical_channel"))
+
+    def test_conversion_is_deterministic_and_full_loop_is_preserved(self):
+        self.assertEqual(convert_to_json_v2(self.conversion()), convert_to_json_v2(self.conversion()))
+        self.assertEqual(convert_to_json_v2(self.conversion())["loop"], {"mode": "full"})
+
+    def test_unresolved_pitch_and_non_exact_grid_are_rejected(self):
+        unresolved = SimpleNamespace(**{**self.layer.__dict__, "events": (
+            SimpleNamespace(id="event-001", phrase_ref="phrase-001", start_tick=0,
+                            duration_tick=1, rest=False, pitch_kind="relative_interval", pitch_value=0),)})
+        with self.assertRaises(GenerationInputError):
+            convert_to_json_v2(self.conversion(logical_layers=(unresolved,)))
+        with self.assertRaises(GenerationInputError):
+            convert_to_json_v2(self.conversion(ticks_per_row=2))
+
+    def test_invalid_allocation_and_missing_instrument_are_rejected(self):
+        with self.assertRaises(GenerationInputError):
+            convert_to_json_v2(self.conversion(allocations=(LayerAllocation("melody-001", "CH4", ("pulse",)),)))
+        with self.assertRaises(GenerationInputError):
+            convert_to_json_v2(self.conversion(instrument_by_channel={}))
+
+    def test_range_loop_requires_explicit_order_boundary(self):
+        structure = generate_structure(
+            GenerationContext(8),
+            StructureParameters(1, 1, phrase_measures=1, section_phrase_counts=(1, 1),
+                                loop_mode="range", loop_start_phrase=1, loop_end_phrase=2),
+        )
+        result = convert_to_json_v2(self.conversion(structure=structure))
+        self.assertEqual(result["loop"], {"mode": "range", "start_order": 1, "end_order": 2})
 
 
 if __name__ == "__main__":

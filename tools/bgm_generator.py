@@ -9,7 +9,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 from numbers import Real
-from typing import Sequence, TypeVar
+from typing import Mapping, Sequence, TypeVar
 
 
 GENERATOR_VERSION = "0.2.0"
@@ -1215,6 +1215,157 @@ def validate_game_boy_allocation(
         notes.append("SFX mute affects the channel while the BGM timeline continues")
     notes.append("machine-valid allocation does not establish musical quality")
     return AllocationValidation(not violations, tuple(violations), tuple(review), tuple(notes))
+
+
+@dataclass(frozen=True)
+class GameBoyConversionInput:
+    structure: CompositionStructure
+    logical_layers: tuple[object, ...]
+    allocations: tuple[LayerAllocation, ...]
+    title: str
+    tempo: int
+    ticks_per_row: int
+    instrument_by_channel: Mapping[str, int]
+    instruments: tuple[dict[str, object], ...]
+    absolute_pitch_map: Mapping[int, str]
+    noise_character_map: Mapping[str, str]
+    sfx_occupancies: tuple[SfxOccupancy, ...] = ()
+    timeline_continues_during_sfx: bool = True
+
+
+def convert_to_json_v2(input_data: GameBoyConversionInput) -> dict[str, object]:
+    """Adapt resolved logical layers to the existing Version 2 JSON contract."""
+    if not input_data.title or not isinstance(input_data.title, str):
+        raise GenerationInputError("title must be a non-empty string")
+    _positive_int(input_data.tempo, "tempo")
+    _positive_int(input_data.ticks_per_row, "ticks_per_row")
+    validation = validate_game_boy_allocation(
+        input_data.logical_layers,
+        input_data.allocations,
+        input_data.sfx_occupancies,
+        input_data.timeline_continues_during_sfx,
+    )
+    if not validation.valid:
+        raise GenerationInputError("allocation validation failed: " + "; ".join(validation.machine_violations))
+    if not input_data.instruments:
+        raise GenerationInputError("caller-supplied instruments are required")
+    if set(input_data.instrument_by_channel) - set(PHYSICAL_CHANNELS):
+        raise GenerationInputError("instrument mapping contains an unknown channel")
+    instrument_channels = {
+        item.get("id"): item.get("channel")
+        for item in input_data.instruments
+        if isinstance(item, dict)
+    }
+
+    layer_by_id = {getattr(layer, "id", None): layer for layer in input_data.logical_layers}
+    allocation_by_channel = {allocation.physical_channel: allocation for allocation in input_data.allocations}
+    channel_names = {"CH1": "pulse1", "CH2": "pulse2", "CH3": "wave", "CH4": "noise"}
+    sections = input_data.structure.sections
+    patterns: dict[str, dict[str, list[dict[str, object]]]] = {}
+    orders: dict[str, list[str]] = {}
+    for physical_channel, allocation in allocation_by_channel.items():
+        if physical_channel not in input_data.instrument_by_channel:
+            raise GenerationInputError(f"missing instrument mapping for {physical_channel}")
+        channel = channel_names[physical_channel]
+        layer = layer_by_id.get(allocation.logical_layer_ref)
+        if layer is None or not hasattr(layer, "events"):
+            raise GenerationInputError(f"allocation layer is not convertible: {allocation.logical_layer_ref}")
+        instrument_id = input_data.instrument_by_channel[physical_channel]
+        if not isinstance(instrument_id, int) or isinstance(instrument_id, bool) or instrument_id <= 0:
+            raise GenerationInputError("instrument IDs must be positive integers")
+        if instrument_channels.get(instrument_id) != channel:
+            raise GenerationInputError(f"instrument {instrument_id} is not defined for {channel}")
+        channel_patterns: dict[str, list[dict[str, object]]] = {}
+        for section in sections:
+            section_ticks = section.duration_tick
+            if section_ticks % input_data.ticks_per_row:
+                raise GenerationInputError("section duration is not exactly representable in rows")
+            row_count = section_ticks // input_data.ticks_per_row
+            if row_count <= 0 or row_count > 64:
+                raise GenerationInputError("each output pattern must contain 1..64 rows")
+            events = [event for event in layer.events if getattr(event, "phrase_ref", None) in section.phrase_refs]
+            events.sort(key=lambda event: event.start_tick)
+            channel_patterns[section.id] = _events_to_json_notes(
+                events, section.start_tick, section.end_tick, input_data.ticks_per_row,
+                instrument_id, input_data.absolute_pitch_map, input_data.noise_character_map,
+                channel,
+            )
+        patterns[channel] = channel_patterns
+        orders[channel] = [section.id for section in sections]
+
+    if not orders:
+        raise GenerationInputError("at least one allocated channel is required")
+    loop = _logical_loop_to_json(input_data.structure, sections)
+    result: dict[str, object] = {
+        "version": 2,
+        "title": input_data.title,
+        "type": "bgm",
+        "tempo": input_data.tempo,
+        "loop": loop,
+        "instruments": list(input_data.instruments),
+        "order": orders,
+        "patterns": patterns,
+    }
+    return result
+
+
+def _events_to_json_notes(
+    events: Sequence[object],
+    section_start: int,
+    section_end: int,
+    ticks_per_row: int,
+    instrument_id: int,
+    absolute_pitch_map: Mapping[int, str],
+    noise_character_map: Mapping[str, str],
+    channel: str,
+) -> list[dict[str, object]]:
+    notes: list[dict[str, object]] = []
+    cursor = section_start
+    for event in events:
+        start = getattr(event, "start_tick", None)
+        duration = getattr(event, "duration_tick", None)
+        if not isinstance(start, int) or not isinstance(duration, int) or start < cursor or start + duration > section_end:
+            raise GenerationInputError("event is outside section or overlaps another event")
+        if start % ticks_per_row or duration % ticks_per_row:
+            raise GenerationInputError("event timing is not exactly representable in rows")
+        if start > cursor:
+            notes.append({"note": "rest", "length": (start - cursor) // ticks_per_row, "instrument": instrument_id})
+        length = duration // ticks_per_row
+        if length <= 0:
+            raise GenerationInputError("event duration must produce at least one row")
+        if getattr(event, "rest", False):
+            note = "rest"
+        elif channel == "noise":
+            character = getattr(event, "character_ref", None)
+            if character not in noise_character_map:
+                raise GenerationInputError("Noise character requires caller-supplied note mapping")
+            note = noise_character_map[character]
+        else:
+            if getattr(event, "pitch_kind", None) != "absolute_pitch":
+                raise GenerationInputError("unresolved pitch relation cannot be converted")
+            pitch = getattr(event, "pitch_value", None)
+            if pitch not in absolute_pitch_map:
+                raise GenerationInputError("absolute pitch requires caller-supplied note mapping")
+            note = absolute_pitch_map[pitch]
+        notes.append({"note": note, "length": length, "instrument": instrument_id})
+        cursor = start + duration
+    if cursor < section_end:
+        notes.append({"note": "rest", "length": (section_end - cursor) // ticks_per_row, "instrument": instrument_id})
+    return notes
+
+
+def _logical_loop_to_json(structure: CompositionStructure, sections: Sequence[Section]) -> dict[str, object]:
+    mode = structure.loop_mode
+    if mode == "none":
+        return {"mode": "none"}
+    if mode == "full":
+        return {"mode": "full"}
+    if structure.loop_start_tick is None or structure.loop_end_tick != structure.total_duration_tick:
+        raise GenerationInputError("Version 2 range loop requires a loop ending at song end")
+    starts = [section.start_tick for section in sections]
+    if structure.loop_start_tick not in starts:
+        raise GenerationInputError("range loop start must align to an order boundary")
+    return {"mode": "range", "start_order": starts.index(structure.loop_start_tick), "end_order": len(sections)}
 
 
 def generate_structure(
