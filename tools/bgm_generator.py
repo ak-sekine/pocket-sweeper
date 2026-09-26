@@ -1112,6 +1112,111 @@ def validate_noise(layer: NoiseLayer, structure: CompositionStructure) -> None:
         previous_end[event.phrase_ref] = event.start_tick + event.duration_tick
 
 
+PHYSICAL_CHANNELS = ("CH1", "CH2", "CH3", "CH4")
+CHANNEL_CAPABILITIES = {
+    "CH1": frozenset(("pulse", "sweep")),
+    "CH2": frozenset(("pulse",)),
+    "CH3": frozenset(("wave",)),
+    "CH4": frozenset(("noise",)),
+}
+DEGRADATION_POLICIES = ("required", "temporarily_degradable", "optional")
+
+
+@dataclass(frozen=True)
+class LayerAllocation:
+    logical_layer_ref: str
+    physical_channel: str
+    required_capabilities: tuple[str, ...] = ()
+    degradation_policy: str = "required"
+    structural_role: str | None = None
+    rule_refs: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class SfxOccupancy:
+    sfx_id: str
+    physical_channel: str
+    temporary: bool = True
+    mute_bgm_channel: bool = True
+    implemented: bool = True
+    recovery: str = "resume_current_position"
+
+
+@dataclass(frozen=True)
+class AllocationValidation:
+    valid: bool
+    machine_violations: tuple[str, ...] = ()
+    human_review_items: tuple[str, ...] = ()
+    notes: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "valid": self.valid,
+            "machine_violations": list(self.machine_violations),
+            "human_review_items": list(self.human_review_items),
+            "notes": list(self.notes),
+        }
+
+
+def validate_game_boy_allocation(
+    logical_layers: Sequence[object],
+    allocations: Sequence[LayerAllocation],
+    sfx_occupancies: Sequence[SfxOccupancy] = (),
+    timeline_continues_during_sfx: bool = True,
+) -> AllocationValidation:
+    """Check allocation and known SFX preemption without judging sound quality."""
+    layer_ids = [getattr(layer, "id", None) for layer in logical_layers]
+    violations: list[str] = []
+    review: list[str] = []
+    notes: list[str] = []
+    if any(not layer_id for layer_id in layer_ids) or len(set(layer_ids)) != len(layer_ids):
+        violations.append("logical layer IDs must be present and unique")
+    known_layers = set(layer_ids)
+    if len(allocations) > len(PHYSICAL_CHANNELS):
+        violations.append("physical allocation exceeds four channels")
+    seen_layers: set[str] = set()
+    seen_channels: set[str] = set()
+    for allocation in allocations:
+        if allocation.logical_layer_ref not in known_layers:
+            violations.append(f"unknown logical layer: {allocation.logical_layer_ref}")
+        if allocation.logical_layer_ref in seen_layers:
+            violations.append(f"logical layer allocated more than once: {allocation.logical_layer_ref}")
+        seen_layers.add(allocation.logical_layer_ref)
+        if allocation.physical_channel not in CHANNEL_CAPABILITIES:
+            violations.append(f"unknown physical channel: {allocation.physical_channel}")
+            continue
+        if allocation.physical_channel in seen_channels:
+            violations.append(f"exclusive physical channel conflict: {allocation.physical_channel}")
+        seen_channels.add(allocation.physical_channel)
+        if allocation.degradation_policy not in DEGRADATION_POLICIES:
+            violations.append(f"invalid degradation policy: {allocation.degradation_policy}")
+        missing = set(allocation.required_capabilities) - CHANNEL_CAPABILITIES[allocation.physical_channel]
+        if missing:
+            violations.append(f"channel {allocation.physical_channel} lacks capabilities: {sorted(missing)}")
+
+    occupied = {occupancy.physical_channel for occupancy in sfx_occupancies if occupancy.implemented}
+    for occupancy in sfx_occupancies:
+        if occupancy.physical_channel not in CHANNEL_CAPABILITIES:
+            violations.append(f"unknown SFX physical channel: {occupancy.physical_channel}")
+        if occupancy.recovery != "resume_current_position":
+            notes.append(f"recovery policy is not the current implementation contract: {occupancy.sfx_id}")
+        if not occupancy.implemented:
+            notes.append(f"SFX is a future/unimplemented occupancy: {occupancy.sfx_id}")
+    for allocation in allocations:
+        if allocation.physical_channel not in occupied:
+            continue
+        if allocation.degradation_policy == "required":
+            violations.append(f"required layer preempted by SFX: {allocation.logical_layer_ref}")
+        else:
+            review.append(f"temporary SFX loss requires listening review: {allocation.logical_layer_ref}")
+    if not timeline_continues_during_sfx:
+        violations.append("BGM timeline must continue during SFX occupancy")
+    if occupied:
+        notes.append("SFX mute affects the channel while the BGM timeline continues")
+    notes.append("machine-valid allocation does not establish musical quality")
+    return AllocationValidation(not violations, tuple(violations), tuple(review), tuple(notes))
+
+
 def generate_structure(
     context: GenerationContext,
     parameters: StructureParameters,

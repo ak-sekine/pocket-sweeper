@@ -578,14 +578,14 @@
         - [x] WBS-001-01575 作曲ルールの根拠・出典・確度を記録する形式を決める
         - [x] WBS-001-01576 melody・motif・rhythm・harmony・bass・noiseを制約付きで管理する方法を決める
         - [x] WBS-001-01577 根拠不足時にルールを追加せず調査へ戻す運用を決める
-      - [ ] WBS-001-01578 ルールベースBGM生成ツールを試作する
+      - [x] WBS-001-01578 ルールベースBGM生成ツールを試作する
         - [x] WBS-001-01579 Pythonで再現可能なseed付き生成処理を実装する
         - [x] WBS-001-01580 曲構成とloop構造を生成する
         - [x] WBS-001-01581 主旋律logical layerをルール・motifパターンから生成する
         - [x] WBS-001-01582 伴奏logical layerをルール・伴奏パターンから生成する
         - [x] WBS-001-01583 ベースlogical layerをルール・ベースパターンから生成する
         - [x] WBS-001-01584 Noise/percussion logical layerをルール・リズムパターンから生成する
-        - [ ] WBS-001-01585 Game Boy・hUGEDriver・SFX共存制約を生成時に保証する
+        - [x] WBS-001-01585 Game Boy・hUGEDriver・SFX共存制約を生成時に保証する
       - [ ] WBS-001-01586 生成曲から確認用ROMまでを一括生成できるようにする
         - [ ] WBS-001-01587 MIDIを経由せず生成結果をGame Boy向け楽曲データへ変換する
         - [ ] WBS-001-01588 hUGEDriver用ASMを生成する

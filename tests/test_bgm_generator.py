@@ -4,6 +4,7 @@ import random
 import subprocess
 import sys
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
 
 
@@ -36,6 +37,9 @@ from bgm_generator import (  # noqa: E402
     generate_accompaniment,
     generate_bass,
     generate_noise,
+    LayerAllocation,
+    SfxOccupancy,
+    validate_game_boy_allocation,
     generate_melody,
     generate_structure,
 )
@@ -343,6 +347,56 @@ class NoiseGenerationTests(unittest.TestCase):
     def test_only_exact_variation_is_supported(self):
         with self.assertRaises(GenerationInputError):
             generate_noise(GenerationContext(1), self.structure, NoiseParameters(pattern_by_phrase=("noise-a", "noise-a"), variation_by_phrase=("fill", "exact")), NoiseGenerationOptions(pattern_definitions=(self.pattern,)))
+
+
+class AllocationValidationTests(unittest.TestCase):
+    def setUp(self):
+        self.layers = [SimpleNamespace(id=name) for name in ("melody-001", "accompaniment-001", "bass-001", "noise-percussion-001")]
+
+    def test_channel_capabilities_and_four_channel_exclusivity(self):
+        result = validate_game_boy_allocation(
+            self.layers,
+            (
+                LayerAllocation("melody-001", "CH1", ("pulse", "sweep")),
+                LayerAllocation("accompaniment-001", "CH2", ("pulse",)),
+                LayerAllocation("bass-001", "CH3", ("wave",)),
+                LayerAllocation("noise-percussion-001", "CH4", ("noise",)),
+            ),
+        )
+        self.assertTrue(result.valid)
+        duplicate = validate_game_boy_allocation(self.layers, (LayerAllocation("melody-001", "CH1"), LayerAllocation("bass-001", "CH1")))
+        self.assertFalse(duplicate.valid)
+        self.assertTrue(any("exclusive" in item for item in duplicate.machine_violations))
+
+    def test_invalid_capability_and_unknown_layer(self):
+        result = validate_game_boy_allocation(self.layers, (LayerAllocation("unknown", "CH4", ("pulse",)),))
+        self.assertFalse(result.valid)
+        self.assertTrue(any("unknown logical" in item for item in result.machine_violations))
+        self.assertTrue(any("lacks capabilities" in item for item in result.machine_violations))
+
+    def test_sfx_preemption_distinguishes_required_and_degradable(self):
+        pulse_sfx = SfxOccupancy("pulse1_sfx", "CH1")
+        required = validate_game_boy_allocation(self.layers, (LayerAllocation("melody-001", "CH1", ("pulse",), "required"),), (pulse_sfx,))
+        self.assertFalse(required.valid)
+        self.assertTrue(any("required layer" in item for item in required.machine_violations))
+        degradable = validate_game_boy_allocation(self.layers, (LayerAllocation("melody-001", "CH1", ("pulse",), "temporarily_degradable"),), (pulse_sfx,))
+        self.assertTrue(degradable.valid)
+        self.assertTrue(degradable.human_review_items)
+
+    def test_noise_sfx_can_preempt_degradable_noise_and_ch2_future_sfx_is_not_current(self):
+        noise_sfx = SfxOccupancy("cursor", "CH4")
+        result = validate_game_boy_allocation(self.layers, (LayerAllocation("noise-percussion-001", "CH4", ("noise",), "optional"),), (noise_sfx,))
+        self.assertTrue(result.valid)
+        self.assertTrue(result.human_review_items)
+        future_ch2 = SfxOccupancy("pulse2_future", "CH2", implemented=False)
+        result = validate_game_boy_allocation(self.layers, (LayerAllocation("accompaniment-001", "CH2", ("pulse",), "required"),), (future_ch2,))
+        self.assertTrue(result.valid)
+        self.assertTrue(any("future" in item for item in result.notes))
+
+    def test_timeline_stop_is_rejected_and_current_recovery_is_recorded(self):
+        result = validate_game_boy_allocation(self.layers, (), (SfxOccupancy("cursor", "CH4"),), timeline_continues_during_sfx=False)
+        self.assertFalse(result.valid)
+        self.assertTrue(any("timeline" in item for item in result.machine_violations))
 
 
 if __name__ == "__main__":
