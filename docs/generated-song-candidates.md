@@ -28,4 +28,16 @@
 2. `build/generated-candidates/candidate_02/candidate_02.gb`（candidate-02 / seed 5）
 3. `build/generated-candidates/candidate_03/candidate_03.gb`（candidate-03 / seed 7）
 
-SameBoyを起動していないため、試聴結果欄は未記入である。
+## Human SameBoy verification
+
+2026-09-26、HumanがSameBoyで3候補を試聴した。以下は提供された観測結果のみを記録する。
+
+| Candidate | Seed | Human verification | Result |
+|---|---:|---|---|
+| candidate-01 | 1 | SameBoy | 「1音しかならず曲になっていません。」 |
+| candidate-02 | 5 | SameBoy | 「1音しかならず曲になっていません。」 |
+| candidate-03 | 7 | SameBoy | 「1音しかならず曲になっていません。」 |
+
+3候補とも1音しか鳴らず、曲として成立していなかった。したがって、Pocket Sweeper用途への適合性、音楽としての長時間loop品質、SFX共存は評価できる段階に達していない。SFX共存の試聴は実施していない。
+
+この記録は観測結果のみであり、原因（generator、profile、logical layer、JSON/UGE/ASM/ROM、hUGEDriver、loop、mapping、SameBoy等）は分析していない。原因分析・修正・新候補生成は01596以降へ引き継ぐ。
