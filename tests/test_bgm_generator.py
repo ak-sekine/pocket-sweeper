@@ -28,9 +28,14 @@ from bgm_generator import (  # noqa: E402
     BassParameters,
     BassPatternDefinition,
     BassPatternStep,
+    NoiseGenerationOptions,
+    NoiseParameters,
+    NoisePatternDefinition,
+    NoisePatternStep,
     deterministic_probe,
     generate_accompaniment,
     generate_bass,
+    generate_noise,
     generate_melody,
     generate_structure,
 )
@@ -290,6 +295,54 @@ class BassGenerationTests(unittest.TestCase):
         long_pattern = BassPatternDefinition("long", (BassPatternStep(100, relative_interval=0),))
         with self.assertRaises(GenerationInputError):
             generate_bass(GenerationContext(1), self.structure, BassParameters(pattern_by_phrase=("long", "long"), variation_by_phrase=("exact", "exact")), BassGenerationOptions(pattern_definitions=(long_pattern,)))
+
+
+class NoiseGenerationTests(unittest.TestCase):
+    def setUp(self):
+        self.structure = generate_structure(
+            GenerationContext(6),
+            StructureParameters(4, 4, 1, (2,)),
+            StructureGenerationOptions(loop_modes=("full",)),
+        )
+        self.pattern = NoisePatternDefinition(
+            "noise-a",
+            (NoisePatternStep(2, role="beat_support", character_ref="caller-hit", accent="strong"), NoisePatternStep(2, rest=True)),
+        )
+
+    def _generate(self, seed=6):
+        return generate_noise(
+            GenerationContext(seed), self.structure,
+            NoiseParameters(pattern_by_phrase=("noise-a", "noise-a"), variation_by_phrase=("exact", "exact")),
+            NoiseGenerationOptions(pattern_definitions=(self.pattern,)),
+        )
+
+    def test_noise_is_reproducible_and_not_ch4_bound(self):
+        first = self._generate()
+        self.assertEqual(first.as_dict(), self._generate().as_dict())
+        self.assertIsNone(first.as_dict()["layer"]["physical_channel"])
+        self.assertEqual(first.events[0].role, "beat_support")
+        self.assertEqual(first.events[0].character_ref, "caller-hit")
+
+    def test_noise_events_have_no_pitch_fields(self):
+        event = self._generate().as_dict()["events"][0]
+        self.assertNotIn("pitch_kind", event)
+        self.assertNotIn("pitch_value", event)
+        self.assertNotIn("nr43", event)
+
+    def test_rest_metadata_role_and_fit_are_validated(self):
+        bad_rest = NoisePatternDefinition("bad-rest", (NoisePatternStep(1, rest=True, role="pulse"),))
+        with self.assertRaises(GenerationInputError):
+            generate_noise(GenerationContext(1), self.structure, NoiseParameters(pattern_by_phrase=("bad-rest", "bad-rest"), variation_by_phrase=("exact", "exact")), NoiseGenerationOptions(pattern_definitions=(bad_rest,)))
+        no_role = NoisePatternDefinition("no-role", (NoisePatternStep(1),))
+        with self.assertRaises(GenerationInputError):
+            generate_noise(GenerationContext(1), self.structure, NoiseParameters(pattern_by_phrase=("no-role", "no-role"), variation_by_phrase=("exact", "exact")), NoiseGenerationOptions(pattern_definitions=(no_role,)))
+        long_pattern = NoisePatternDefinition("long", (NoisePatternStep(100, role="accent"),))
+        with self.assertRaises(GenerationInputError):
+            generate_noise(GenerationContext(1), self.structure, NoiseParameters(pattern_by_phrase=("long", "long"), variation_by_phrase=("exact", "exact")), NoiseGenerationOptions(pattern_definitions=(long_pattern,)))
+
+    def test_only_exact_variation_is_supported(self):
+        with self.assertRaises(GenerationInputError):
+            generate_noise(GenerationContext(1), self.structure, NoiseParameters(pattern_by_phrase=("noise-a", "noise-a"), variation_by_phrase=("fill", "exact")), NoiseGenerationOptions(pattern_definitions=(self.pattern,)))
 
 
 if __name__ == "__main__":

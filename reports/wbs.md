@@ -584,7 +584,7 @@
         - [x] WBS-001-01581 主旋律logical layerをルール・motifパターンから生成する
         - [x] WBS-001-01582 伴奏logical layerをルール・伴奏パターンから生成する
         - [x] WBS-001-01583 ベースlogical layerをルール・ベースパターンから生成する
-        - [ ] WBS-001-01584 CH4リズムをルール・Noiseパターンから生成する
+        - [x] WBS-001-01584 Noise/percussion logical layerをルール・リズムパターンから生成する
         - [ ] WBS-001-01585 Game Boy・hUGEDriver・SFX共存制約を生成時に保証する
       - [ ] WBS-001-01586 生成曲から確認用ROMまでを一括生成できるようにする
         - [ ] WBS-001-01587 MIDIを経由せず生成結果をGame Boy向け楽曲データへ変換する
