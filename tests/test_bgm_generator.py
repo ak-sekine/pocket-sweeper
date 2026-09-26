@@ -150,6 +150,18 @@ class CompleteLogicalGenerationTests(unittest.TestCase):
         random.seed(999)
         self.assertEqual(first, generate_logical_composition(42, self.plan()).as_dict())
 
+    def test_end_to_end_cli_writes_manifest_and_artifacts(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "generated"
+            subprocess.run(
+                [sys.executable, str(ROOT / "tools" / "generate_bgm_test_rom.py"),
+                 "--seed", "42", "--profile", str(ROOT / "tools" / "generation_profile_fixture.py"),
+                 "--output-dir", str(output), "--name", "generated_seed_42"],
+                check=True, capture_output=True, text=True,
+            )
+            for suffix in ("json", "uge", "asm", "gb", "manifest.json"):
+                self.assertTrue((output / f"generated_seed_42.{suffix}").exists())
+
 
 class StructureGenerationTests(unittest.TestCase):
     def setUp(self):

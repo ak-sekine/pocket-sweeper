@@ -327,6 +327,20 @@ obj/test_sound.sym
 
 このツールはROM生成のみを担当します。SameBoyなどのエミュレータ起動は行いません。
 
+## 生成BGMの一括確認ROM pipeline
+
+明示的なPython profileとseedから、logical generation、JSON Version 2、UGE構造解析、hUGEDriver ASM、確認用ROMを一度に生成します。
+
+```bash
+python tools/generate_bgm_test_rom.py \
+  --seed 42 \
+  --profile tools/generation_profile_fixture.py \
+  --output-dir /tmp/generated-song \
+  --name generated_seed_42
+```
+
+profileは`build_profile(seed)`を実装し、parameters、patterns、allocation、instrument、pitch/noise mappingを明示的に返してください。fixtureは作曲品質や本番defaultを意味しません。出力先にはJSON、UGE、ASM、GB、manifestが作られます。UGEは`analyze_uge.py`で検証してからROM化します。SameBoyは起動しません。
+
 ---
 
 # requirements.txt
