@@ -162,6 +162,13 @@ class CompleteLogicalGenerationTests(unittest.TestCase):
             for suffix in ("json", "uge", "asm", "gb", "manifest.json"):
                 self.assertTrue((output / f"generated_seed_42.{suffix}").exists())
 
+    def test_candidate_profile_uses_driver_ticks_per_row_as_tempo(self):
+        profile_path = ROOT / "tools" / "generation_profile_candidates.py"
+        namespace = {}
+        exec(profile_path.read_text(encoding="utf-8"), namespace)
+        profile = namespace["build_profile"](1)
+        self.assertEqual(profile["tempo"], profile["ticks_per_row"])
+
 
 class StructureGenerationTests(unittest.TestCase):
     def setUp(self):

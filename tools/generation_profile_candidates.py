@@ -48,7 +48,9 @@ def build_profile(seed):
         "logical_layers": lambda result: (result.melody,),
         "allocations": (LayerAllocation("melody-001", "CH1", ("pulse",)),),
         "title": "Generated Candidate Evaluation",
-        "tempo": 120,
+        # JSON Version 2 tempo is hUGEDriver Song Version 6 TicksPerRow,
+        # not BPM.  Keep it consistent with the explicit row grid below.
+        "tempo": 1,
         "ticks_per_row": 1,
         "instrument_by_channel": {"CH1": 1},
         "instruments": ({"id": 1, "name": "candidate-pulse", "channel": "pulse1"},),
