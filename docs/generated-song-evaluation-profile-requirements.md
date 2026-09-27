@@ -76,3 +76,7 @@
 ## Handoff to WBS-001-01674
 
 01674はこの文書を入力として、既存fixtureを変更せず、評価用profileを別ファイルまたは明示的profileとして実装する。profileの目的を「Humanが観察可能な候補を作る」と記録し、production composition ruleと区別する。値を追加する場合は01575/01577のsource、evidence、applicability、allowed use、prohibited inference、statusを記録し、根拠不足の値はcaller-owned parameterまたは未確定として残す。
+
+## 01674 implementation record
+
+01674では、4 logical layerをcoverage対象にした別profileを実装した。4 layerの採用、2 section相当の構造、motif候補、evaluation用allocation、tempo/ticks_per_row=1、instrument・wave table・noise mappingは、評価profileの明示parameterであり、production composition ruleやproduction defaultではない。Wave/Noiseの値は既存JSON Version 2 converterが要求する明示resolutionとして設定した。これらの選択はHumanの音楽品質を保証せず、01677の試聴対象を構成するためのものである。

@@ -1,4 +1,5 @@
 import json
+import importlib.util
 import os
 import random
 import subprocess
@@ -167,6 +168,31 @@ class CompleteLogicalGenerationTests(unittest.TestCase):
         namespace = {}
         exec(profile_path.read_text(encoding="utf-8"), namespace)
         profile = namespace["build_profile"](1)
+        self.assertEqual(profile["tempo"], profile["ticks_per_row"])
+
+    def test_quality_evaluation_profile_is_explicit_and_convertible(self):
+        path = ROOT / "tools" / "generation_profile_quality_evaluation.py"
+        spec = importlib.util.spec_from_file_location("quality_evaluation_profile", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        profile = module.build_profile(1)
+        self.assertEqual(profile["profile_purpose"], "human_bgm_quality_evaluation")
+        self.assertIn("not_production_default", profile["profile_scope"])
+        result = generate_logical_composition(1, profile["plan"])
+        layers = tuple(profile["logical_layers"](result))
+        self.assertEqual({layer.id for layer in layers}, {"melody-001", "accompaniment-001", "bass-001", "noise-percussion-001"})
+        self.assertEqual({allocation.logical_layer_ref for allocation in profile["allocations"]}, {layer.id for layer in layers})
+        converted = convert_to_json_v2(GameBoyConversionInput(
+            structure=result.structure,
+            logical_layers=layers,
+            allocations=profile["allocations"],
+            title=profile["title"], tempo=profile["tempo"], ticks_per_row=profile["ticks_per_row"],
+            instrument_by_channel=profile["instrument_by_channel"], instruments=profile["instruments"],
+            absolute_pitch_map=profile["absolute_pitch_map"], noise_character_map=profile["noise_character_map"],
+            wave_tables=profile["wave_tables"],
+        ))
+        self.assertEqual(set(converted["order"]), {"pulse1", "pulse2", "wave", "noise"})
+        self.assertEqual(converted["wave_tables"][0]["name"], "evaluation_wave")
         self.assertEqual(profile["tempo"], profile["ticks_per_row"])
 
 

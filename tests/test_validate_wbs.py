@@ -23,7 +23,7 @@ class ValidateWbsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             write_task(d, **overrides); _, issues = validate(d, Path(d)); self.assertTrue(any(x[0] == "error" for x in issues), overrides)
     def test_current_wbs_is_valid(self):
-        data, issues = validate(); self.assertEqual(673, len(data)); self.assertFalse([x for x in issues if x[0] == "error"])
+        data, issues = validate(); self.assertEqual(679, len(data)); self.assertFalse([x for x in issues if x[0] == "error"])
     def test_short_id_and_bad_filename(self): self.check_error(ident="01003")
     def test_duplicate_id(self):
         with tempfile.TemporaryDirectory() as d:

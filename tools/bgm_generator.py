@@ -1266,6 +1266,7 @@ class GameBoyConversionInput:
     instruments: tuple[dict[str, object], ...]
     absolute_pitch_map: Mapping[int, str]
     noise_character_map: Mapping[str, str]
+    wave_tables: tuple[dict[str, object], ...] = ()
     sfx_occupancies: tuple[SfxOccupancy, ...] = ()
     timeline_continues_during_sfx: bool = True
 
@@ -1343,6 +1344,8 @@ def convert_to_json_v2(input_data: GameBoyConversionInput) -> dict[str, object]:
         "order": orders,
         "patterns": patterns,
     }
+    if input_data.wave_tables:
+        result["wave_tables"] = list(input_data.wave_tables)
     return result
 
 

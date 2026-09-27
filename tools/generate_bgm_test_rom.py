@@ -58,6 +58,7 @@ def run(profile_path: Path, seed: int, output_dir: Path, name: str) -> dict[str,
         instruments=tuple(profile["instruments"]),
         absolute_pitch_map=profile["absolute_pitch_map"],
         noise_character_map=profile["noise_character_map"],
+        wave_tables=tuple(profile.get("wave_tables", ())),
     )
     json_data = convert_to_json_v2(conversion)
     json_to_uge.validate_header(json_data)

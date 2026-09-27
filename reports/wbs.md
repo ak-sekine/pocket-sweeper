@@ -600,7 +600,7 @@
         - [x] WBS-001-01597 ルール追加・変更に明確な根拠を持てるか確認する
         - [ ] WBS-001-01598 今後のGame Boyゲーム開発で継続利用するか判断する
         - [x] WBS-001-01673 評価可能なBGM候補の要件を定義する
-        - [ ] WBS-001-01674 BGM品質評価用generation profileを作成する
+        - [x] WBS-001-01674 BGM品質評価用generation profileを作成する
         - [ ] WBS-001-01675 評価用profileから複数seedのBGM候補を生成する
         - [ ] WBS-001-01676 評価候補のUGEとGB ROMの技術的一致を確認する
         - [ ] WBS-001-01677 評価候補をHumanがBGMとして再評価する
