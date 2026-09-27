@@ -681,6 +681,12 @@
         - [x] WBS-001-01738 新ArrangementPlanをmachine検証する
         - [x] WBS-001-01739 新ArrangementPlanから後段pipelineとROMを確認する
         - [ ] WBS-001-01740 新ArrangementPlan ROMをHumanがSameBoyで試聴する
+        - [x] WBS-001-01741 現行selection ruleが失うsource構造を診断する
+        - [x] WBS-001-01742 melody・bass・harmonyを保持する縮約ruleを設計する
+        - [x] WBS-001-01743 structure-aware ArrangementPlan縮約ruleを実装する
+        - [x] WBS-001-01744 structure-aware planをold planとmachine比較する
+        - [x] WBS-001-01745 structure-aware planの後段反映可能性を確認する
+        - [ ] WBS-001-01746 structure-aware ArrangementPlan ROMをHumanがSameBoyで試聴する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する
