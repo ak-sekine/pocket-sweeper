@@ -643,7 +643,8 @@
         - [x] WBS-001-01700 polyphony reduction / octave shift / quantizationの影響を検証する
         - [x] WBS-001-01701 ArrangementPlan → JSON → UGEのnote/timing保存性を検証する
         - [x] WBS-001-01702 原曲性喪失の主要段階を整理する
-        - [ ] WBS-001-01703 改善方針をHumanが選択する
+        - [x] WBS-001-01703 改善方針をHumanが選択する
+        - [ ] WBS-001-01704 MIDI→MusicXML onset差分の発生箇所・理由を特定する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する
