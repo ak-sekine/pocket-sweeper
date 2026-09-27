@@ -23,6 +23,14 @@ JSON Version 2の`tempo`はSong Version 6のTicksPerRowであり、candidate pro
 
 これはcandidate evaluation profileの時間契約修正であり、作曲rule変更ではない。修正ROMの聴感一致は未確認で、Humanによる再試聴が必要である。
 
+## Follow-up timing comparison
+
+その後のHuman比較では、`build/generated-candidates/candidate_01/candidate_01.uge`と前回修正後のROMが比較された。しかし前者は旧runのmanifestに記録された`tempo: 120`のUGE（SHA-256 `b95cb0e2a4abf6eb27ef4fcd1c5d7baec9e309772111e04776de50f6c11e1f4e`）であり、後者は`candidate_01_fixed` runの`tempo: 1`のROM（SHA-256 `22f08e9e3c3307a...`）である。同じrunのUGEとROMではない。
+
+修正後の同一runは、`build/generated-candidates/candidate_01_fixed/candidate_01_fixed.uge`と`candidate_01_fixed.gb`である。前者はtempo raw 1、後者のASM descriptorも`db 1`で、CH1 pattern/orderは同じ生成結果から作られている。したがって旧UGEと修正ROMの約20秒/約0.5秒という比較から、hUGETrackerとhUGEDriverの倍率や新しいtempo補正値を導出してはならない。
+
+Repository内にはhUGETrackerの再生実装そのものはなく、Humanの概算時間だけからtracker側の厳密な実時間式は確定できない。hUGEDriver側については、tempo raw 1、64 row、VBlank約60Hzなら理論上のfull-loopは約64/60秒である。固定更新が実機・エミュレータで同じであること、同一runのUGEをhUGETrackerで測ること、正確な測定方法は追加Human確認として残す。
+
 ## Not implicated by this trace
 
 この証拠はnote数、4ch必須性、accompaniment/bass/noise必須性、SFX共存、音楽品質を判定しない。また、他candidateや全production profileへ自動一般化しない。
