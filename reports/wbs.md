@@ -654,7 +654,7 @@
         - [x] WBS-001-01711 曲の長さをsourceからprototypeまで比較する
         - [x] WBS-001-01712 テンポをsourceからruntime用データまで比較する
         - [x] WBS-001-01713 リズムをsourceからprototypeまで比較する
-        - [ ] WBS-001-01714 音程・メロディをsourceからprototypeまで比較する
+        - [x] WBS-001-01714 音程・メロディをsourceからprototypeまで比較する
         - [ ] WBS-001-01715 診断結果を確認して改善対象をHumanが選択する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
