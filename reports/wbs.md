@@ -624,7 +624,7 @@
       - [x] WBS-001-01681 根本的に異なる自動作曲アプローチ候補を調査する
       - [x] WBS-001-01682 候補方式をGame Boy用途の観点で比較する
       - [x] WBS-001-01683 次に試す方式をHumanが選択する
-    - [x] WBS-001-01684 パブリックドメイン曲のGame Boy向け自動編曲方式を確立する
+    - [ ] WBS-001-01684 パブリックドメイン曲のGame Boy向け自動編曲方式を確立する
       - [x] WBS-001-01685 PD曲自動編曲方式の要件と処理境界を整理する
       - [x] WBS-001-01686 PD曲の入力形式とsource/provenance方式を調査する
       - [x] WBS-001-01687 PD曲の入力形式をHumanが選択する
@@ -636,6 +636,14 @@
       - [x] WBS-001-01693 PD曲prototypeをend-to-endで生成する
       - [x] WBS-001-01694 PD曲prototypeをHumanがSameBoyで試聴評価する
       - [x] WBS-001-01695 PD曲自動編曲方式の実用性を評価する
+      - [ ] WBS-001-01696 Maple Leaf Rag自動編曲prototypeの原曲性喪失原因を切り分ける
+        - [ ] WBS-001-01697 各変換段階を比較するdiagnostic方式を設計する
+        - [ ] WBS-001-01698 MIDI → MusicXML → NormalizedScoreのnote/timing保存性を検証する
+        - [ ] WBS-001-01699 NormalizedScore → ArrangementPlanでmelody/bass/伴奏抽出を検証する
+        - [ ] WBS-001-01700 polyphony reduction / octave shift / quantizationの影響を検証する
+        - [ ] WBS-001-01701 ArrangementPlan → JSON → UGEのnote/timing保存性を検証する
+        - [ ] WBS-001-01702 原曲性喪失の主要段階を整理する
+        - [ ] WBS-001-01703 改善方針をHumanが選択する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する
