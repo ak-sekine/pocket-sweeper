@@ -633,7 +633,7 @@
       - [x] WBS-001-01690 prototype用PD曲の権利・provenanceを調査する
       - [x] WBS-001-01691 prototype用PD曲をHumanが選択する
       - [x] WBS-001-01692 PD曲自動編曲prototypeを実装する
-      - [ ] WBS-001-01693 PD曲prototypeをend-to-endで生成する
+      - [x] WBS-001-01693 PD曲prototypeをend-to-endで生成する
       - [ ] WBS-001-01694 PD曲prototypeをHumanがSameBoyで試聴評価する
       - [ ] WBS-001-01695 PD曲自動編曲方式の実用性を評価する
   - [ ] WBS-001-01613 効果音制作
