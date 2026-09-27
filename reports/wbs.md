@@ -641,7 +641,7 @@
         - [x] WBS-001-01698 MIDI → MusicXML → NormalizedScoreのnote/timing保存性を検証する
         - [x] WBS-001-01699 NormalizedScore → ArrangementPlanでmelody/bass/伴奏抽出を検証する
         - [x] WBS-001-01700 polyphony reduction / octave shift / quantizationの影響を検証する
-        - [ ] WBS-001-01701 ArrangementPlan → JSON → UGEのnote/timing保存性を検証する
+        - [x] WBS-001-01701 ArrangementPlan → JSON → UGEのnote/timing保存性を検証する
         - [ ] WBS-001-01702 原曲性喪失の主要段階を整理する
         - [ ] WBS-001-01703 改善方針をHumanが選択する
   - [ ] WBS-001-01613 効果音制作
