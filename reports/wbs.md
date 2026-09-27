@@ -624,7 +624,7 @@
       - [x] WBS-001-01681 根本的に異なる自動作曲アプローチ候補を調査する
       - [x] WBS-001-01682 候補方式をGame Boy用途の観点で比較する
       - [x] WBS-001-01683 次に試す方式をHumanが選択する
-    - [x] WBS-001-01684 パブリックドメイン曲のGame Boy向け自動編曲方式を確立する
+    - [ ] WBS-001-01684 パブリックドメイン曲のGame Boy向け自動編曲方式を確立する
       - [x] WBS-001-01685 PD曲自動編曲方式の要件と処理境界を整理する
       - [x] WBS-001-01686 PD曲の入力形式とsource/provenance方式を調査する
       - [x] WBS-001-01687 PD曲の入力形式をHumanが選択する
@@ -645,6 +645,11 @@
         - [x] WBS-001-01702 原曲性喪失の主要段階を整理する
         - [x] WBS-001-01703 改善方針をHumanが選択する
         - [x] WBS-001-01704 MIDI→MusicXML onset差分の発生箇所・理由を特定する
+      - [ ] WBS-001-01705 MIDI→MusicXML timing保持を修正してMaple Leaf Ragを再評価する
+        - [x] WBS-001-01706 MIDI→MusicXML→NormalizedScoreでonsetを保持する
+        - [x] WBS-001-01707 修正後のonset保存性をmachine evidenceで検証する
+        - [x] WBS-001-01708 修正版Maple Leaf Rag prototypeをROMまで再生成する
+        - [ ] WBS-001-01709 修正版ROMをHumanがSameBoyで試聴する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する

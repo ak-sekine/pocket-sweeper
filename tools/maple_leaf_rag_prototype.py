@@ -161,7 +161,12 @@ def write_musicxml(path: Path, ppq: int, tracks: list[MidiTrack], meta: dict[str
         score_part = ET.SubElement(part_list, "score-part", id=f"P{track.index + 1}")
         ET.SubElement(score_part, "part-name").text = track.name
     max_tick = max((note.end for track in tracks for note in track.notes), default=0)
-    measure_ticks = ppq * 4
+    beats = meta["meters"][0]["beats"] if meta["meters"] else 2
+    beat_type = meta["meters"][0]["beat_type"] if meta["meters"] else 4
+    # MusicXML divisions are ticks per quarter note.  A 2/4 measure is
+    # therefore two quarter notes, not four.  The source starts with a
+    # pickup-like offset on one part; an explicit forward preserves it.
+    measure_ticks = ppq * beats * 4 // beat_type
     for track in tracks:
         part = ET.SubElement(root, "part", id=f"P{track.index + 1}")
         notes_by_start: dict[int, list[MidiNote]] = {}
@@ -184,9 +189,20 @@ def write_musicxml(path: Path, ppq: int, tracks: list[MidiTrack], meta: dict[str
                     metronome = ET.SubElement(direction_type, "metronome")
                     ET.SubElement(metronome, "beat-unit").text = "quarter"
                     ET.SubElement(metronome, "per-minute").text = str(round(60_000_000 / meta["tempo"][0]["microseconds_per_quarter"]))
+            cursor = 0
             for start, notes in sorted(notes_by_start.items()):
                 if not measure_start <= start < measure_start + measure_ticks:
                     continue
+                local_start = start - measure_start
+                saved_cursor = cursor
+                if local_start > cursor:
+                    forward = ET.SubElement(measure, "forward")
+                    ET.SubElement(forward, "duration").text = str(local_start - cursor)
+                    cursor = local_start
+                elif local_start < cursor:
+                    backup = ET.SubElement(measure, "backup")
+                    ET.SubElement(backup, "duration").text = str(cursor - local_start)
+                    cursor = local_start
                 for index, note in enumerate(sorted(notes, key=lambda n: n.pitch)):
                     xml_note = ET.SubElement(measure, "note")
                     if index:
@@ -201,6 +217,13 @@ def write_musicxml(path: Path, ppq: int, tracks: list[MidiTrack], meta: dict[str
                     ET.SubElement(xml_note, "voice").text = "1"
                     ET.SubElement(xml_note, "type").text = "quarter"
                     ET.SubElement(xml_note, "lyric")
+                note_end = local_start + max(note.end - note.start for note in notes)
+                if local_start < saved_cursor and note_end < saved_cursor:
+                    forward = ET.SubElement(measure, "forward")
+                    ET.SubElement(forward, "duration").text = str(saved_cursor - note_end)
+                    cursor = saved_cursor
+                else:
+                    cursor = max(saved_cursor, note_end)
             if number == (max_tick // measure_ticks) + 1:
                 ET.SubElement(measure, "barline", location="right").append(ET.Element("bar-style"))
                 measure.find("barline/bar-style").text = "light-heavy"
@@ -225,13 +248,25 @@ def parse_musicxml(path: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
                 key = attrs.findtext("key/fifths", key)
             measure_no = int(measure.attrib.get("number", "0")) if measure.attrib.get("number", "0").isdigit() else measure.attrib.get("number", "0")
             cursor = 0
-            for note_index, note in enumerate(measure.findall("note")):
-                duration = int(note.findtext("duration", "1"))
-                if note.find("chord") is None:
-                    cursor = cursor
-                pitch = note.find("pitch")
+            last_onset = 0
+            note_index = 0
+            for child in list(measure):
+                if child.tag == "forward":
+                    cursor += int(child.findtext("duration", "0"))
+                    continue
+                if child.tag == "backup":
+                    cursor -= int(child.findtext("duration", "0"))
+                    continue
+                if child.tag != "note":
+                    continue
+                duration = int(child.findtext("duration", "1"))
+                is_chord = child.find("chord") is not None
+                onset = last_onset if is_chord else cursor
+                pitch = child.find("pitch")
                 if pitch is None:
-                    cursor += duration
+                    if not is_chord:
+                        cursor += duration
+                    last_onset = onset
                     continue
                 step = pitch.findtext("step", "C")
                 alter = int(pitch.findtext("alter", "0"))
@@ -239,9 +274,11 @@ def parse_musicxml(path: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
                 semitones = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
                 value = (octave + 1) * 12 + semitones[step] + alter
                 event_id = f"xml:{part_id}:m{measure_no}:n{note_index}"
-                events.append({"event_id": event_id, "part": part_id, "measure": measure_no, "start": cursor, "duration": duration, "pitch": value, "time": time, "key": key})
-                if note.find("chord") is None:
+                events.append({"event_id": event_id, "part": part_id, "measure": measure_no, "start": onset, "duration": duration, "pitch": value, "time": time, "key": key})
+                if not is_chord:
                     cursor += duration
+                last_onset = onset
+                note_index += 1
     return events, {"parts": len(parts), "time": time, "key": key}
 
 
@@ -335,7 +372,7 @@ def main() -> int:
     json_path = args.output / "maple_leaf_rag.prototype.json"
     json_path.write_text(json.dumps(output_json, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     json_to_uge.build_uge(output_json)
-    manifest = {"composition": "Maple Leaf Rag", "composer": "Scott Joplin", "source_provider": "Mutopia Project", "source_identity": SOURCE_ID, "source_url": SOURCE_URL, "source_format": "Standard MIDI File", "source_sha256": source_hash, "source_license": "Mutopia Public Domain contribution; see https://www.mutopiaproject.org/legal.html", "conversion_tool": "maple_leaf_rag_prototype.py deterministic SMF/MusicXML adapter", "conversion_tool_version": "1", "conversion_settings": {"ppq": ppq, "midi_format": midi_meta["format"], "musicxml_version": "4.0"}, "musicxml_sha256": sha256(musicxml), "parser": "xml.etree.ElementTree + built-in SMF parser", "parser_version": "Python standard library", "arrangement_configuration": config, "source_tempo": midi_meta["tempo"], "source_meter": midi_meta["meters"], "ticks_per_row": TICKS_PER_ROW, "warnings": issues, "losses": [issue for issue in issues if issue.get("reason") or issue.get("status") == "lost"], "transformation_history": ["SMF parse", "deterministic MusicXML generation", "MusicXML parse to NormalizedScore", "role mapping to ArrangementPlan", "quantization and explicit range transform", "JSON Version 2 emission"], "json_sha256": sha256(json_path)}
+    manifest = {"composition": "Maple Leaf Rag", "composer": "Scott Joplin", "source_provider": "Mutopia Project", "source_identity": SOURCE_ID, "source_url": SOURCE_URL, "source_format": "Standard MIDI File", "source_sha256": source_hash, "source_license": "Mutopia Public Domain contribution; see https://www.mutopiaproject.org/legal.html", "conversion_tool": "maple_leaf_rag_prototype.py deterministic SMF/MusicXML adapter", "conversion_tool_version": "2", "conversion_settings": {"ppq": ppq, "midi_format": midi_meta["format"], "musicxml_version": "4.0", "measure_ticks": ppq * (midi_meta["meters"][0]["beats"] if midi_meta["meters"] else 2) * 4 // (midi_meta["meters"][0]["beat_type"] if midi_meta["meters"] else 4), "gap_encoding": "forward", "overlap_encoding": "backup_forward", "chord_encoding": "chord"}, "musicxml_sha256": sha256(musicxml), "parser": "xml.etree.ElementTree + built-in SMF parser", "parser_version": "Python standard library", "arrangement_configuration": config, "source_tempo": midi_meta["tempo"], "source_meter": midi_meta["meters"], "ticks_per_row": TICKS_PER_ROW, "warnings": issues, "losses": [issue for issue in issues if issue.get("reason") or issue.get("status") == "lost"], "transformation_history": ["SMF parse", "deterministic MusicXML generation with forward/backup", "MusicXML parse with note/chord/rest/forward/backup semantics", "MusicXML parse to NormalizedScore", "role mapping to ArrangementPlan", "quantization and explicit range transform", "JSON Version 2 emission"], "json_sha256": sha256(json_path)}
     (args.output / "maple_leaf_rag.manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (args.output / "maple_leaf_rag.report.json").write_text(json.dumps({"normalized_score": {"event_count": len(events), "musicxml": xml_meta, "source_timing": {"ppq": ppq, "tempo": midi_meta["tempo"], "meters": midi_meta["meters"]}}, "arrangement_plan": plan, "issues": issues}, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json_path)

@@ -33,7 +33,17 @@ def encoded_xml_events(path: Path, ppq: int) -> list[dict[str, object]]:
             number = int(measure.attrib["number"])
             cursor = 0
             last_onset = 0
-            for index, note in enumerate(measure.findall("note")):
+            note_index = 0
+            for child in list(measure):
+                if child.tag == "forward":
+                    cursor += int(child.findtext("duration", "0"))
+                    continue
+                if child.tag == "backup":
+                    cursor -= int(child.findtext("duration", "0"))
+                    continue
+                if child.tag != "note":
+                    continue
+                note = child
                 duration = int(note.findtext("duration", "1"))
                 is_chord = note.find("chord") is not None
                 pitch = note.find("pitch")
@@ -47,7 +57,7 @@ def encoded_xml_events(path: Path, ppq: int) -> list[dict[str, object]]:
                     result.append({
                         "part": part_id,
                         "measure": number,
-                        "note_index": index,
+                        "note_index": note_index,
                         "local_onset": local_onset,
                         "duration": duration,
                         "pitch": value,
@@ -56,6 +66,7 @@ def encoded_xml_events(path: Path, ppq: int) -> list[dict[str, object]]:
                 if not is_chord:
                     cursor += duration
                 last_onset = local_onset
+                note_index += 1
     return result
 
 
@@ -86,7 +97,9 @@ def compare(midi: Path, output: Path) -> tuple[Path, Path]:
     delta_by_track: defaultdict[int, Counter[int]] = defaultdict(Counter)
     exact = 0
     max_delta = 0
-    measures = ppq * 4  # actual writer boundary; intentionally compared with source 2/4 metadata
+    beats = meta["meters"][0]["beats"] if meta["meters"] else 2
+    beat_type = meta["meters"][0]["beat_type"] if meta["meters"] else 4
+    measures = ppq * beats * 4 // beat_type
     source_notes = [note for track in tracks for note in track.notes]
     xml_by_part: dict[str, list[dict[str, object]]] = defaultdict(list)
     for event in parsed_xml:
@@ -148,7 +161,7 @@ def compare(midi: Path, output: Path) -> tuple[Path, Path]:
         "schema": SCHEMA,
         "tool": {"name": "analyze_pd_onset_diagnostic.py", "version": TOOL_VERSION, "prototype": "maple_leaf_rag_prototype.py", "prototype_version": "1"},
         "source": {"identity": prototype.SOURCE_ID, "url": prototype.SOURCE_URL, "sha256": source_hash, "format": meta["format"], "ppq": ppq, "track_count": len(tracks)},
-        "configuration": {"scope": "full source MIDI and generated MusicXML; no arrangement/window", "writer_measure_ticks": measures, "source_meter": meta["meters"], "musicxml_divisions": ppq, "absolute_reconstruction": "(measure - 1) * writer_measure_ticks + measure_local_cursor", "rest_encoding": "writer emits no rest/forward for gaps", "chord_encoding": "chord notes do not advance cursor"},
+        "configuration": {"scope": "full source MIDI and generated MusicXML; no arrangement/window", "writer_measure_ticks": measures, "source_meter": meta["meters"], "musicxml_divisions": ppq, "absolute_reconstruction": "(measure - 1) * writer_measure_ticks + measure_local_cursor", "rest_encoding": "forward duration for gaps", "chord_encoding": "chord notes share previous onset"},
         "stages": ["source_midi", "parsed_midi", "writer_input", "generated_musicxml", "musicxml_parser", "normalized_score", "diagnostic_absolute_onset"],
         "artifacts": {"musicxml_sha256": digest(xml_path)},
         "summary": {"total_events": len(mappings), "onset_exact": exact, "onset_mismatch": len(mappings) - exact, "max_abs_delta": max_delta, "first_mismatch_stage": dict(first_stage), "delta_distribution": dict(sorted(Counter(m["source_delta"] for m in mappings).items())), "measure_delta_distribution": {str(k): dict(sorted(v.items())) for k, v in sorted(delta_by_measure.items())}, "track_delta_distribution": {str(k): dict(sorted(v.items())) for k, v in sorted(delta_by_track.items())}},
@@ -167,7 +180,7 @@ def compare(midi: Path, output: Path) -> tuple[Path, Path]:
         "## First mismatch stage\n\n"
         + json.dumps(summary["first_mismatch_stage"], ensure_ascii=False, indent=2, sort_keys=True)
         + "\n\n## Interpretation\n\n"
-        "The writer groups measures using `PPQ * 4`, while the source meter is 2/4. It also emits no rest/forward for gaps, so the actual MusicXML cursor is not an independent absolute onset field. The event-level JSON records this observation; it does not by itself classify the behavior as a defect.\n",
+        "The diagnostic follows the generated MusicXML cursor, including forward/backup gaps and chord semantics. The event-level JSON records stage values without making a Human musical-equivalence claim.\n",
         encoding="utf-8",
     )
     return json_path, report_path

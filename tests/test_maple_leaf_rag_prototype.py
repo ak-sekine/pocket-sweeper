@@ -30,6 +30,20 @@ def midi_fixture() -> bytes:
 
 
 class MapleLeafRagPrototypeTests(unittest.TestCase):
+    def test_musicxml_preserves_gap_chord_measure_boundary_and_pickup(self):
+        tracks = [prototype.MidiTrack(0, "synthetic", (
+            prototype.MidiNote(0, "m0", 0, 48, 60, 100),
+            prototype.MidiNote(0, "m1", 96, 144, 62, 100),
+            prototype.MidiNote(0, "m2", 384, 432, 64, 100),
+            prototype.MidiNote(0, "m3", 384, 432, 67, 100),
+        ))]
+        metadata = {"tempo": [{"track": 0, "tick": 0, "microseconds_per_quarter": 500000}], "meters": [{"track": 0, "tick": 0, "beats": 2, "beat_type": 4}]}
+        with tempfile.TemporaryDirectory() as directory:
+            xml = Path(directory) / "timing.musicxml"
+            prototype.write_musicxml(xml, 96, tracks, metadata)
+            events, _ = prototype.parse_musicxml(xml)
+        self.assertEqual([(e["measure"], e["start"], e["pitch"]) for e in events], [(1, 0, 60), (1, 96, 62), (3, 0, 64), (3, 0, 67)])
+
     def test_midi_musicxml_normalization_and_loss_report(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
