@@ -652,7 +652,7 @@
         - [x] WBS-001-01709 修正版ROMをHumanがSameBoyで試聴する
       - [ ] WBS-001-01710 Maple Leaf Rag prototypeが原曲と異なる要因を項目別に診断する
         - [x] WBS-001-01711 曲の長さをsourceからprototypeまで比較する
-        - [ ] WBS-001-01712 テンポをsourceからruntime用データまで比較する
+        - [x] WBS-001-01712 テンポをsourceからruntime用データまで比較する
         - [ ] WBS-001-01713 リズムをsourceからprototypeまで比較する
         - [ ] WBS-001-01714 音程・メロディをsourceからprototypeまで比較する
         - [ ] WBS-001-01715 診断結果を確認して改善対象をHumanが選択する
