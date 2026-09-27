@@ -58,8 +58,9 @@ The selected excerpt was processed using the existing pipeline:
 - JSON loop: `none`; no loop was added
 - ASM section: `0x0B29` bytes, below `0x4000`
 - ROM header: cartridge type `0x00` (ROM ONLY), ROM size code `0x00`
-- estimated duration: approximately 32.8 seconds at the existing 60 Hz
-  sound-test cadence, including final pattern padding
+- previous estimate corrected by tempo diagnostic: old `tempo=6` ROM has
+  `20.5` seconds of sounding timeline and `25.6` seconds until completion;
+  the earlier `32.8` seconds estimate was incorrect
 
 The four-order mapping preserves rebased row order and channel alignment. The
 full-song artifacts and bank-layout evidence remain unchanged.
@@ -69,4 +70,3 @@ full-song artifacts and bank-layout evidence remain unchanged.
 Codex has not judged the sound. Human should compare this ROM with the prior
 64-row prototype and assess Maple Leaf Rag recognition, song coherence,
 melody, harmony, bass, tempo, rhythm, and pitch.
-

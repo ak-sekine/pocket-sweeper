@@ -703,7 +703,12 @@
           - [ ] WBS-001-01760 full-song ROMをHumanがSameBoyで試聴する
         - [x] WBS-001-01761 Maple Leaf Rag評価用連続小節抜粋を設計・抽出する
         - [x] WBS-001-01762 Maple Leaf Rag評価用抜粋をJSON・UGE・ASM・ROMへ接続する
-        - [ ] WBS-001-01763 Maple Leaf Rag評価用抜粋ROMをHumanがSameBoyで試聴する
+        - [x] WBS-001-01763 Maple Leaf Rag評価用抜粋ROMをHumanがSameBoyで試聴する
+        - [ ] WBS-001-01764 Maple Leaf Rag評価用抜粋のtempo/timingをsourceと一致させて再評価する
+          - [x] WBS-001-01765 source tempoと抜粋runtime timingをmachine比較する
+          - [x] WBS-001-01766 抜粋tempo mismatchの原因を分類する
+          - [x] WBS-001-01767 tempoのみ修正した評価用抜粋ROMをmachine検証する
+          - [ ] WBS-001-01768 tempo修正版Maple Leaf Rag抜粋ROMをHumanがSameBoyで再試聴する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する

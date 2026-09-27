@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import maple_leaf_rag_prototype as p
 
-def emit(plan_path:Path,out:Path)->Path:
+def emit(plan_path:Path,out:Path,tempo:int|None=None)->Path:
     x=json.loads(plan_path.read_text()); selected=[e for e in x["events"] if e["status"]=="selected"]
     max_row=max((e["row"] for e in selected),default=0); count=max_row//64+1
     channels={"pulse1":"melody","pulse2":"harmony","wave":"bass","noise":"rhythm"}; inst={"pulse1":1,"pulse2":3,"wave":2,"noise":4}; patterns={}; order={}
@@ -37,8 +37,12 @@ def emit(plan_path:Path,out:Path)->Path:
             if name is None:
                 name=f"structure_{ch}_{len(patterns[ch]):03d}"; patterns[ch][name]=tokens; fingerprints[fingerprint]=name
             order[ch].append(name)
-    result={"version":2,"title":"Maple Leaf Rag Full Song Prototype","type":"bgm","tempo":p.TICKS_PER_ROW,"loop":{"mode":"none"},"instruments":[{"id":1,"name":"maple_lead","channel":"pulse1","duty":2,"length":0,"length_enable":False,"initial_volume":12,"envelope_direction":"down","envelope_sweep":0,"sweep_time":0,"sweep_direction":"down","sweep_shift":0},{"id":2,"name":"maple_bass","channel":"wave","waveform":"maple_triangle","output_level":"100%","length":0,"length_enable":False},{"id":3,"name":"maple_harmony","channel":"pulse2","duty":1,"length":0,"length_enable":False,"initial_volume":8,"envelope_direction":"down","envelope_sweep":0},{"id":4,"name":"unused_noise","channel":"noise","width_mode":"15bit","initial_volume":0,"envelope_direction":"down","envelope_sweep":0,"length":0,"length_enable":False}],"order":order,"patterns":patterns}
+    if tempo is None:
+        tempo=p.TICKS_PER_ROW
+    if not isinstance(tempo,int) or tempo < 1 or tempo > 255:
+        raise ValueError("tempo must be an integer from 1 to 255")
+    result={"version":2,"title":"Maple Leaf Rag Full Song Prototype","type":"bgm","tempo":tempo,"loop":{"mode":"none"},"instruments":[{"id":1,"name":"maple_lead","channel":"pulse1","duty":2,"length":0,"length_enable":False,"initial_volume":12,"envelope_direction":"down","envelope_sweep":0,"sweep_time":0,"sweep_direction":"down","sweep_shift":0},{"id":2,"name":"maple_bass","channel":"wave","waveform":"maple_triangle","output_level":"100%","length":0,"length_enable":False},{"id":3,"name":"maple_harmony","channel":"pulse2","duty":1,"length":0,"length_enable":False,"initial_volume":8,"envelope_direction":"down","envelope_sweep":0},{"id":4,"name":"unused_noise","channel":"noise","width_mode":"15bit","initial_volume":0,"envelope_direction":"down","envelope_sweep":0,"length":0,"length_enable":False}],"order":order,"patterns":patterns}
     result["wave_tables"]=[{"name":"maple_triangle","samples":[*range(16),*range(15,-1,-1)]}]
     out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n"); return out
 if __name__=="__main__":
-    a=argparse.ArgumentParser(); a.add_argument("plan",type=Path); a.add_argument("output",type=Path); x=a.parse_args(); print(emit(x.plan,x.output))
+    a=argparse.ArgumentParser(); a.add_argument("plan",type=Path); a.add_argument("output",type=Path); a.add_argument("--tempo",type=int,default=None); x=a.parse_args(); print(emit(x.plan,x.output,x.tempo))
