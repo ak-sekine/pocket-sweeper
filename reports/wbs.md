@@ -656,7 +656,7 @@
         - [x] WBS-001-01713 リズムをsourceからprototypeまで比較する
         - [x] WBS-001-01714 音程・メロディをsourceからprototypeまで比較する
         - [x] WBS-001-01715 診断結果を確認して改善対象をHumanが選択する
-      - [ ] WBS-001-01716 Maple Leaf Ragの時間軸・音符・メロディ構造を統合保持する編曲方式を再設計する
+      - [x] WBS-001-01716 Maple Leaf Ragの時間軸・音符・メロディ構造を統合保持する編曲方式を再設計する
         - [x] WBS-001-01717 改善後の統合編曲方式と保持条件を設計する
         - [x] WBS-001-01718 source absolute timelineとmeasure情報を保持する縮約方式を実装する
         - [x] WBS-001-01719 melody・bass・harmony等の抽出と4ch割当を見直す
@@ -664,7 +664,16 @@
         - [x] WBS-001-01721 統合方式の長さ・テンポ・リズム・音程を再検証する
         - [x] WBS-001-01722 統合方式のMaple Leaf Rag prototype ROMを再生成する
         - [x] WBS-001-01723 統合方式ROMをHumanがSameBoyで再試聴する
-        - [ ] WBS-001-01724 統合方式の実用性をHumanが再評価する
+        - [x] WBS-001-01724 統合方式の実用性をHumanが再評価する
+      - [ ] WBS-001-01725 Maple Leaf Rag統合編曲方式の残存変換を診断して見直し方針を選択可能にする
+        - [ ] WBS-001-01726 64-row windowとfull-song構造を診断する
+        - [ ] WBS-001-01727 melody continuityとrole抽出を診断する
+        - [ ] WBS-001-01728 polyphony reductionと4ch縮約を診断する
+        - [ ] WBS-001-01729 timing/rhythmとruntime row表現を診断する
+        - [ ] WBS-001-01730 pitch/intervalとoctave変換を診断する
+        - [ ] WBS-001-01731 MIDI・MusicXML・NormalizedScoreの構造保持限界を整理する
+        - [ ] WBS-001-01732 残存変換を統合評価し見直し選択肢を整理する
+        - [ ] WBS-001-01733 診断結果を確認して次の見直し方針をHumanが選択する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する
