@@ -47,3 +47,19 @@ Human試聴は未実施である。次のWBS-001-01676では、同一candidate r
 - `quality_candidate_03.uge` と `quality_candidate_03.gb`（seed 7）
 
 音楽品質、SFX共存、Pocket Sweeper適合性は未評価であり、01677以降へ残す。
+
+## Human BGM evaluation (WBS-001-01677)
+
+対象は、01675で生成し01676で技術的一致を確認した次の3候補である。
+
+- quality_candidate_01 / seed 1
+- quality_candidate_02 / seed 5
+- quality_candidate_03 / seed 7
+
+Humanは3候補を実際に試聴し、次の報告を行った。
+
+> 全部、音を並べただけで曲になっていません。
+
+このHuman evidenceの範囲では、3候補すべてが「曲として成立していない」と評価された。したがって今回の候補について、実用的なPocket Sweeperプレイ中BGMであることは肯定できない。ただし、自動作曲方式一般の成立可能性や絶対的不適合を示すものではない。
+
+技術的なfull loopはmachine validation済みだが、長時間loop品質の独立したHuman評価は未確認である。SFX共存も未確認である。今回の記録では原因分析、profile変更、composition rule変更は行っていない。

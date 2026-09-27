@@ -603,7 +603,7 @@
         - [x] WBS-001-01674 BGM品質評価用generation profileを作成する
         - [x] WBS-001-01675 評価用profileから複数seedのBGM候補を生成する
         - [x] WBS-001-01676 評価候補のUGEとGB ROMの技術的一致を確認する
-        - [ ] WBS-001-01677 評価候補をHumanがBGMとして再評価する
+        - [x] WBS-001-01677 評価候補をHumanがBGMとして再評価する
         - [ ] WBS-001-01678 新しい評価候補の実用性を再評価する
     - [x] WBS-001-01599 人がhUGETrackerでBGMを作曲する運用を確立する
       - [x] WBS-001-01600 hUGETracker中心のBGM制作フローを決める
