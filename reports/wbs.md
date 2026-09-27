@@ -663,7 +663,7 @@
         - [x] WBS-001-01720 source BPMとruntime row timingの対応を設計する
         - [x] WBS-001-01721 統合方式の長さ・テンポ・リズム・音程を再検証する
         - [x] WBS-001-01722 統合方式のMaple Leaf Rag prototype ROMを再生成する
-        - [ ] WBS-001-01723 統合方式ROMをHumanがSameBoyで再試聴する
+        - [x] WBS-001-01723 統合方式ROMをHumanがSameBoyで再試聴する
         - [ ] WBS-001-01724 統合方式の実用性をHumanが再評価する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
