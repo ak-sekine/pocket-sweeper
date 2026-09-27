@@ -31,6 +31,17 @@ JSON Version 2の`tempo`はSong Version 6のTicksPerRowであり、candidate pro
 
 Repository内にはhUGETrackerの再生実装そのものはなく、Humanの概算時間だけからtracker側の厳密な実時間式は確定できない。hUGEDriver側については、tempo raw 1、64 row、VBlank約60Hzなら理論上のfull-loopは約64/60秒である。固定更新が実機・エミュレータで同じであること、同一runのUGEをhUGETrackerで測ること、正確な測定方法は追加Human確認として残す。
 
+## Final same-run human verification
+
+Humanが同一runの次の2成果物を比較した。
+
+- UGE: `build/generated-candidates/candidate_01_fixed/candidate_01_fixed.uge`
+- GB ROM: `build/generated-candidates/candidate_01_fixed/candidate_01_fixed.gb`
+
+Human listeningの結果、GB ROMでC-4 → E-4の2音が聞こえ、UGEとGB ROMは同じテンポで再生された。これにより、`tempo: 1` / `ticks_per_row: 1`へ修正したcandidate-01 fixed runでは、今回問題となったUGE/ROMの時間進行不一致が再現しないことを確認した。
+
+この結果はcandidate-01 fixed runに限定する。全seed、全profile、実機、SFX共存、BGM品質、Pocket Sweeper用途適合性を証明しない。旧UGE（tempo 120）と修正ROM（tempo 1）の比較は異なるrunの過去観測として保持し、hUGETrackerとhUGEDriverがあらゆるUGEで完全一致する根拠にはしない。
+
 ## Not implicated by this trace
 
 この証拠はnote数、4ch必須性、accompaniment/bass/noise必須性、SFX共存、音楽品質を判定しない。また、他candidateや全production profileへ自動一般化しない。
