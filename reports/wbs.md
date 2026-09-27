@@ -687,6 +687,13 @@
         - [x] WBS-001-01744 structure-aware planをold planとmachine比較する
         - [x] WBS-001-01745 structure-aware planの後段反映可能性を確認する
         - [ ] WBS-001-01746 structure-aware ArrangementPlan ROMをHumanがSameBoyで試聴する
+        - [x] WBS-001-01747 現行JSON emitterの64-row loss原因を再確認する
+        - [x] WBS-001-01748 JSON Version 2のpattern/order表現能力を確認する
+        - [x] WBS-001-01749 absolute timelineをmulti-pattern/orderへmappingする方式を設計する
+        - [x] WBS-001-01750 full-song JSON emitterを実装する
+        - [x] WBS-001-01751 full-song JSONをmachine検証する
+        - [ ] WBS-001-01752 full-song JSONからUGE・ASM・ROMをend-to-end検証する
+        - [ ] WBS-001-01753 full-song ROMをHumanがSameBoyで試聴する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する
