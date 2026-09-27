@@ -638,7 +638,7 @@
       - [x] WBS-001-01695 PD曲自動編曲方式の実用性を評価する
       - [ ] WBS-001-01696 Maple Leaf Rag自動編曲prototypeの原曲性喪失原因を切り分ける
         - [x] WBS-001-01697 各変換段階を比較するdiagnostic方式を設計する
-        - [ ] WBS-001-01698 MIDI → MusicXML → NormalizedScoreのnote/timing保存性を検証する
+        - [x] WBS-001-01698 MIDI → MusicXML → NormalizedScoreのnote/timing保存性を検証する
         - [ ] WBS-001-01699 NormalizedScore → ArrangementPlanでmelody/bass/伴奏抽出を検証する
         - [ ] WBS-001-01700 polyphony reduction / octave shift / quantizationの影響を検証する
         - [ ] WBS-001-01701 ArrangementPlan → JSON → UGEのnote/timing保存性を検証する
