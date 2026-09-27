@@ -696,11 +696,14 @@
         - [ ] WBS-001-01753 full-song ROMをHumanがSameBoyで試聴する
         - [ ] WBS-001-01754 full-song song dataのROM配置方式を見直す
           - [x] WBS-001-01755 full-song section overflowとruntime data layoutを調査する
-          - [ ] WBS-001-01756 full-song song dataの容量・bank配置解決方式を設計する
+          - [x] WBS-001-01756 full-song song dataの容量・bank配置解決方式を設計する
           - [ ] WBS-001-01757 full-song song data配置方式を実装する
           - [ ] WBS-001-01758 full-song song data配置をmachine検証する
           - [ ] WBS-001-01759 full-song ROMを生成する
           - [ ] WBS-001-01760 full-song ROMをHumanがSameBoyで試聴する
+        - [x] WBS-001-01761 Maple Leaf Rag評価用連続小節抜粋を設計・抽出する
+        - [x] WBS-001-01762 Maple Leaf Rag評価用抜粋をJSON・UGE・ASM・ROMへ接続する
+        - [ ] WBS-001-01763 Maple Leaf Rag評価用抜粋ROMをHumanがSameBoyで試聴する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する
