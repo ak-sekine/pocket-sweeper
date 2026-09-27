@@ -666,13 +666,13 @@
         - [x] WBS-001-01723 統合方式ROMをHumanがSameBoyで再試聴する
         - [x] WBS-001-01724 統合方式の実用性をHumanが再評価する
       - [ ] WBS-001-01725 Maple Leaf Rag統合編曲方式の残存変換を診断して見直し方針を選択可能にする
-        - [ ] WBS-001-01726 64-row windowとfull-song構造を診断する
-        - [ ] WBS-001-01727 melody continuityとrole抽出を診断する
-        - [ ] WBS-001-01728 polyphony reductionと4ch縮約を診断する
-        - [ ] WBS-001-01729 timing/rhythmとruntime row表現を診断する
-        - [ ] WBS-001-01730 pitch/intervalとoctave変換を診断する
-        - [ ] WBS-001-01731 MIDI・MusicXML・NormalizedScoreの構造保持限界を整理する
-        - [ ] WBS-001-01732 残存変換を統合評価し見直し選択肢を整理する
+        - [x] WBS-001-01726 64-row windowとfull-song構造を診断する
+        - [x] WBS-001-01727 melody continuityとrole抽出を診断する
+        - [x] WBS-001-01728 polyphony reductionと4ch縮約を診断する
+        - [x] WBS-001-01729 timing/rhythmとruntime row表現を診断する
+        - [x] WBS-001-01730 pitch/intervalとoctave変換を診断する
+        - [x] WBS-001-01731 MIDI・MusicXML・NormalizedScoreの構造保持限界を整理する
+        - [x] WBS-001-01732 残存変換を統合評価し見直し選択肢を整理する
         - [ ] WBS-001-01733 診断結果を確認して次の見直し方針をHumanが選択する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
