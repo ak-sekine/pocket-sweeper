@@ -307,7 +307,12 @@ def group_patterns(events: list[dict[str, Any]], config: dict[str, Any]) -> tupl
         channel = channels[role]
         selected: dict[int, dict[str, Any]] = {}
         for event in sorted(role_notes, key=lambda e: (e["start"], e["pitch"], e["event_id"])):
-            row = round(event["start"] / config["quantization_grid_ticks"])
+            if config.get("timeline_mode") == "absolute":
+                measure_ticks = config.get("measure_ticks", 768)
+                timeline_tick = (int(event["measure"]) - 1) * measure_ticks + int(event["start"])
+            else:
+                timeline_tick = int(event["start"])
+            row = round(timeline_tick / config["quantization_grid_ticks"])
             pitch = event["pitch"]
             original = pitch
             while pitch < range_config[channel][0]:
@@ -366,7 +371,8 @@ def main() -> int:
     musicxml = args.output / "maple_leaf_rag.generated.musicxml"
     write_musicxml(musicxml, ppq, tracks, midi_meta)
     events, xml_meta = parse_musicxml(musicxml)
-    config = {"quantization_grid_ticks": GRID_TICKS, "ticks_per_row": TICKS_PER_ROW, "pitch_range": {"pulse1": [48, 96], "pulse2": [48, 84], "wave": [48, 72], "noise": [0, 0]}, "mapping": {"melody": "pulse1", "harmony": "pulse2", "bass": "wave", "rhythm": "noise"}, "ch4_policy": "unused", "repeat_policy": "do_not_infer", "loop_policy": "none", "prototype_range": "all parsed MIDI events; one 64-row JSON pattern window"}
+    measure_ticks = ppq * (midi_meta["meters"][0]["beats"] if midi_meta["meters"] else 2) * 4 // (midi_meta["meters"][0]["beat_type"] if midi_meta["meters"] else 4)
+    config = {"quantization_grid_ticks": GRID_TICKS, "ticks_per_row": TICKS_PER_ROW, "measure_ticks": measure_ticks, "timeline_mode": "absolute", "pitch_range": {"pulse1": [48, 96], "pulse2": [48, 84], "wave": [48, 72], "noise": [0, 0]}, "mapping": {"melody": "pulse1", "harmony": "pulse2", "bass": "wave", "rhythm": "noise"}, "ch4_policy": "unused", "repeat_policy": "do_not_infer", "loop_policy": "none", "prototype_range": "all parsed MIDI events; one 64-row JSON pattern window"}
     plan, issues = group_patterns(events, config)
     output_json = make_json(plan, config)
     json_path = args.output / "maple_leaf_rag.prototype.json"

@@ -657,12 +657,12 @@
         - [x] WBS-001-01714 音程・メロディをsourceからprototypeまで比較する
         - [x] WBS-001-01715 診断結果を確認して改善対象をHumanが選択する
       - [ ] WBS-001-01716 Maple Leaf Ragの時間軸・音符・メロディ構造を統合保持する編曲方式を再設計する
-        - [ ] WBS-001-01717 改善後の統合編曲方式と保持条件を設計する
-        - [ ] WBS-001-01718 source absolute timelineとmeasure情報を保持する縮約方式を実装する
-        - [ ] WBS-001-01719 melody・bass・harmony等の抽出と4ch割当を見直す
-        - [ ] WBS-001-01720 source BPMとruntime row timingの対応を設計する
-        - [ ] WBS-001-01721 統合方式の長さ・テンポ・リズム・音程を再検証する
-        - [ ] WBS-001-01722 統合方式のMaple Leaf Rag prototype ROMを再生成する
+        - [x] WBS-001-01717 改善後の統合編曲方式と保持条件を設計する
+        - [x] WBS-001-01718 source absolute timelineとmeasure情報を保持する縮約方式を実装する
+        - [x] WBS-001-01719 melody・bass・harmony等の抽出と4ch割当を見直す
+        - [x] WBS-001-01720 source BPMとruntime row timingの対応を設計する
+        - [x] WBS-001-01721 統合方式の長さ・テンポ・リズム・音程を再検証する
+        - [x] WBS-001-01722 統合方式のMaple Leaf Rag prototype ROMを再生成する
         - [ ] WBS-001-01723 統合方式ROMをHumanがSameBoyで再試聴する
         - [ ] WBS-001-01724 統合方式の実用性をHumanが再評価する
   - [ ] WBS-001-01613 効果音制作
