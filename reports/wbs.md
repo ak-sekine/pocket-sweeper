@@ -629,7 +629,7 @@
       - [x] WBS-001-01686 PD曲の入力形式とsource/provenance方式を調査する
       - [x] WBS-001-01687 PD曲の入力形式をHumanが選択する
       - [x] WBS-001-01688 Game Boy 4ch自動編曲ルールを設計する
-      - [ ] WBS-001-01689 自動編曲結果のJSON Version 2適合性を確認する
+      - [x] WBS-001-01689 自動編曲結果のJSON Version 2適合性を確認する
       - [ ] WBS-001-01690 prototype用PD曲の権利・provenanceを調査する
       - [ ] WBS-001-01691 prototype用PD曲をHumanが選択する
       - [ ] WBS-001-01692 PD曲自動編曲prototypeを実装する
