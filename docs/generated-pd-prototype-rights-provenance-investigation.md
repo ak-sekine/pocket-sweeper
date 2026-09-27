@@ -88,6 +88,90 @@ CC0 1.0。対象score dataに限り改変・再配布・商用ROM・MusicXML公�
 
 structured vocal/piano scoreでmelody+accompaniment候補。exact parts/voices/polyphony/repeats/tempo/complexity、edition、個人transcriber、hashは未解決。
 
+## Additional candidate: Maple Leaf Rag
+
+### Composition
+
+- title: `Maple Leaf Rag`
+- composer: Scott Joplin (1868–1917)
+- composition date: c. 1899, according to the Mutopia piece page and source header.
+- publication/source: Mutopia identifies `Reproduction of original edition (1899)`. The Library of Congress separately catalogs a 1911 Stark publication; that record does not establish identical rights for every edition.
+- composition PD: `confirmed` under Japan's ordinary life+70 analysis, subject to jurisdiction-specific exceptions and separate edition/typesetting rights.
+- instrumental scope: only the instrumental piano score is considered; no lyrics or third-party text will enter Pocket Sweeper.
+
+### Candidate source
+
+Primary source: [Mutopia piece page](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=23) and [official directory](https://www.mutopiaproject.org/ftp/JoplinS/maple/).
+
+- LilyPond: `https://www.mutopiaproject.org/ftp/JoplinS/maple/maple.ly`
+- MIDI: `https://www.mutopiaproject.org/ftp/JoplinS/maple/maple.mid`
+- PDF: `https://www.mutopiaproject.org/ftp/JoplinS/maple/maple-a4.pdf`
+- identity/version: `Mutopia-2011/11/13-23`, last updated 2011-11-13; LilyPond 2.14.2; maintainer Chris Sawer.
+- typesetting/transcription: header says `Reproduction of original edition (1899)` and identifies Chris Sawer as maintainer. Original engraver/transcriber and exact historical edition are not fully identified.
+- format: piano LilyPond source, rendered PDF, generated Standard MIDI. No direct `.musicxml`, `.xml`, or `.mxl` appears in the official directory listing.
+
+### MusicXML acquisition
+
+Direct official MusicXML: **not found / not confirmed**. Mutopia distributes LilyPond and MIDI, not MusicXML.
+
+LilyPond→MusicXML is not a stable direct route in the selected official toolchain. LilyPond's documentation says MusicXML interchange remains difficult and export is only a rudimentary Frescobaldi feature; `musicxml2ly` documents the reverse MusicXML→LilyPond direction. Thus LilyPond is the strongest notation/provenance source, but a reproducible direct MusicXML conversion was not established.
+
+MIDI→MusicXML is technically possible through MuseScore Studio: its official handbook confirms MIDI opening and compressed/uncompressed MusicXML export. It becomes a concrete input only after pinning a MuseScore release, CLI/settings, and output hash; no conversion was run here.
+
+|経路|tool/evidence|保持できる情報|主な損失・未確認|
+|---|---|---|---|
+|LilyPond→MusicXML|LilyPond/Frescobaldi; official docs call export rudimentary|source has voices, chords, durations, rests, measures, key, time, repeats, alternatives, articulations, clefs|stable official exporter/version and repeat/ending semantics not confirmed|
+|MIDI→MusicXML|MuseScore Studio official import/export|notes, timing, piano tracks, basic tempo/time/key if present|notation structure, voice spelling, repeats/endings, articulations and score semantics may be lost|
+
+Therefore Maple Leaf Rag can be a prototype candidate if Human accepts an explicit MIDI→MusicXML normalization step or supplies a separately licensed MusicXML. It is not currently a ready-to-commit direct MusicXML source from Mutopia.
+
+### Source license
+
+The Mutopia piece page marks the work `Public Domain`. Mutopia's [license page](https://www.mutopiaproject.org/legal.html) says its Public Domain category means the contributor dedicated the contribution to the public domain and permits printing, selling, changing, distributing, recording and performing it. It also states that all music may be downloaded, copied, distributed and modified, with an as-is/no-warranty disclaimer.
+
+This is clear permission for the Mutopia contribution as distributed (LilyPond/PDF/MIDI), not an assertion that every historical edition, external recording, or newly generated MusicXML file was separately reviewed. Provider jurisdiction is not stated; do not infer it from the domain name.
+
+### Commercial ROM
+
+Prototype use is `confirmed/conditionally allowed` for the Mutopia contribution. Generated ROM and possible commercial Pocket Sweeper BGM are `conditionally allowed` for that contribution because the license page explicitly includes selling, changing, distributing and recording. This is not final legal advice and does not clear an unverified MusicXML conversion or third-party recording. The Pocket Sweeper arrangement is a new Game Boy arrangement of the piano score, not an unchanged copy of a Mutopia arrangement.
+
+### GitHub publication
+
+- Original `.ly`: `conditionally allowed`; preserve its header and Mutopia provenance.
+- Converted MusicXML: `unclear / not confirmed` until a specific conversion, tool/version/settings, output metadata and hash are inspected. Underlying contribution permits modification, but Mutopia does not expressly discuss MusicXML conversion.
+- JSON, UGE, ASM and arrangement data: `conditionally allowed` as Pocket Sweeper transformations of the permitted contribution, with provenance and no lyrics/recording. Exact derivative classification is not stated by Mutopia.
+- ROM and later arrangement reuse: `conditionally allowed` for the Mutopia contribution; commercial legal review remains outstanding.
+
+### Derived artifacts
+
+`Mutopia piano score → normalization → ArrangementPlan → 4ch Game Boy arrangement → JSON Version 2 → UGE → ASM → ROM` is a viable rights hypothesis because Mutopia permits changing and distributing its contribution. It does not verify exact MusicXML bytes or grant a separate recording license. Do not include lyrics or third-party recordings.
+
+### Technical characteristics
+
+The retrieved `.ly` source identifies a piano score in A-flat major, 2/4 time, with an eighth-note pickup, treble/bass staves, repeated sections, alternatives, a Trio in D-flat major, return to A-flat and final bar. It contains chord/polyphony notation in both staves, explicit bass, accompaniment patterns, melody, dynamics, staccato/articulation, staff changes and MIDI tempo quarter note = 120. The PDF is four pages. Exact expanded playback length depends on repeat handling.
+
+Potential 01688 tests are melody extraction, polyphony/harmony reduction, bass extraction, accompaniment reduction, rhythm derivation, range reduction, quantization, repeat/alternative expansion, section/loop selection and four-channel mapping: CH1 pulse melody, CH2 pulse harmony/counterline, CH3 wave bass/foundation, CH4 noise-derived rhythm. This is a capability map, not a quality ranking. Prototype scope (first strain, one repeated section, fixed range, or full score) remains open; prototype subset and final looped BGM are separate decisions.
+
+### Provenance
+
+|field|value|
+|---|---|
+|composition|Maple Leaf Rag, Scott Joplin, c.1899|
+|source project|Mutopia Project, Music ID Mutopia-2011/11/13-23|
+|source paths|`JoplinS/maple/maple.ly`, `maple.mid`, `maple-a4.pdf`|
+|source license|Mutopia Public Domain category / contributor dedication|
+|edition|reproduction of original edition (1899); exact historical edition incomplete|
+|typesetter/transcriber|Chris Sawer maintainer; original transcriber/engraver not confirmed|
+|encoder|not separately named|
+|retrieval date|2026-09-27|
+|source version|piece page last updated 2011-11-13; repository commit not pinned|
+|source hash|LilyPond `043e9d9207b771658a9afa51e2aa2537c448ecfd602e78ae50110cf3b12209fd`; MIDI `3dd712a85fabd267f5a2cee5cb23af4683408c2f29b8814721844498f1ee4f66`|
+|MusicXML conversion|not run; tool/version/settings/output hash not obtained|
+
+### Unresolved items
+
+Direct official MusicXML, stable LilyPond exporter, pinned MuseScore conversion, exact edition, original transcriber/encoder, provider jurisdiction, source commit, converted hash, and final commercial legal review remain unresolved.
+
 ## Candidate comparison
 
 |候補|composer|composition PD|MusicXML source|source license|商用ROM|MusicXML repo公開|attribution|未確認事項|
@@ -96,6 +180,7 @@ structured vocal/piano scoreでmelody+accompaniment候補。exact parts/voices/p
 |Wiegenlied Op.49/4|Brahms, 1897死亡|confirmed: ordinary life+70|`lc5701612.mscx` + official `.mxl` conversion|CC0 1.0|conditionally allowed|conditionally allowed with sidecar|same|#81909/hash/text/conversion|
 |Das Wirtshaus D.911/21|Schubert/Müller, 1828/1827|confirmed: ordinary life+70|`lc5013945.mscx` + official `.mxl` conversion|CC0 1.0|conditionally allowed|conditionally allowed with sidecar|same|#60822/translation/hash|
 |Fischerweise D.881|Schubert, 1828死亡|confirmed: ordinary life+70|`lc6487832.mscx` + official `.mxl` conversion|CC0 1.0|conditionally allowed|conditionally allowed with sidecar|same|edition/text/hash/encoder|
+|Maple Leaf Rag|Scott Joplin, 1917死亡|confirmed: ordinary life+70; Mutopia contribution marked Public Domain|Mutopia `.ly` + `.mid`; no direct MusicXML|Mutopia Public Domain contribution|conditionally allowed|`.ly` conditionally allowed; converted MusicXML unclear until generated|retain Mutopia provenance; credit prudent|MusicXML conversion, edition, encoder, commit, converter/hash|
 
 順位は付けない。全候補はHumanの比較対象であり、Codexは選択しない。
 
@@ -119,6 +204,15 @@ Humanの曲・source・利用範囲選択、exact commitとhash、`.mxl` convers
 
 Humanは候補、prototype-onlyかcommercial-releaseまでか、MusicXMLをrepoへcommitするか、normalized/JSON/UGE/ASM/ROMの公開範囲、credit、未確認事項の扱いを選択する。Codexは曲を決定しない。
 
+### Maple Leaf Rag repository storage options
+
+|option|license|reproducibility|size|provenance/future rebuild|判定|
+|---|---|---|---|---|---|
+|A: Mutopia `.ly`のみ|Mutopia Public Domain contribution|高（LilyPond 2.14.2固定が必要）|小|原sourceを保持し再生成可能|condition-ally allowed; Human選択後|
+|B: `.ly` + converted MusicXML|`.ly`はPublic Domain; conversion outputの適用範囲は要確認|最も高い|中|source・変換・hashを同時保持|MusicXML生成後に条件確認|
+|C: converted MusicXMLのみ|converted fileのlicense/provenanceが未確定|低〜中|小〜中|sourceと再生成経路を失う|unclear / not confirmed|
+|D: URL + version + hash + procedureのみ|再配布を避ける|source取得時に再生成可能|最小|source URL、SHA-256、MuseScore/LilyPond versionを記録|現時点の保留案; Humanが選択|
+
 ## External evidence
 
 |URL|title/provider|確認した事実|調査日|
@@ -130,3 +224,11 @@ Humanは候補、prototype-onlyかcommercial-releaseまでか、MusicXMLをrepo�
 |https://github.com/OpenScore/Lieder/blob/main/scores/Schubert%2C_Franz%2FWinterreise%2C_D.911%2F21_Das_Wirthshaus%2Flc5013945.mscx|個別source|Schubert/Müller、CC0、`Transcribed by pental from IMSLP #60822`|2026-09-27|
 |https://github.com/OpenScore/Lieder/blob/main/scores/Schubert%2C_Franz%2F4_Lieder%2C_Op.96%2F4_Fischerweise%2C_D.881%2Flc6487832.mscx|個別source|Schubert/Op.96、OpenScore CC0|2026-09-27|
 |https://www.bunka.go.jp/english/policy/copyright/system/|Japan Agency for Cultural Affairs|著作者死後70年を原則とする保護期間と例外|2026-09-27|
+|https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=23|Maple Leaf Rag piece page / Mutopia Project|Joplin 1868–1917、c.1899、1899 edition reproduction、Public Domain、LilyPond/MIDI/PDF、LilyPond 2.14.2、Chris Sawer、Mutopia ID|2026-09-27|
+|https://www.mutopiaproject.org/ftp/JoplinS/maple/|Maple Leaf Rag official file directory / Mutopia Project|`maple.ly`、`maple.mid`、PDF、log、rdfが存在し、MusicXML fileがない|2026-09-27|
+|https://www.mutopiaproject.org/ftp/JoplinS/maple/maple.ly|Mutopia LilyPond source|headerのcomposer/date/source/copyright/maintainer、A♭ major、2/4、repeats/alternatives、Trio、piano partsを確認|2026-09-27|
+|https://www.mutopiaproject.org/ftp/JoplinS/maple/maple.mid|Mutopia MIDI source|具体的MIDI fileの存在。hashは一時取得物で確認し、repoへ追加していない|2026-09-27|
+|https://www.mutopiaproject.org/legal.html|Mutopia license details|全音楽のDL/copy/distribution/modification、Public Domain contributor dedication、selling/changing/distributing/recording/performing許可、免責|2026-09-27|
+|https://lilypond.org/doc/v2.25/Documentation/web-big-page.html|LilyPond official documentation|MusicXML interchangeは困難、exportはFrescobaldiのrudimentary feature、`musicxml2ly`はMusicXML→LilyPond|2026-09-27|
+|https://handbook.musescore.org/file-management/opening-and-saving-scores|MuseScore Studio Handbook|MIDIを開け、compressed/uncompressed MusicXMLをexportできる。MusicXMLはnotes/instrumentationを再現するがcleanupが必要な場合がある|2026-09-27|
+|https://www.loc.gov/item/2023864251/|Maple Leaf Rag catalog / Library of Congress|Scott Joplin、Stark、1911のcatalog record|2026-09-27|
