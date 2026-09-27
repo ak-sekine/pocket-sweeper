@@ -40,3 +40,11 @@ Humanは各同一run組をhUGETrackerとSameBoyで比較する。
 4. GB ROMでUGEのchannel/layerが丸ごと欠落していないか。
 
 「良い曲か」「Pocket Sweeperに合うか」「単調か」「長時間品質」「SFX共存」は今回の確認対象外である。Human確認結果: 未確認。
+
+## Human confirmation
+
+Humanが品質評価候補のUGEとGB ROMを実際に再生して比較し、次の報告を行った。
+
+> ugeとgbを再生した感じは同じに聞こえました。
+
+これは、対象候補のUGE/GB ROMを聴感上比較した結果として記録する。厳密なtempoまたはloop周期の計測、channel別solo比較、全note/eventの一致確認、SFX共存、音楽品質、Pocket Sweeper適合性を意味しない。
