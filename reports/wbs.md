@@ -650,12 +650,21 @@
         - [x] WBS-001-01707 修正後のonset保存性をmachine evidenceで検証する
         - [x] WBS-001-01708 修正版Maple Leaf Rag prototypeをROMまで再生成する
         - [x] WBS-001-01709 修正版ROMをHumanがSameBoyで試聴する
-      - [ ] WBS-001-01710 Maple Leaf Rag prototypeが原曲と異なる要因を項目別に診断する
+      - [x] WBS-001-01710 Maple Leaf Rag prototypeが原曲と異なる要因を項目別に診断する
         - [x] WBS-001-01711 曲の長さをsourceからprototypeまで比較する
         - [x] WBS-001-01712 テンポをsourceからruntime用データまで比較する
         - [x] WBS-001-01713 リズムをsourceからprototypeまで比較する
         - [x] WBS-001-01714 音程・メロディをsourceからprototypeまで比較する
-        - [ ] WBS-001-01715 診断結果を確認して改善対象をHumanが選択する
+        - [x] WBS-001-01715 診断結果を確認して改善対象をHumanが選択する
+      - [ ] WBS-001-01716 Maple Leaf Ragの時間軸・音符・メロディ構造を統合保持する編曲方式を再設計する
+        - [ ] WBS-001-01717 改善後の統合編曲方式と保持条件を設計する
+        - [ ] WBS-001-01718 source absolute timelineとmeasure情報を保持する縮約方式を実装する
+        - [ ] WBS-001-01719 melody・bass・harmony等の抽出と4ch割当を見直す
+        - [ ] WBS-001-01720 source BPMとruntime row timingの対応を設計する
+        - [ ] WBS-001-01721 統合方式の長さ・テンポ・リズム・音程を再検証する
+        - [ ] WBS-001-01722 統合方式のMaple Leaf Rag prototype ROMを再生成する
+        - [ ] WBS-001-01723 統合方式ROMをHumanがSameBoyで再試聴する
+        - [ ] WBS-001-01724 統合方式の実用性をHumanが再評価する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する
