@@ -1,0 +1,41 @@
+name: Maple Leaf Rag melody ROM
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/maple-leaf-rag-rom.yml"
+      - "assets/maple_leaf_rag_16bars_melody.json"
+      - "assets/maple_leaf_rag_16bars_melody.uge"
+      - "assets/maple_leaf_rag_16bars_melody.asm"
+      - "tools/json_to_uge.py"
+      - "tools/json_to_huge_asm.py"
+      - "tools/build_sound_test_rom.py"
+      - "src/hUGEDriver.asm"
+      - "include/hUGE.inc"
+      - "include/hUGE_note_table.inc"
+
+jobs:
+  build-rom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install RGBDS
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes rgbds
+          rgbasm --version
+      - name: Build loopable ROM
+        run: |
+          python3 tools/json_to_uge.py assets/maple_leaf_rag_16bars_melody.json assets/maple_leaf_rag_16bars_melody.uge
+          python3 tools/json_to_huge_asm.py assets/maple_leaf_rag_16bars_melody.json obj/maple_leaf_rag_16bars_melody.asm
+          python3 tools/build_sound_test_rom.py obj/maple_leaf_rag_16bars_melody.asm build/maple_leaf_rag_16bars_melody_loop.gb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maple-leaf-rag-16bars-melody-rom
+          path: build/maple_leaf_rag_16bars_melody_loop.gb
+          if-no-files-found: error
+          retention-days: 30

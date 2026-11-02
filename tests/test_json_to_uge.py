@@ -985,6 +985,44 @@ class NoiseInstrumentValidationTests(unittest.TestCase):
             self.validate(noise_data(version=1, length=0))
 
 
+class Version2HoldNoteTests(unittest.TestCase):
+    def test_hold_expands_to_noop_cells_without_retrigger_or_note_cut(self) -> None:
+        cells = json_to_uge.build_channel_pattern(
+            [
+                {"note": "C4", "length": 2, "instrument": 1},
+                {"note": "hold", "length": 3},
+                {"note": "D4", "length": 1, "instrument": 1},
+            ],
+            "patterns.pulse1.main",
+            version=2,
+            channel="pulse1",
+        )
+
+        self.assertEqual(cells[0].note, 12)
+        self.assertEqual(cells[5].note, 14)
+        self.assertTrue(all(cell == json_to_uge.Cell() for cell in cells[1:5]))
+
+    def test_hold_rejects_instrument_and_other_event_fields(self) -> None:
+        for extra in ({"instrument": 1}, {"volume": 0}, {"effect": None}):
+            with self.subTest(extra=extra):
+                with self.assertRaisesRegex(ValueError, "not allowed for a hold event"):
+                    json_to_uge.build_channel_pattern(
+                        [{"note": "hold", "length": 1, **extra}],
+                        "patterns.pulse1.main",
+                        version=2,
+                        channel="pulse1",
+                    )
+
+    def test_hold_is_not_available_in_version_1(self) -> None:
+        with self.assertRaisesRegex(ValueError, "available only in Version 2"):
+            json_to_uge.build_channel_pattern(
+                [{"note": "hold", "length": 1}],
+                "patterns.main.channels.pulse1",
+                version=1,
+                channel="pulse1",
+            )
+
+
 class Ch4NoiseNoteTests(unittest.TestCase):
     def instruments(self, items: list[dict]) -> dict[str, dict[int, json_to_uge.InstrumentSpec]]:
         data = {"version": 2, "instruments": items}

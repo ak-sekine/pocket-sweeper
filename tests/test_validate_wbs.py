@@ -23,7 +23,10 @@ class ValidateWbsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             write_task(d, **overrides); _, issues = validate(d, Path(d)); self.assertTrue(any(x[0] == "error" for x in issues), overrides)
     def test_current_wbs_is_valid(self):
-        data, issues = validate(); self.assertEqual(679, len(data)); self.assertFalse([x for x in issues if x[0] == "error"])
+        data, issues = validate()
+        task_files = list((Path(__file__).resolve().parents[1] / "wbs/tasks").glob("*.md"))
+        self.assertEqual(len(task_files), len(data))
+        self.assertFalse([x for x in issues if x[0] == "error"])
     def test_short_id_and_bad_filename(self): self.check_error(ident="01003")
     def test_duplicate_id(self):
         with tempfile.TemporaryDirectory() as d:
@@ -40,6 +43,15 @@ class ValidateWbsTest(unittest.TestCase):
             p=write_task(d); p.write_text(p.read_text().replace("# 証跡", "# 欠落")); _, issues=validate(d, Path(d)); self.assertTrue(any("必須セクション不足" in x[3] for x in issues))
     def test_paths_and_source_separation(self):
         self.check_error(specs=["missing.md"]); self.check_error(related_files=["missing.md"]); self.check_error(source_wbs=["WBS-002-01000"], parent="WBS-002-01000"); self.check_error(source_wbs=["WBS-002-01000"], depends_on=["WBS-002-01000"])
+    def test_missing_optional_local_music_corpus_is_allowed_but_missing_file_in_present_corpus_is_not(self):
+        with tempfile.TemporaryDirectory() as d:
+            write_task(d, related_files=["local/music-source-candidates/pack/song.uge"])
+            _, issues = validate(d, Path(d))
+            self.assertFalse([item for item in issues if item[0] == "error"])
+
+            Path(d, "local/music-source-candidates").mkdir(parents=True)
+            _, issues = validate(d, Path(d))
+            self.assertTrue(any(item[0] == "error" and "song.uge" in item[3] for item in issues))
     def test_same_parent_warning_and_different_parent_allowed(self):
         with tempfile.TemporaryDirectory() as d:
             write_task(d); write_task(d, ident="WBS-001-01001"); _, issues=validate(d, Path(d)); self.assertTrue(any("同一親配下" in x[3] for x in issues))
