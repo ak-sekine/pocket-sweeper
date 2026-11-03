@@ -59,6 +59,17 @@ WBSの状態は対象Markdownだけで管理する。`type: group` は、明示�
 - `git reset --hard`、`git clean -fd`、amend、force push、rebase、変更破棄目的のcheckoutは禁止する。
 - WBS作業では、検証・テスト成功後にcommit・pushする。pushがnon-fast-forwardならforce pushせず報告する。
 
+### GitHub通信障害
+
+- `git fetch`、`git push`、`git ls-remote`などがプロキシ接続エラーで失敗したら、失敗した操作、接続先ホスト、エラー内容を確認・記録する。認証情報や秘密情報は記録・出力しない。
+- 通常サンドボックスで失敗した操作は、Codex Cloudの正規のネットワークアクセス許可付き実行で再試行する。必要な承認は正規の承認フローで取得する。
+- `github.com`へのGit通信と`api.github.com`へのGitHub REST API通信を区別する。一方の接続結果から他方の可否を推測しない。
+- `HTTP_PROXY`、`HTTPS_PROXY`などの設定を独断で変更・解除せず、ネットワーク制限を迂回しない。
+- ローカル`HEAD`、`origin/<branch>`などのremote-tracking ref、GitHub上の実際のbranch SHAを区別する。通信に失敗した後のremote-tracking refは最新とみなさず、可能なら`git ls-remote`などで実際のSHAを確認する。
+- 正規のネットワークアクセス許可付き実行でも復旧しない場合は、プロキシ接続、宛先、HTTP応答、認証・権限などを切り分ける。そのうえで、既存の認証済みGitHub API連携など、許可された代替手段を検討する。
+- API経由でリモートブランチを更新した場合は、GitHub上で確認した実際のSHAと、ローカル`HEAD`・remote-tracking refとの同期状態を分けて報告する。
+- 過去の接続障害事例を今回の原因と決めつけず、今回のエラーと実行結果に基づいて報告する。
+
 ## Python
 
 プロジェクトの`.venv`を優先し、利用できなければ`python3`を使用する。WBS YAML解析は`PyYAML`を使用する。
