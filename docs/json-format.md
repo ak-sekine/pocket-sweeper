@@ -31,7 +31,7 @@
 - `patterns`: パターン定義。
 - `channels`: `pulse1`、`pulse2`、`wave`、`noise` の4チャンネル。
 - 各ノート情報:
-  - `note`: 音名。休符は `rest` とする。
+  - `note`: 音名。明示的な休符は `rest` とする。Version 2では発音状態を変えない空行区間を `hold` で表せる。
   - `length`: 音の長さ。初版ではpattern row数として扱い、音符セルと空行へ展開する。
   - `instrument`: 使用する音色番号。
   - `volume`: note単位の音量指定。Version 2で追加する任意項目。
@@ -968,12 +968,20 @@ note番号対応:
 JSON音名から `.uge` note番号への変換方針:
 
 - `rest` は `NO_NOTE = 90` へ変換する。
+- Version 2の `hold` は `NO_NOTE = 90`、Instrument 0、effect未使用の空セルへ変換する。現在の発音を継続したままpattern内の行位置を進めるために使用する。
 - 音名は `C3`～`B8` の範囲に限定する。
 - シャープは `#` で表記する。フラット表記は初版では扱わない。
 - 変換式は `note_number = (octave - 3) * 12 + semitone_offset` とする。
 - 例: `C3 = 0`、`C#3 = 1`、`D3 = 2`、`C4 = 12`、`C5 = 24`、`B8 = 71`。
 - 範囲外の音名、未対応表記、空文字はバリデーションエラーとする。
 - JSONから行展開するとき、音を伸ばすために追加する空行は `rest` と同じ `NO_NOTE = 90` を使う。
+
+#### Version 2の `hold`
+
+- `hold` は、現在のチャンネル状態を変えずにpattern rowを進めるための専用tokenである。発音中ならその発音を継続し、無音なら無音のまま進む。
+- `hold` は `note` と `length` のみを持ち、Instrument、volume、effect、effect_paramは指定しない。展開後の各cellは `NO_NOTE` / Instrument 0 / volume 0 / effect未使用とする。
+- `rest` と異なり、`hold` はE00 note cutを出力しない。明示的な無音区間には `rest` を使う。
+- `hold` はVersion 2のみで使用できる。pattern/order境界をまたぐnoteの継続や、pattern先頭の空行を正確に表現する目的で導入する。
 
 note変換実装時の注意:
 

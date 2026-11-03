@@ -262,7 +262,7 @@ def pack_pattern(pattern: list[Cell]) -> bytes:
 
 def parse_note(note: Any, path: str) -> int:
     value = expect_string(note, path)
-    if value == "rest":
+    if value in {"rest", "hold"}:
         return NO_NOTE
 
     if len(value) not in (2, 3):
@@ -957,8 +957,22 @@ def build_channel_pattern(
     for index, item in enumerate(events):
         event_path = f"{path}[{index}]"
         event = expect_dict(item, event_path)
+        note_name = expect_string(event.get("note"), f"{event_path}.note")
         if version == 1 and "volume" in event:
             fail(f"{event_path}.volume: Version 1ではvolume指定は使用できません")
+        if note_name == "hold":
+            if version != 2:
+                fail(f"{event_path}.note: 'hold' is available only in Version 2")
+            for field in event:
+                if field not in {"note", "length"}:
+                    fail(f"{event_path}.{field}: not allowed for a hold event")
+            length = expect_int(event.get("length"), f"{event_path}.length")
+            if length < 1:
+                fail(f"{event_path}.length: must be 1 or greater")
+            rows.extend(Cell() for _ in range(length))
+            if len(rows) > PATTERN_ROWS:
+                fail(f"{path}: expanded pattern exceeds {PATTERN_ROWS} rows")
+            continue
         if version == 2 and channel == "noise":
             for field in NOISE_NOTE_FORBIDDEN_FIELDS:
                 if field in event:
@@ -966,7 +980,7 @@ def build_channel_pattern(
             for field in event:
                 if field not in NOISE_NOTE_ALLOWED_FIELDS:
                     fail(f"{event_path}.{field}: unknown Noise note field")
-        note = parse_note(event.get("note"), f"{event_path}.note")
+        note = parse_note(note_name, f"{event_path}.note")
         if version == 2 and channel == "noise" and note == NO_NOTE and "volume" in event:
             fail(
                 f"{event_path}.volume: Version 2のCH4/Noiseではrestにvolumeを指定できません"

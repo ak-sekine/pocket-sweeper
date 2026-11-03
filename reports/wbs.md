@@ -709,6 +709,9 @@
           - [x] WBS-001-01766 抜粋tempo mismatchの原因を分類する
           - [x] WBS-001-01767 tempoのみ修正した評価用抜粋ROMをmachine検証する
           - [ ] WBS-001-01768 tempo修正版Maple Leaf Rag抜粋ROMをHumanがSameBoyで再試聴する
+      - [ ] WBS-001-01769 承認済み16秒単旋律MIDIをGame Boy向けBGMへ変換・試聴する
+        - [x] WBS-001-01770 承認済みMIDIからUGE・ASM・ループROMを生成してmachine照合する
+        - [ ] WBS-001-01771 16秒Maple Leaf Rag単旋律ROMをHumanがSameBoyで試聴する
   - [ ] WBS-001-01613 効果音制作
     - [x] WBS-001-01614 必要な効果音一覧を決定する
     - [x] WBS-001-01615 カーソル移動効果音を作成する

@@ -1,0 +1,679 @@
+{
+  "version": 2,
+  "title": "Maple Leaf Rag 16-bar Melody",
+  "type": "bgm",
+  "tempo": 1,
+  "loop": {
+    "mode": "full"
+  },
+  "instruments": [
+    {
+      "id": 1,
+      "name": "Pulse1 melody",
+      "channel": "pulse1",
+      "duty": 2,
+      "length": 0,
+      "length_enable": false,
+      "initial_volume": 11,
+      "envelope_direction": "down",
+      "envelope_sweep": 0,
+      "sweep_time": 0,
+      "sweep_direction": "down",
+      "sweep_shift": 0
+    }
+  ],
+  "order": {
+    "pulse1": [
+      "order_00",
+      "order_01",
+      "order_02",
+      "order_03",
+      "order_04",
+      "order_05",
+      "order_06",
+      "order_07",
+      "order_08",
+      "order_09",
+      "order_10",
+      "order_11",
+      "order_12",
+      "order_13",
+      "order_14"
+    ]
+  },
+  "patterns": {
+    "pulse1": {
+      "order_00": [
+        {
+          "note": "rest",
+          "length": 23,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "C5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 11,
+          "instrument": 1
+        }
+      ],
+      "order_01": [
+        {
+          "note": "hold",
+          "length": 4
+        },
+        {
+          "note": "G4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "A#4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 30,
+          "instrument": 1
+        }
+      ],
+      "order_02": [
+        {
+          "note": "hold",
+          "length": 7
+        },
+        {
+          "note": "rest",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "C5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "G4",
+          "length": 4,
+          "instrument": 1
+        }
+      ],
+      "order_03": [
+        {
+          "note": "hold",
+          "length": 3
+        },
+        {
+          "note": "D#5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "A#4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 22,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        }
+      ],
+      "order_04": [
+        {
+          "note": "hold",
+          "length": 7
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "B4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "E5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 5,
+          "instrument": 1
+        }
+      ],
+      "order_05": [
+        {
+          "note": "hold",
+          "length": 3
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "B4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "E5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 1,
+          "instrument": 1
+        }
+      ],
+      "order_06": [
+        {
+          "note": "hold",
+          "length": 6
+        },
+        {
+          "note": "B4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "B5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 5,
+          "instrument": 1
+        }
+      ],
+      "order_07": [
+        {
+          "note": "hold",
+          "length": 2
+        },
+        {
+          "note": "B4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "B5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#6",
+          "length": 6,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#6",
+          "length": 14,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#6",
+          "length": 2,
+          "instrument": 1
+        }
+      ],
+      "order_08": [
+        {
+          "note": "hold",
+          "length": 12
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#6",
+          "length": 14,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#6",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#6",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "D#6",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "F6",
+          "length": 6,
+          "instrument": 1
+        }
+      ],
+      "order_09": [
+        {
+          "note": "hold",
+          "length": 2
+        },
+        {
+          "note": "C6",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "D#6",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "F6",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "A#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "B5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 2,
+          "instrument": 1
+        }
+      ],
+      "order_10": [
+        {
+          "note": "hold",
+          "length": 5
+        },
+        {
+          "note": "A#5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "C6",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "C6",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "A#5",
+          "length": 14,
+          "instrument": 1
+        }
+      ],
+      "order_11": [
+        {
+          "note": "hold",
+          "length": 1
+        },
+        {
+          "note": "G#5",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 21,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 14,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 3,
+          "instrument": 1
+        }
+      ],
+      "order_12": [
+        {
+          "note": "hold",
+          "length": 11
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "rest",
+          "length": 1,
+          "instrument": 1
+        },
+        {
+          "note": "G#5",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "F5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "C5",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "D#5",
+          "length": 7,
+          "instrument": 1
+        }
+      ],
+      "order_13": [
+        {
+          "note": "hold",
+          "length": 1
+        },
+        {
+          "note": "F5",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "A#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "B4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "A#4",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "C5",
+          "length": 3,
+          "instrument": 1
+        }
+      ],
+      "order_14": [
+        {
+          "note": "hold",
+          "length": 12
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "C5",
+          "length": 8,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 7,
+          "instrument": 1
+        },
+        {
+          "note": "A#4",
+          "length": 15,
+          "instrument": 1
+        },
+        {
+          "note": "G#4",
+          "length": 15,
+          "instrument": 1
+        }
+      ]
+    }
+  }
+}
