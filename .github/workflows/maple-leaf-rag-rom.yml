@@ -8,6 +8,9 @@ on:
       - "assets/maple_leaf_rag_16bars_melody.json"
       - "assets/maple_leaf_rag_16bars_melody.uge"
       - "assets/maple_leaf_rag_16bars_melody.asm"
+      - "assets/maple_leaf_rag_16bars_melody_bridge_octave_up.json"
+      - "assets/maple_leaf_rag_16bars_melody_bridge_octave_up.uge"
+      - "assets/maple_leaf_rag_16bars_melody_bridge_octave_up.asm"
       - "tools/json_to_uge.py"
       - "tools/json_to_huge_asm.py"
       - "tools/build_sound_test_rom.py"
@@ -33,9 +36,14 @@ jobs:
           python3 tools/json_to_uge.py assets/maple_leaf_rag_16bars_melody.json assets/maple_leaf_rag_16bars_melody.uge
           python3 tools/json_to_huge_asm.py assets/maple_leaf_rag_16bars_melody.json obj/maple_leaf_rag_16bars_melody.asm
           python3 tools/build_sound_test_rom.py obj/maple_leaf_rag_16bars_melody.asm build/maple_leaf_rag_16bars_melody_loop.gb
+          python3 tools/json_to_uge.py assets/maple_leaf_rag_16bars_melody_bridge_octave_up.json assets/maple_leaf_rag_16bars_melody_bridge_octave_up.uge
+          python3 tools/json_to_huge_asm.py assets/maple_leaf_rag_16bars_melody_bridge_octave_up.json obj/maple_leaf_rag_16bars_melody_bridge_octave_up.asm
+          python3 tools/build_sound_test_rom.py obj/maple_leaf_rag_16bars_melody_bridge_octave_up.asm build/maple_leaf_rag_16bars_melody_bridge_octave_up.gb
       - uses: actions/upload-artifact@v4
         with:
-          name: maple-leaf-rag-16bars-melody-rom
-          path: build/maple_leaf_rag_16bars_melody_loop.gb
+          name: maple-leaf-rag-bridge-comparison-roms
+          path: |
+            build/maple_leaf_rag_16bars_melody_loop.gb
+            build/maple_leaf_rag_16bars_melody_bridge_octave_up.gb
           if-no-files-found: error
           retention-days: 30

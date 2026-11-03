@@ -160,11 +160,11 @@ GitHub Actions配布workflow: `.github/workflows/maple-leaf-rag-rom.yml`。commi
 
 ## SameBoy Human確認
 
-CodexによるSameBoy起動・音声確認は未実施（実行ファイルが環境にない）。Human確認はWBS-001-01771に分離。SameBoyで次を確認し、結果を記録する。
-1. MIDIの単旋律だけが鳴り、伴奏がないこと。
-2. 6.25〜7.375秒のbridge 9音が欠けず、発音順とフレーズが保たれること。
-3. 先頭約0.383秒の無音、曲末のrelease、16秒付近のloop境界で音の持ち越し・余分な再trigger・クリックがないこと。
-4. ROM実測ループ時間とテンポが上記のhardware VBlank推算（約16.073秒、119.455 BPM）と大きく異ならないこと。
+HumanはSHA-256 `82773f4ac58a4f676110feb72eeb29e0208c0795a4c46ca213be1ce2f14bfd3f`のROMをSameBoyで試聴し、8〜9秒のG#6反復、12〜13秒のG#5反復、クリック/不自然な音切れ、16秒loopとtempoはOK、6〜7秒bridgeはNGと評価した。変換前MIDIは問題なしと判断された。個別結果は`docs/generated-maple-leaf-rag-16bars-melody-human-evaluation.md`に記録する。
+
+この評価は現行ROMに対するものであり、原因の特定・問題の解決を意味しない。周波数差診断に基づきevent 30〜38のみ+12半音した比較ROMを作成した。対照ROMと候補ROMのHuman試聴をWBS-001-01771で待つ。
+
+追加確認では、MIDIの単旋律だけが鳴ること、6.25〜7.375秒bridgeの9音がフレーズとして自然か、両方の同音連打、休符、先頭無音、16秒loopとtempoが保たれることを確認する。
 
 ## 再生成・検証コマンド
 
