@@ -156,6 +156,8 @@ RGBDS: rgbasm v1.0.4。ROMは32 KiB、header cartridge type 0 (ROM ONLY)、RGBFI
 
 GitHub Actions配布workflow: `.github/workflows/maple-leaf-rag-rom.yml`。commitをpushしworkflowが成功した後、iPhoneのGitHubアプリまたはSafariでrepository → Actions → “Maple Leaf Rag melody ROM” → 最新successful run → Artifacts → `maple-leaf-rag-16bars-melody-rom` を開いてROMを取得する。artifact保持期間は30日。
 
+修正版はcommit `dd875eb95b76b8198c956ccd3bab772a4ee632a2` のActions run #2（success）で生成した。artifact IDは`13204364519`、有効期限は2026-12-03。比較用の従来版はrun #1、artifact ID `13188448722`で、2026-12-02まで取得可能。
+
 ## SameBoy Human確認
 
 CodexによるSameBoy起動・音声確認は未実施（実行ファイルが環境にない）。Human確認はWBS-001-01771に分離。SameBoyで次を確認し、結果を記録する。
@@ -174,5 +176,5 @@ python3 tools/build_sound_test_rom.py assets/maple_leaf_rag_16bars_melody.asm bu
 
 ## 自動テスト
 
-- `python3 -m unittest discover -s tests`: 374 tests passed, 1 skipped.
+- `python3 -m unittest discover -s tests`: 375 tests passed, 1 skipped.
 - `python3 tools/validate_wbs.py`: errors 0, warnings 0.
