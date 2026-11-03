@@ -4,7 +4,7 @@ Pocket SweeperのWBSは、1項目1Markdownファイルを正本とする。IDは
 
 `type` は `group` / `task`、`status` は `complete` / `incomplete`、`actor` は `codex` / `human` / `none` のみとする。groupのactorはnone、実行対象taskはcodexまたはhumanとする。人とCodexの作業は別項目へ分け、確定できない担当は `actor_review_required: true` と移行報告へ記録する。
 
-YAMLの型は、`id/title/type/status/actor/updated` が文字列、`parent` がnullまたは文字列、`depends_on/specs/related_files/outputs/blocked_by/source_wbs` が文字列配列、`evidence_required` が真偽値である。`updated` は `YYYY-MM-DD` 形式とする。`specs` と `related_files` はリポジトリルートからの相対パスで、実在を検証する。`related_files` はファイルまたはディレクトリを指定できる。`*`、`?`、`[`を含む場合はglobとして扱い、一件以上の一致を必須とする。
+YAMLの型は、`id/title/type/status/actor/updated` が文字列、`parent` がnullまたは文字列、`depends_on/specs/related_files/outputs/blocked_by/source_wbs` が文字列配列、`evidence_required` が真偽値である。`updated` は `YYYY-MM-DD` 形式とする。`specs` と`related_files` はリポジトリルートからの相対パスで、原則として実在を検証する。`related_files` はファイルまたはディレクトリを指定できる。`*`、`?`、`[`を含む場合はglobとして扱い、一件以上の一致を必須とする。ただしGit管理外かつ任意配置の`local/music-source-candidates/`配下は、コーパス全体が不在または一部だけ配置された環境があるため、参照先がない場合も許容する。参照先が存在する場合は通常どおりパスを検証する。
 
 番号はPROJECT.mdの移行時の出現順に1000から連番で採番した。新規項目は既存最大番号の次の空き番号を使い、IDから階層や担当を推測しない。流用元は `source_wbs` に形式だけ正しいIDとして記録し、現行のparent/depends_onには使用しない。
 

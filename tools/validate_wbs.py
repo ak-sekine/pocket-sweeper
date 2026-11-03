@@ -79,12 +79,12 @@ def validate(directory=TASKS, root=ROOT):
             if ref == meta.get("parent") or ref in _refs(meta.get("depends_on")): _error(issues, ident, path, "source_wbsをparent/depends_onと混用")
         for field in ("specs", "related_files"):
             for ref in _refs(meta.get(field)):
-                optional_local_root = root / "local/music-source-candidates"
-                if ref.startswith("local/music-source-candidates/") and not optional_local_root.exists():
-                    # Local UGE corpus files are intentionally not distributed with the repository.
-                    continue
                 matches = list((root / ref).parent.glob((root / ref).name)) if any(c in ref for c in "*?[") else [(root / ref) if (root / ref).exists() else None]
-                if not any(x is not None and x.exists() for x in matches): _error(issues, ident, path, f"{field}のパスが存在しません: {ref}")
+                if not any(x is not None and x.exists() for x in matches):
+                    # The ignored local corpus can be absent or only partially provisioned.
+                    if ref.startswith("local/music-source-candidates/"):
+                        continue
+                    _error(issues, ident, path, f"{field}のパスが存在しません: {ref}")
         if meta.get("actor_review_required"): issues.append(("warning", ident, str(path), "担当未確定・要確認"))
     parent_graph, dep_graph = {}, {}
     for ident, (path, meta, _) in byid.items():

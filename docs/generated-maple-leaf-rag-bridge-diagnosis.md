@@ -80,5 +80,5 @@ PPQ 384、120 BPMの既存source recordでは各音が0.125秒。MIDI開始時�
 - `tests/test_maple_leaf_rag_bridge_octave_variant.py`: +12半音の9音以外のJSON event/cell不変、87発音、960 rows、11の同音articulation E00、expected APU frequenciesを検証。
 - RGBDS `rgbasm v1.0.4`、rgbfixでbaselineとcandidateの32 KiB ROMをビルド。baseline ROM SHAはHumanが試聴した既存ROMと一致した。
 - `python3 tools/analyze_uge.py`で両UGEがCH1 15 orders、CH1 87音+22 E00、他channel無音、960 row full cycle、loop一致を確認。
-- WBS-001-01771で対照ROMのHuman結果を記録。bridge NGを記録したがcandidateはHuman未試聴。SameBoy試聴後まで解決済みとは扱わない。
+- WBS-001-01771でHumanが現行ROMと+12半音候補をSameBoyで比較し、候補は現行より違和感が大きいため不採用、現行データを維持すると評価した。原因は未特定でbridge問題は未解決。Humanの試聴結果の詳細は`docs/generated-maple-leaf-rag-16bars-melody-human-evaluation.md`を参照。
 - GitHub Actions [run `41586140138`](https://github.com/ak-sekine/pocket-sweeper/actions/runs/41586140138)はsuccessし、artifact `maple-leaf-rag-bridge-comparison-roms` (ID `13207473800`)に2 ROMを格納した。iPhoneから上記runのArtifacts欄で取得できる。期限は2026-12-03。

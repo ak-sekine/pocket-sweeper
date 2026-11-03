@@ -185,7 +185,7 @@ Git管理された自作JSON→UGE fixture、生成UGE、既存の`tests/test_an
 
 ## 12. コーパス不在環境
 
-clone直後などで`local/music-source-candidates/`が存在しなくても、build、標準unit test、WBS validator、生成UGE検証が成立することを原則とする。現在確認した`tests/test_analyze_uge.py`と`tests/test_generated_uge_validation.py`は、生成fixture・一時ファイルを使用し、外部21曲を必須依存にしていない。
+clone直後などで`local/music-source-candidates/`が存在しない、または一部の候補だけが配置された環境でも、build、標準unit test、WBS validator、生成UGE検証が成立することを原則とする。ディレクトリの存在は、WBSで参照するローカル素材がすべて揃っていることを意味しない。validatorは同ディレクトリ配下の未配置ファイル参照を許容し、存在する参照先は通常どおり検証する。現在確認した`tests/test_analyze_uge.py`と`tests/test_generated_uge_validation.py`は、生成fixture・一時ファイルを使用し、外部21曲を必須依存にしていない。
 
 local corpusを使う補助スクリプトや手動調査を将来追加する場合も、入力ディレクトリ不在を標準CIの失敗にしない。外部UGEを取得する処理、利用許諾を自動推測する処理、品質統計を生成する処理は本WBSの範囲外である。
 
