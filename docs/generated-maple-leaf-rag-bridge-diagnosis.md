@@ -81,3 +81,4 @@ PPQ 384、120 BPMの既存source recordでは各音が0.125秒。MIDI開始時�
 - RGBDS `rgbasm v1.0.4`、rgbfixでbaselineとcandidateの32 KiB ROMをビルド。baseline ROM SHAはHumanが試聴した既存ROMと一致した。
 - `python3 tools/analyze_uge.py`で両UGEがCH1 15 orders、CH1 87音+22 E00、他channel無音、960 row full cycle、loop一致を確認。
 - WBS-001-01771で対照ROMのHuman結果を記録。bridge NGを記録したがcandidateはHuman未試聴。SameBoy試聴後まで解決済みとは扱わない。
+- GitHub Actions [run `41586140138`](https://github.com/ak-sekine/pocket-sweeper/actions/runs/41586140138)はsuccessし、artifact `maple-leaf-rag-bridge-comparison-roms` (ID `13207473800`)に2 ROMを格納した。iPhoneから上記runのArtifacts欄で取得できる。期限は2026-12-03。

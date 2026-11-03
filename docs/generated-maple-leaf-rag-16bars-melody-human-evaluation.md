@@ -37,7 +37,7 @@
 4. 他区間、休符、16秒ループ、テンポが崩れていないか。
 5. 2案とも不自然なら、問題の聞こえ方と希望する方向（旋律らしさ、音域、原曲らしさ）を記録し、次の候補選定に使う。
 
-比較用ArtifactはGitHub Actions run `41580017338`とは別の成功runから取得する。iPhoneではrepository → Actions → “Maple Leaf Rag melody ROM” → comparison artifactを含むsuccessful run → Artifacts → `maple-leaf-rag-bridge-comparison-roms` を開く。
+比較用ArtifactはGitHub Actions [run `41586140138`](https://github.com/ak-sekine/pocket-sweeper/actions/runs/41586140138)から取得する。runはsuccess、artifact IDは`13207473800`、名前は`maple-leaf-rag-bridge-comparison-roms`、期限は2026-12-03。iPhoneではrepository → Actions → “Maple Leaf Rag melody ROM” → run `41586140138` → Artifacts → `maple-leaf-rag-bridge-comparison-roms` を開く。
 
 ## 状態
 
