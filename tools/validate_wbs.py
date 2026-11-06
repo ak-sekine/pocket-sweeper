@@ -81,8 +81,10 @@ def validate(directory=TASKS, root=ROOT):
             for ref in _refs(meta.get(field)):
                 matches = list((root / ref).parent.glob((root / ref).name)) if any(c in ref for c in "*?[") else [(root / ref) if (root / ref).exists() else None]
                 if not any(x is not None and x.exists() for x in matches):
-                    # The ignored local corpus can be absent or only partially provisioned.
-                    if ref.startswith("local/music-source-candidates/"):
+                    # This ignored corpus is optional, but once provisioned its
+                    # referenced files must exist so stale WBS paths are detected.
+                    corpus = root / "local/music-source-candidates"
+                    if ref.startswith("local/music-source-candidates/") and not corpus.exists():
                         continue
                     _error(issues, ident, path, f"{field}のパスが存在しません: {ref}")
         if meta.get("actor_review_required"): issues.append(("warning", ident, str(path), "担当未確定・要確認"))

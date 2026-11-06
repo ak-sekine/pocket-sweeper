@@ -43,16 +43,18 @@ class ValidateWbsTest(unittest.TestCase):
             p=write_task(d); p.write_text(p.read_text().replace("# 証跡", "# 欠落")); _, issues=validate(d, Path(d)); self.assertTrue(any("必須セクション不足" in x[3] for x in issues))
     def test_paths_and_source_separation(self):
         self.check_error(specs=["missing.md"]); self.check_error(related_files=["missing.md"]); self.check_error(source_wbs=["WBS-002-01000"], parent="WBS-002-01000"); self.check_error(source_wbs=["WBS-002-01000"], depends_on=["WBS-002-01000"])
-    def test_missing_optional_local_music_corpus_reference_is_allowed_when_absent_or_partial(self):
+    def test_missing_optional_local_music_corpus_reference_is_allowed_when_corpus_root_absent(self):
         with tempfile.TemporaryDirectory() as d:
             write_task(d, related_files=["local/music-source-candidates/pack/song.uge"])
             _, issues = validate(d, Path(d))
             self.assertFalse([item for item in issues if item[0] == "error"])
 
+    def test_missing_local_music_corpus_reference_is_error_when_corpus_root_exists(self):
+        with tempfile.TemporaryDirectory() as d:
+            write_task(d, related_files=["local/music-source-candidates/pack/song.uge"])
             Path(d, "local/music-source-candidates/other-pack").mkdir(parents=True)
-            Path(d, "local/music-source-candidates/other-pack/present.uge").write_bytes(b"UGE")
             _, issues = validate(d, Path(d))
-            self.assertFalse([item for item in issues if item[0] == "error"])
+            self.assertTrue(any(x[0] == "error" and "pack/song.uge" in x[3] for x in issues))
 
             Path(d, "local/music-source-candidates/pack").mkdir(parents=True)
             Path(d, "local/music-source-candidates/pack/song.uge").write_bytes(b"UGE")
